@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="THWTicketApp.TicketPage">
+    <VerticalStackLayout Padding="30" Spacing="20">
+        <Label Text="Tickets" FontSize="24" HorizontalOptions="Center" />
+        <Button Text="Refresh Tickets" Clicked="OnRefreshClicked" />
+        <CollectionView x:Name="TicketsCollectionView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Stroke="Gray" Margin="5" StrokeThickness="1" Padding="5">
+                        <VerticalStackLayout>
+                            <Label Text="{Binding Subject}" FontAttributes="Bold" />
+                            <Label Text="{Binding Issue}" />
+                            <Label Text="Status: {Binding Status.Name}" />
+                            <Label Text="Priority: {Binding Priority.Name}" />
+                            <Label Text="Owner: {Binding Owner.Fullname}" />
+                            <Label Text="Assignee: {Binding Assignee.Fullname}" />
+                            <Label Text="Created: {Binding Date}" />
+                            <Button Text="Assign Ticket" CommandParameter="{Binding Id}" Clicked="OnAssignClicked" />
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Entry x:Name="NewTicketTitleEntry" Placeholder="New Ticket Title" />
+        <Entry x:Name="NewTicketDescEntry" Placeholder="New Ticket Description" />
+        <Entry x:Name="AssignUserIdEntry" Placeholder="Assign to User ID" Keyboard="Numeric" />
+        <Button Text="Add Ticket" Clicked="OnAddTicketClicked" />
+        <Label x:Name="StatusLabel" Text="" TextColor="Green" />
+    </VerticalStackLayout>
+</ContentPage>
