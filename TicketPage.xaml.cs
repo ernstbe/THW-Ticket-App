@@ -13,7 +13,7 @@ public partial class TicketPage : ContentPage
     {
         InitializeComponent();
         _apiService = apiService;
-        TicketsCollectionView.ItemsSource = Tickets;
+        TicketsCollectionView.ItemsSource = this.Tickets;
         LoadTickets();
     }
 
