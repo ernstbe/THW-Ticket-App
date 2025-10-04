@@ -5,7 +5,7 @@
     <VerticalStackLayout Padding="30" Spacing="20">
         <Label Text="Tickets" FontSize="24" HorizontalOptions="Center" />
         <Button Text="Refresh Tickets" Clicked="OnRefreshClicked" />
-        <CollectionView x:Name="TicketsCollectionView">
+    <CollectionView x:Name="TicketsCollectionView" ItemsSource="{Binding Tickets}">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Border Stroke="Gray" Margin="5" StrokeThickness="1" Padding="5">
@@ -17,7 +17,8 @@
                             <Label Text="Owner: {Binding Owner.Fullname}" />
                             <Label Text="Assignee: {Binding Assignee.Fullname}" />
                             <Label Text="Created: {Binding Date}" />
-                            <Button Text="Assign Ticket" CommandParameter="{Binding Id}" Clicked="OnAssignClicked" />
+                            <!-- Show ticket ID for debugging -->
+                            <Label Text="ID: {Binding Id}" FontSize="10" TextColor="Gray" />
                         </VerticalStackLayout>
                     </Border>
                 </DataTemplate>
