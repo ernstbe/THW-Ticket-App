@@ -66,7 +66,7 @@ namespace THWTicketApp.ViewModels
             }
         }
 
-        private async Task AddTicket(Tuple<string, string, int> tuple)
+        private async Task AddTicket(Tuple<string, string, int>? tuple)
         {
             if (tuple != null)
             {

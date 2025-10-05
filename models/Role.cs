@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace THWTicketApp.Models;
 
 public class Role : BindableObject
@@ -8,4 +10,7 @@ public class Role : BindableObject
     public string Normalized { get; set; }
     public bool IsAdmin { get; set; }
     public bool IsAgent { get; set; }
+
+    [JsonPropertyName("_id")]
+    public string InternalId { get; set; }
 }

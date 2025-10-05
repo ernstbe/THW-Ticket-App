@@ -11,7 +11,7 @@ public class Ticket : BindableObject
     public bool Deleted { get; set; }
     public TicketType Type { get; set; }
     public Priority Priority { get; set; }
-    public List<string> Tags { get; set; }
+    public List<Tag> Tags { get; set; }
     public string Subject { get; set; }
     public string Issue { get; set; }
     public List<string> Subscribers { get; set; }
@@ -25,4 +25,8 @@ public class Ticket : BindableObject
     public int Uid { get; set; }
     [JsonPropertyName("__v")]
     public int Version { get; set; }
+    public DateTime DueDate { get; set; }
+    public DateTime CloseDate { get; set; }
+    public Assignee Assignee { get; set; }
+    public DateTime Updated { get; set; }
 }

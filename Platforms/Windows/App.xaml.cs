@@ -16,7 +16,7 @@ public partial class App : MauiWinUIApplication
 	/// </summary>
 	public App()
 	{
-		this.InitializeComponent();
+		// No InitializeComponent() required for MAUI WinUI App
 	}
 
 	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
