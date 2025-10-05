@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:THWTicketApp.Models"
              x:Class="THWTicketApp.TicketPage">
     <VerticalStackLayout Padding="30" Spacing="20">
         <Label Text="Tickets" FontSize="24" HorizontalOptions="Center" />
-        <Button Text="Refresh Tickets" Clicked="OnRefreshClicked" />
+        <Button Text="Refresh Tickets" Command="{Binding OnRefreshClicked}" />
     <CollectionView x:Name="TicketsCollectionView" ItemsSource="{Binding Tickets}" SelectionMode="None">
             <CollectionView.ItemTemplate>                
                 <DataTemplate x:DataType="models:Ticket">                    
@@ -25,7 +26,7 @@
                         </Grid.ColumnDefinitions>                                                
                         <Label Grid.Column="0" Text="Status: {Binding Status.Name}" />
                         <Image Grid.Column="1" Source="{Binding Owner.AvatarUrl}" WidthRequest="50" HeightRequest="50" Aspect="AspectFill" Margin="0,0,10,0"/>                                                            
-                        <Label Grid.Column="2" Text="{Binding .Subject}" FontAttributes="Bold" />                                                                        
+                        <Label Grid.Column="2" Text="{Binding Subject}" FontAttributes="Bold" />                                                                        
                         <Label Grid.Column="3" Text="Priority: {Binding Priority.Name}" />
                         <Label Grid.Column="4" Text="Owner: {Binding Owner.Fullname}" />
                         <Label Grid.Column="5" Text="Assignee: {Binding Assignee.Fullname}" />
@@ -40,6 +41,6 @@
         <Entry x:Name="NewTicketDescEntry" Placeholder="New Ticket Description" />
         <Entry x:Name="AssignUserIdEntry" Placeholder="Assign to User ID" Keyboard="Numeric" />
         <Button Text="Add Ticket" Clicked="OnAddTicketClicked" />
-        <Label x:Name="StatusLabel" Text="" TextColor="Green" />
+    <Label Text="{Binding StatusMessage}" TextColor="Green" />
     </VerticalStackLayout>
 </ContentPage>

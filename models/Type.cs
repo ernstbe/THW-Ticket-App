@@ -1,3 +1,5 @@
+namespace THWTicketApp.Models;
+
 public class Type
     {
         public string Id { get; set; }
