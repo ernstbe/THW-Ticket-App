@@ -15,29 +15,61 @@ public partial class TicketPageViewModel : ObservableObject
     private List<Ticket> _allTickets = [];
     private bool _isOfflineCacheEnabled;
 
-    [ObservableProperty]
     private string _statusMessage = string.Empty;
+    public string StatusMessage
+    {
+        get => _statusMessage;
+        set => SetProperty(ref _statusMessage, value);
+    }
 
-    [ObservableProperty]
-    private ObservableCollection<Ticket> _tickets = [];
+    private ObservableCollection<Ticket> _tickets = new();
+    public ObservableCollection<Ticket> Tickets
+    {
+        get => _tickets;
+        set => SetProperty(ref _tickets, value);
+    }
 
-    [ObservableProperty]
-    private ObservableCollection<Ticket> _filteredTickets = [];
+    private ObservableCollection<Ticket> _filteredTickets = new();
+    public ObservableCollection<Ticket> FilteredTickets
+    {
+        get => _filteredTickets;
+        set => SetProperty(ref _filteredTickets, value);
+    }
 
-    [ObservableProperty]
     private bool _isLoading;
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set => SetProperty(ref _isLoading, value);
+    }
 
-    [ObservableProperty]
     private bool _isRefreshing;
+    public bool IsRefreshing
+    {
+        get => _isRefreshing;
+        set => SetProperty(ref _isRefreshing, value);
+    }
 
-    [ObservableProperty]
     private string _searchText = string.Empty;
+    public string SearchText
+    {
+        get => _searchText;
+        set => SetProperty(ref _searchText, value);
+    }
 
-    [ObservableProperty]
     private string _activeFilter = "all";
+    public string ActiveFilter
+    {
+        get => _activeFilter;
+        set => SetProperty(ref _activeFilter, value);
+    }
 
-    [ObservableProperty]
     private bool _isOfflineMode;
+    public bool IsOfflineMode
+    {
+        get => _isOfflineMode;
+        set => SetProperty(ref _isOfflineMode, value);
+    }
 
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
 

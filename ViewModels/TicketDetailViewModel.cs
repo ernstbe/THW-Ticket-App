@@ -11,26 +11,61 @@ namespace THWTicketApp.ViewModels
     public partial class TicketDetailViewModel : ObservableObject
     {
 <<<<<<< HEAD
-        [ObservableProperty]
         private Ticket? _ticket;
+        public Ticket? Ticket
+        {
+            get => _ticket;
+            set => SetProperty(ref _ticket, value);
+        }
 
-        [ObservableProperty]
         private string _newComment = string.Empty;
-        [ObservableProperty]
-        [ObservableProperty]
+        public string NewComment
+        {
+            get => _newComment;
+            set => SetProperty(ref _newComment, value);
+        }
+
         private string _editSubject = string.Empty;
-        private ObservableCollection<User> _users = new();
-        [ObservableProperty]
+        public string EditSubject
+        {
+            get => _editSubject;
+            set => SetProperty(ref _editSubject, value);
+        }
+
         private string _editIssue = string.Empty;
+        public string EditIssue
+        {
+            get => _editIssue;
+            set => SetProperty(ref _editIssue, value);
+        }
 
-        [ObservableProperty]
         private string _statusMessage = string.Empty;
-        private readonly TrueDeskApiService _apiService;
-        [ObservableProperty]
-        private User? _selectedAssignee;
+        public string StatusMessage
+        {
+            get => _statusMessage;
+            set => SetProperty(ref _statusMessage, value);
+        }
 
-        [ObservableProperty]
+        private User? _selectedAssignee;
+        public User? SelectedAssignee
+        {
+            get => _selectedAssignee;
+            set => SetProperty(ref _selectedAssignee, value);
+        }
+
         private ObservableCollection<User> _users = new();
+        public ObservableCollection<User> Users
+        {
+            get => _users;
+            set => SetProperty(ref _users, value);
+        }
+
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set => SetProperty(ref _isLoading, value);
+        }
         public TicketDetailViewModel(Ticket ticket, TrueDeskApiService apiService)
         private readonly TrueDeskApiService _apiService;
         {

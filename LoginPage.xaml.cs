@@ -1,16 +1,15 @@
-using THWTicketApp.Services;
+using THWTicketApp.ViewModels;
 
 namespace THWTicketApp;
 
 public partial class LoginPage : ContentPage
 {
-    private readonly TrueDeskApiService _apiService = new TrueDeskApiService();
     private readonly ViewModels.LoginPageViewModel _viewModel;
 
-    public LoginPage()
+    public LoginPage(LoginPageViewModel viewModel)
     {
         InitializeComponent();
-        _viewModel = new ViewModels.LoginPageViewModel(_apiService);
+        _viewModel = viewModel;
         BindingContext = _viewModel;
     }
 }

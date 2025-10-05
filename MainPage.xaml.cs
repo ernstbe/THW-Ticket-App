@@ -1,14 +1,16 @@
-﻿namespace THWTicketApp;
+﻿using THWTicketApp.ViewModels;
+
+namespace THWTicketApp;
 
 public partial class MainPage : ContentPage
 {
 
-    private readonly ViewModels.MainPageViewModel _viewModel;
+    private readonly MainPageViewModel _viewModel;
 
-    public MainPage()
+    public MainPage(MainPageViewModel viewModel)
     {
         InitializeComponent();
-        _viewModel = new ViewModels.MainPageViewModel();
+        _viewModel = viewModel;
         BindingContext = _viewModel;
     }
 }
