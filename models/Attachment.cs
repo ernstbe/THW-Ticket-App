@@ -1,3 +1,3 @@
-    namespace TicketApp.Models;
+namespace THWTicketApp.Models;
 
     public class Attachment{ }

@@ -4,9 +4,9 @@
              x:Class="THWTicketApp.LoginPage">
     <VerticalStackLayout Padding="30" Spacing="20">
         <Label Text="Login to TrueDesk" FontSize="24" HorizontalOptions="Center" />
-        <Entry x:Name="UsernameEntry" Placeholder="Username" />
-        <Entry x:Name="PasswordEntry" Placeholder="Password" IsPassword="True" />
-        <Button Text="Login" Clicked="OnLoginClicked" />
-        <Label x:Name="LoginStatusLabel" Text="" TextColor="Red" />
+    <Entry Placeholder="Username" Text="{Binding Username}" />
+    <Entry Placeholder="Password" IsPassword="True" Text="{Binding Password}" />
+    <Button Text="Login" Command="{Binding LoginCommand}" />
+    <Label Text="{Binding LoginStatus}" TextColor="Red" />
     </VerticalStackLayout>
 </ContentPage>

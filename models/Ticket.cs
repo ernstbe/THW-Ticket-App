@@ -1,9 +1,9 @@
-namespace TicketApp.Models;
+namespace THWTicketApp.Models;
 
 using System.Collections.Generic;
 
 
- public class Ticket
+ public class Ticket: BindableObject
     {
         public string Id { get; set; }
         public Group Group { get; set; }
@@ -11,7 +11,7 @@ using System.Collections.Generic;
         public Type Type { get; set; }
         public Priority Priority { get; set; }
         public List<string> Tags { get; set; }
-        public string Subject { get; set; }
+        public string Subject { get; set; } = "Test";
         public string Issue { get; set; }
         public List<string> Subscribers { get; set; }
         public string Date { get; set; }

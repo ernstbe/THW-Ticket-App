@@ -1,1 +1,2 @@
-    public class Note { }
+namespace THWTicketApp.Models;
+public class Note { }
