@@ -5,22 +5,34 @@
     <VerticalStackLayout Padding="30" Spacing="20">
         <Label Text="Tickets" FontSize="24" HorizontalOptions="Center" />
         <Button Text="Refresh Tickets" Clicked="OnRefreshClicked" />
-    <CollectionView x:Name="TicketsCollectionView" ItemsSource="{Binding Tickets}">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Border Stroke="Gray" Margin="5" StrokeThickness="1" Padding="5">
-                        <VerticalStackLayout>
-                            <Label Text="{Binding Subject}" FontAttributes="Bold" />
-                            <Label Text="{Binding Issue}" />
-                            <Label Text="Status: {Binding Status.Name}" />
-                            <Label Text="Priority: {Binding Priority.Name}" />
-                            <Label Text="Owner: {Binding Owner.Fullname}" />
-                            <Label Text="Assignee: {Binding Assignee.Fullname}" />
-                            <Label Text="Created: {Binding Date}" />
-                            <!-- Show ticket ID for debugging -->
-                            <Label Text="ID: {Binding Id}" FontSize="10" TextColor="Gray" />
-                        </VerticalStackLayout>
-                    </Border>
+    <CollectionView x:Name="TicketsCollectionView" ItemsSource="{Binding Tickets}" SelectionMode="None">
+            <CollectionView.ItemTemplate>                
+                <DataTemplate x:DataType="models:Ticket">                    
+                    <Grid Padding="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />                            
+                        </Grid.ColumnDefinitions>                                                
+                        <Label Grid.Column="0" Text="Status: {Binding Status.Name}" />
+                        <Image Grid.Column="1" Source="{Binding Owner.AvatarUrl}" WidthRequest="50" HeightRequest="50" Aspect="AspectFill" Margin="0,0,10,0"/>                                                            
+                        <Label Grid.Column="2" Text="{Binding .Subject}" FontAttributes="Bold" />                                                                        
+                        <Label Grid.Column="3" Text="Priority: {Binding Priority.Name}" />
+                        <Label Grid.Column="4" Text="Owner: {Binding Owner.Fullname}" />
+                        <Label Grid.Column="5" Text="Assignee: {Binding Assignee.Fullname}" />
+                        <Label Grid.Column="6" Text="Created: {Binding Date}" />
+                        <!-- Show ticket ID for debugging -->
+                        <Label Grid.Column="7" Text="ID: {Binding Id}" FontSize="10" TextColor="Gray" />
+                    </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
