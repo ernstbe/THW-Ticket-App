@@ -15,7 +15,9 @@ public partial class LoginPage : ContentPage
     {
         LoginStatusLabel.Text = "Logging in...";
         var username = UsernameEntry.Text;
+        username= "ErnstBe";
         var password = PasswordEntry.Text;
+        password= "Darkben123";
         var success = await _apiService.AuthenticateAsync(username, password);
         if (success)
         {
