@@ -20,7 +20,8 @@ namespace THWTicketApp.ViewModels
         public AsyncRelayCommand LoadTicketsAsync { get; }
         public AsyncRelayCommand<Tuple<string, string, int>> AddTicketAsync { get; }
 
-        private readonly TrueDeskApiService _apiService;
+    private readonly TrueDeskApiService _apiService;
+    public TrueDeskApiService ApiService => _apiService;
 
 
         public TicketPageViewModel(TrueDeskApiService apiService)

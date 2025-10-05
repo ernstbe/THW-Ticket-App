@@ -1,8 +1,9 @@
-using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using THWTicketApp.Models;
+using THWTicketApp.Models.Responses;
 
 namespace THWTicketApp.Services
 {
@@ -57,11 +58,31 @@ namespace THWTicketApp.Services
             return await response.Content.ReadAsStringAsync();
         }
 
-        public async Task<string> AssignTicketAsync(int ticketId, int userId)
+        public async Task<bool> AssignTicketAsync(string ticketId, string userId)
         {
-            var payload = new { userId };
+            var payload = new Ticket { Id = ticketId, Assignee = new Assignee { Id = userId } };
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync($"{BaseUrl}/tickets/{ticketId}/assign", content);
+            var response = await _httpClient.PutAsync($"{BaseUrl}/tickets/{ticketId}", content);
+            return response.IsSuccessStatusCode;
+        }
+
+        internal async Task<bool> AddCommentAsync(string id, string ownerId, string newComment)
+        {
+            var payload = new { ticketId = id, owner = ownerId, comment = newComment };
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{BaseUrl}/tickets/addcomment", content);
+            return response.IsSuccessStatusCode;
+        }
+
+        internal async Task<bool> EditTicketAsync(Ticket ticket)
+        {
+            await Task.CompletedTask;
+            return true;
+        }
+
+        internal async Task<string> GetUsers()
+        {
+            var response = _httpClient.GetAsync($"{BaseUrl}/users").Result;
             return await response.Content.ReadAsStringAsync();
         }
     }

@@ -18,20 +18,20 @@ namespace THWTicketApp.ViewModels
         [RelayCommand]
         private async Task Login()
         {
-            if (string.IsNullOrWhiteSpace(Username) & string.IsNullOrWhiteSpace(Password))
+            if (string.IsNullOrWhiteSpace(Username) && string.IsNullOrWhiteSpace(Password))
             {
                 Username = "Ernstbe";
                 Password = "Darkben123";
-
             }
             LoginStatus = "Logging in...";
             var success = await _apiService.AuthenticateAsync(Username, Password);
             if (success)
             {
                 LoginStatus = "Login successful!";
-                if (Application.Current?.Windows.Count > 0)
+                // Use PushAsync for navigation
+                if (Application.Current?.MainPage is NavigationPage nav)
                 {
-                    Application.Current.MainPage = ticketPage;
+                    await nav.PushAsync(ticketPage);
                 }
             }
             else
