@@ -1,4 +1,5 @@
-    namespace TicketApp.Models;
+namespace THWTicketApp.Models;
+
 public class History
 {
     public string Action { get; set; }
