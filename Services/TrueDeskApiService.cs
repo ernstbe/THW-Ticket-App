@@ -35,10 +35,10 @@ namespace THWTicketApp.Services
                     return true;
                 }
                 return false;
-                   }
+            }
             catch (System.Exception)
             {
-                
+
                 throw;
             }
         }

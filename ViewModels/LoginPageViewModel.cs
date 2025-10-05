@@ -1,30 +1,29 @@
-using Microsoft.Maui.Controls;
-using System;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using THWTicketApp.Services;
 
 namespace THWTicketApp.ViewModels
 {
-    public partial class LoginPageViewModel : ObservableObject
+    public partial class LoginPageViewModel(TrueDeskApiService apiService, TicketPage ticketPage) : ObservableObject
     {
-    private readonly TrueDeskApiService _apiService;
-    [ObservableProperty]
-    private string _username = string.Empty;
-    [ObservableProperty]
-    private string _password = string.Empty;
-    [ObservableProperty]
-    private string _loginStatus = string.Empty;
-
-        public LoginPageViewModel(TrueDeskApiService apiService)
-        {
-            _apiService = apiService;
-        }
+        private readonly TicketPage ticketPage = ticketPage;
+        private readonly TrueDeskApiService _apiService = apiService;
+        [ObservableProperty]
+        private string _username = string.Empty;
+        [ObservableProperty]
+        private string _password = string.Empty;
+        [ObservableProperty]
+        private string _loginStatus = string.Empty;
 
         [RelayCommand]
         private async Task Login()
         {
+            if (string.IsNullOrWhiteSpace(Username) & string.IsNullOrWhiteSpace(Password))
+            {
+                Username = "Ernstbe";
+                Password = "Darkben123";
+
+            }
             LoginStatus = "Logging in...";
             var success = await _apiService.AuthenticateAsync(Username, Password);
             if (success)
@@ -32,7 +31,7 @@ namespace THWTicketApp.ViewModels
                 LoginStatus = "Login successful!";
                 if (Application.Current?.Windows.Count > 0)
                 {
-                    Application.Current.Windows[0].Page = new TicketPage(_apiService);
+                    Application.Current.MainPage = ticketPage;
                 }
             }
             else

@@ -1,6 +1,6 @@
 namespace THWTicketApp.Models;
 
-public class Role
+public class Role : BindableObject
 {
     public string Id { get; set; }
     public string Name { get; set; }

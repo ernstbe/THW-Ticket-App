@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using THWTicketApp.Models;
@@ -11,32 +9,43 @@ namespace THWTicketApp.ViewModels
 {
     public partial class TicketPageViewModel : ObservableObject
     {
+
+        [ObservableProperty]
+        public string statusMessage = string.Empty;
+
+        [ObservableProperty]
+        public ObservableCollection<Ticket> tickets = new();
+
+        public AsyncRelayCommand RefreshTicketsAsync { get; }
+        public AsyncRelayCommand LoadTicketsAsync { get; }
+        public AsyncRelayCommand<Tuple<string, string, int>> AddTicketAsync { get; }
+
         private readonly TrueDeskApiService _apiService;
-        [ObservableProperty]
-        private string statusMessage = string.Empty;
-        [ObservableProperty]
-        private ObservableCollection<Ticket> tickets = new();
+
 
         public TicketPageViewModel(TrueDeskApiService apiService)
         {
             _apiService = apiService;
-            Task.Run(async () => await LoadTicketsAsync());
+            RefreshTicketsAsync = new AsyncRelayCommand(() => LoadTickets());
+            LoadTicketsAsync = new AsyncRelayCommand(() => LoadTickets());
+            AddTicketAsync = new AsyncRelayCommand<Tuple<string, string, int>>((data) => AddTicket(data));
         }
 
 
-
-        // Removed: event handler not needed in ViewModel
-
-    [RelayCommand]
-    public async Task LoadTicketsAsync()
+        public async Task LoadTickets()
         {
             try
             {
                 StatusMessage = "Loading tickets...";
                 var json = await _apiService.GetTicketsAsync();
                 Tickets.Clear();
-                var tickets = System.Text.Json.JsonSerializer.Deserialize<List<Ticket>>(json);
-                if (tickets == null || tickets.Count == 0)
+                Console.WriteLine(json);
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var tickets = JsonSerializer.Deserialize<Ticket[]>(json, options);
+                if (tickets == null || tickets.Count() == 0)
                 {
                     StatusMessage = "No tickets found.";
                     return;
@@ -52,17 +61,18 @@ namespace THWTicketApp.ViewModels
             catch (System.Exception ex)
             {
                 StatusMessage = $"Error: {ex.Message}";
+                throw;
+
             }
         }
 
-        [RelayCommand]
-        public async Task AddTicketAsync(Tuple<string, string, int> tuple)
+        private async Task AddTicket(Tuple<string, string, int> tuple)
         {
             if (tuple != null)
             {
                 var result = await _apiService.AddTicketAsync(tuple.Item1, tuple.Item2, tuple.Item3);
                 StatusMessage = "Ticket added.";
-                await LoadTicketsAsync();
+                await LoadTickets();
             }
             else
             {

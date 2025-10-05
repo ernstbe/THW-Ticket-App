@@ -2,14 +2,16 @@
 
 public partial class App : Application
 {
-	public App()
+	private readonly LoginPage _loginPage;
+	public App(LoginPage loginPage)
 	{
 		InitializeComponent();
+		_loginPage = loginPage;
 	}
 
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
 		// Start with LoginPage
-		return new Window(new LoginPage());
+		return new Window(_loginPage);
 	}
 }
