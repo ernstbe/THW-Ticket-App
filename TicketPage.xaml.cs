@@ -1,19 +1,20 @@
-using THWTicketApp.Services;
-using System;
-using Microsoft.Maui.Controls;
-
 namespace THWTicketApp;
 
 public partial class TicketPage : ContentPage
 {
-    private readonly TrueDeskApiService _apiService;
+
     private readonly ViewModels.TicketPageViewModel _viewModel;
 
-    public TicketPage(TrueDeskApiService apiService)
+    public TicketPage(ViewModels.TicketPageViewModel viewModel)
     {
         InitializeComponent();
-        _apiService = apiService;
-        _viewModel = new ViewModels.TicketPageViewModel(_apiService);
+        _viewModel = viewModel;
         BindingContext = _viewModel;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await _viewModel.LoadTickets();
     }
 }
