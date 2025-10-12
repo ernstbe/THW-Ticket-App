@@ -10,7 +10,6 @@ namespace THWTicketApp.ViewModels
 {
     public partial class TicketDetailViewModel : ObservableObject
     {
-<<<<<<< HEAD
         private Ticket? _ticket;
         public Ticket? Ticket
         {
@@ -37,6 +36,238 @@ namespace THWTicketApp.ViewModels
         {
             get => _editIssue;
             set => SetProperty(ref _editIssue, value);
+        }
+
+        private string _statusMessage = string.Empty;
+        public string StatusMessage
+        {
+            get => _statusMessage;
+            set => SetProperty(ref _statusMessage, value);
+        }
+
+        private User? _selectedAssignee;
+        public User? SelectedAssignee
+        {
+            get => _selectedAssignee;
+            set => SetProperty(ref _selectedAssignee, value);
+        }
+
+        private ObservableCollection<User> _users = new();
+        public ObservableCollection<User> Users
+        {
+            get => _users;
+            set => SetProperty(ref _users, value);
+        }
+
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set => SetProperty(ref _isLoading, value);
+        }
+
+        private readonly TrueDeskApiService _apiService;
+
+        public TicketDetailViewModel(TrueDeskApiService apiService)
+        {
+            _apiService = apiService;
+        }
+
+        public void SetTicket(Ticket ticket)
+        {
+            Ticket = ticket;
+            EditSubject = ticket.Subject ?? string.Empty;
+            EditIssue = ticket.Issue ?? string.Empty;
+        }
+
+        public async Task LoadUsers()
+        {
+            try
+            {
+                var json = await _apiService.GetUsersAsync();
+                Users.Clear();
+                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var userResponse = System.Text.Json.JsonSerializer.Deserialize<GetUserResponse>(json, options);
+                if (userResponse != null)
+                {
+                    if (userResponse.Count == 0)
+                    {
+                        StatusMessage = "No users found.";
+                        return;
+                    }
+                    foreach (var user in userResponse.Users)
+                    {
+                        Users.Add(user);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Failed to load users.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task AssignAsync()
+        {
+            if (Ticket == null || SelectedAssignee == null)
+            {
+                StatusMessage = "Please select an assignee.";
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                var success = await _apiService.AssignTicketAsync(Ticket.Id, SelectedAssignee.Id);
+                StatusMessage = success ? "Assignment updated." : "Assignment failed.";
+                if (success)
+                {
+                    // reload ticket
+                    var json = await _apiService.GetTicketAsync(Ticket.Id);
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
+                    if (updated != null)
+                    {
+                        Ticket = updated;
+                        THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Failed to update assignment.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task ClearAssigneeAsync()
+        {
+            if (Ticket == null)
+            {
+                StatusMessage = "No ticket selected.";
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                var success = await _apiService.ClearTicketAssigneeAsync(Ticket.Id);
+                if (success)
+                {
+                    Ticket.Assignee = null;
+                    StatusMessage = "Assignee cleared.";
+                    var json = await _apiService.GetTicketAsync(Ticket.Id);
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
+                    if (updated != null)
+                    {
+                        Ticket = updated;
+                        THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
+                    }
+                }
+                else
+                {
+                    StatusMessage = "Failed to clear assignee.";
+                }
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Error clearing assignee.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task AddCommentAsync()
+        {
+            if (Ticket == null)
+            {
+                StatusMessage = "No ticket selected.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(NewComment))
+            {
+                StatusMessage = "Please enter a comment.";
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                var ownerId = Ticket.Owner?.Id ?? string.Empty;
+                var success = await _apiService.AddCommentAsync(Ticket.Id, ownerId, NewComment);
+                if (success)
+                {
+                    StatusMessage = "Comment added.";
+                    NewComment = string.Empty;
+                    var json = await _apiService.GetTicketAsync(Ticket.Id);
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
+                    if (updated != null)
+                    {
+                        Ticket = updated;
+                        THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
+                    }
+                }
+                else
+                {
+                    StatusMessage = "Failed to add comment.";
+                }
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Error adding comment.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task EditAsync()
+        {
+            if (Ticket == null)
+            {
+                StatusMessage = "No ticket selected.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(EditSubject))
+            {
+                StatusMessage = "Subject is required.";
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                Ticket.Subject = EditSubject;
+                Ticket.Issue = EditIssue;
+                var success = await _apiService.EditTicketAsync(Ticket);
+                StatusMessage = success ? "Ticket updated." : "Update failed.";
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Error updating ticket.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private string _statusMessage = string.Empty;
@@ -131,6 +362,10 @@ namespace THWTicketApp.ViewModels
 =======
         [ObservableProperty]
         private Ticket? _ticket;
+=======
+    [ObservableProperty]
+    private Ticket? _ticket;
+>>>>>>> b53bf30 (Implement ticket assignment and clearing functionality; update TicketDetailPage and TicketDetailViewModel for enhanced user interaction and data handling)
 
         [ObservableProperty]
         private string _newComment = string.Empty;
@@ -163,8 +398,8 @@ namespace THWTicketApp.ViewModels
         public void SetTicket(Ticket ticket)
         {
             Ticket = ticket;
-            EditSubject = ticket.Subject ?? string.Empty;
-            EditIssue = ticket.Issue ?? string.Empty;
+            EditSubject = ticket?.Subject ?? string.Empty;
+            EditIssue = ticket?.Issue ?? string.Empty;
         }
 
         public async Task LoadUsersAsync()
@@ -199,6 +434,7 @@ namespace THWTicketApp.ViewModels
                     }
         private async Task AddCommentAsync()
             }
+<<<<<<< HEAD
             catch (Exception)
             {
                 StatusMessage = "Failed to load users.";
@@ -306,7 +542,85 @@ namespace THWTicketApp.ViewModels
                 {
                     StatusMessage = "Comment added.";
                     NewComment = string.Empty;
+<<<<<<< HEAD
 >>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
+=======
+=======
+
+        }
+
+        [RelayCommand]
+        private async Task Assign()
+        {
+            if (SelectedAssignee == null)
+            {
+                StatusMessage = "No assignee selected.";
+                return;
+            }
+
+            var success = await _apiService.AssignTicketAsync(Ticket.Id, SelectedAssignee.Id);
+            StatusMessage = success ? "Assignment updated." : "Assignment failed.";
+            if (success)
+            {
+                // reload ticket
+                var json = await _apiService.GetTicketAsync(Ticket.Id);
+                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
+                if (updated != null)
+                {
+                    Ticket = updated;
+                    THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
+                }
+            }
+        }
+
+        [RelayCommand]
+        private async Task ClearAssignee()
+        {
+            var success = await _apiService.ClearTicketAssigneeAsync(Ticket.Id);
+            if (success)
+            {
+                Ticket.Assignee = null;
+                StatusMessage = "Assignee cleared.";
+                var json = await _apiService.GetTicketAsync(Ticket.Id);
+                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
+                if (updated != null)
+                {
+                    Ticket = updated;
+                    THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
+                }
+            }
+            else
+            {
+                StatusMessage = "Failed to clear assignee.";
+            }
+        }
+
+        [RelayCommand]
+        private async Task AddComment()
+        {
+            if (!string.IsNullOrWhiteSpace(NewComment))
+            {
+                var ownerId = Ticket.Owner?.Id;
+                var comment = false;
+                if (!string.IsNullOrWhiteSpace(ownerId))
+                {
+                    comment = await _apiService.AddCommentAsync(Ticket.Id, ownerId, NewComment);
+                }
+                if (comment)
+                {
+                    StatusMessage = "Comment added.";
+                    var json = await _apiService.GetTicketAsync(Ticket.Id);
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
+                        if (updated != null)
+                        {
+                            Ticket = updated;
+                            THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
+                        }
+>>>>>>> c547f7b (Implement ticket assignment and clearing functionality; update TicketDetailPage and TicketDetailViewModel for enhanced user interaction and data handling)
+>>>>>>> b53bf30 (Implement ticket assignment and clearing functionality; update TicketDetailPage and TicketDetailViewModel for enhanced user interaction and data handling)
                 }
                 else
                 {

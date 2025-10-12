@@ -22,6 +22,22 @@
 <<<<<<< HEAD
     <HorizontalStackLayout Spacing="10">
         <Button Text="Zuweisen"
+            Command="{Binding AssignAsyncCommand}" />
+        <Button Text="Zuweisung entfernen"
+            Command="{Binding ClearAssigneeAsyncCommand}" />
+    </HorizontalStackLayout>
+    
+    <!-- Add comment -->
+    <Editor Placeholder="Neuen Kommentar eingeben..." Text="{Binding NewComment}" HeightRequest="80" />
+    <Button Text="Kommentar hinzufügen" Command="{Binding AddCommentAsyncCommand}" />
+
+    <!-- Edit ticket -->
+    <Entry Placeholder="Bearbeite Titel" Text="{Binding EditSubject}" />
+    <Editor Placeholder="Bearbeite Beschreibung" Text="{Binding EditIssue}" HeightRequest="120" />
+    <Button Text="Änderungen speichern" Command="{Binding EditAsyncCommand}" />
+=======
+    <HorizontalStackLayout Spacing="10">
+        <Button Text="Zuweisen"
             Command="{Binding AssignCommand}" />
         <Button Text="Zuweisung entfernen"
             Command="{Binding ClearAssigneeCommand}" />
@@ -35,10 +51,7 @@
     <Entry Placeholder="Bearbeite Titel" Text="{Binding EditSubject}" />
     <Editor Placeholder="Bearbeite Beschreibung" Text="{Binding EditIssue}" HeightRequest="120" />
     <Button Text="Änderungen speichern" Command="{Binding EditCommand}" />
-=======
-        <Button Text="Zuweisen"
-                Command="{Binding AssignCommand}"/>
->>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
+>>>>>>> b53bf30 (Implement ticket assignment and clearing functionality; update TicketDetailPage and TicketDetailViewModel for enhanced user interaction and data handling)
         <Label Text="Comments:"
                FontAttributes="Bold"/>
         <CollectionView ItemsSource="{Binding Ticket.Comments}">
