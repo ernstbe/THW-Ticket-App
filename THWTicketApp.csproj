@@ -44,10 +44,14 @@
 	<ItemGroup>
 		<!-- App Icon -->
 <<<<<<< HEAD
+<<<<<<< HEAD
 		<MauiIcon Include="Resources\AppIcon\logo_thw_min_svg.svg" ForegroundFile="Resources\AppIcon\logo_thw_min_svg.svg" Color="#512BD4" />
 =======
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
 >>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
+=======
+		<MauiIcon Include="Resources\AppIcon\logo_thw_min_svg.svg" ForegroundFile="Resources\AppIcon\logo_thw_min_svg.svg" Color="#512BD4" />
+>>>>>>> 34577dc (Remove unused SVG file, update application ID, and add new logo images in PNG and SVG formats)
 
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
