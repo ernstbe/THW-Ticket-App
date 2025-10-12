@@ -15,7 +15,7 @@ namespace THWTicketApp.ViewModels
         [ObservableProperty] private string editSubject;
         [ObservableProperty] private string editIssue;
         [ObservableProperty] private string statusMessage;
-        [ObservableProperty] private User selectedAssignee;
+    [ObservableProperty] private User? selectedAssignee;
 
         [ObservableProperty]
         private ObservableCollection<User> _users = new();
@@ -26,8 +26,11 @@ namespace THWTicketApp.ViewModels
         {
             Ticket = ticket;
             _apiService = apiService;
-            EditSubject = ticket.Subject;
-            EditIssue = ticket.Issue;
+            NewComment = string.Empty;
+            StatusMessage = string.Empty;
+            SelectedAssignee = null;
+            EditSubject = ticket?.Subject ?? string.Empty;
+            EditIssue = ticket?.Issue ?? string.Empty;
         }
 
         public async Task LoadUsers()
@@ -60,8 +63,49 @@ namespace THWTicketApp.ViewModels
         [RelayCommand]
         private async Task Assign()
         {
+            if (SelectedAssignee == null)
+            {
+                StatusMessage = "No assignee selected.";
+                return;
+            }
+
             var success = await _apiService.AssignTicketAsync(Ticket.Id, SelectedAssignee.Id);
             StatusMessage = success ? "Assignment updated." : "Assignment failed.";
+            if (success)
+            {
+                // reload ticket
+                var json = await _apiService.GetTicketAsync(Ticket.Id);
+                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
+                if (updated != null)
+                {
+                    Ticket = updated;
+                    THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
+                }
+            }
+        }
+
+        [RelayCommand]
+        private async Task ClearAssignee()
+        {
+            var success = await _apiService.ClearTicketAssigneeAsync(Ticket.Id);
+            if (success)
+            {
+                Ticket.Assignee = null;
+                StatusMessage = "Assignee cleared.";
+                var json = await _apiService.GetTicketAsync(Ticket.Id);
+                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
+                if (updated != null)
+                {
+                    Ticket = updated;
+                    THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
+                }
+            }
+            else
+            {
+                StatusMessage = "Failed to clear assignee.";
+            }
         }
 
         [RelayCommand]
@@ -69,10 +113,23 @@ namespace THWTicketApp.ViewModels
         {
             if (!string.IsNullOrWhiteSpace(NewComment))
             {
-                var comment = await _apiService.AddCommentAsync(Ticket.Id, Ticket.Owner.Id, NewComment);
-                if (comment == true)
+                var ownerId = Ticket.Owner?.Id;
+                var comment = false;
+                if (!string.IsNullOrWhiteSpace(ownerId))
+                {
+                    comment = await _apiService.AddCommentAsync(Ticket.Id, ownerId, NewComment);
+                }
+                if (comment)
                 {
                     StatusMessage = "Comment added.";
+                    var json = await _apiService.GetTicketAsync(Ticket.Id);
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
+                        if (updated != null)
+                        {
+                            Ticket = updated;
+                            THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
+                        }
                 }
                 else
                 {

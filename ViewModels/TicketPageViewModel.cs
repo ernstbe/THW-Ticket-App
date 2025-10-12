@@ -30,6 +30,12 @@ namespace THWTicketApp.ViewModels
             RefreshTicketsAsync = new AsyncRelayCommand(() => LoadTickets());
             LoadTicketsAsync = new AsyncRelayCommand(() => LoadTickets());
             AddTicketAsync = new AsyncRelayCommand<Tuple<string, string, int>>((data) => AddTicket(data));
+
+            // Subscribe to ticket updates via NotificationCenter
+            THWTicketApp.Utils.NotificationCenter.TicketUpdated += (ticketId) =>
+            {
+                _ = LoadTickets();
+            };
         }
 
 
