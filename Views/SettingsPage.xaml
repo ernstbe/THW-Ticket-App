@@ -4,7 +4,8 @@
              xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
              x:Class="THWTicketApp.Views.SettingsPage"
              x:DataType="viewmodels:SettingsViewModel"
-             Title="Einstellungen">
+             Title="Einstellungen"
+             BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}">
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="20">
@@ -14,15 +15,20 @@
                    FontSize="28"
                    FontAttributes="Bold"
                    HorizontalOptions="Center"
-                   Margin="0,0,0,20"/>
+                   Margin="0,0,0,20"
+                   TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
 
             <!-- Erscheinungsbild -->
-            <Frame Padding="15" CornerRadius="10" BorderColor="{DynamicResource Gray200}">
+            <Frame Padding="15" CornerRadius="10"
+                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}">
                 <VerticalStackLayout Spacing="15">
-                    <Label Text="Erscheinungsbild" FontSize="18" FontAttributes="Bold"/>
+                    <Label Text="Erscheinungsbild" FontSize="18" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
 
                     <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="Dark Mode" VerticalOptions="Center"/>
+                        <Label Text="Dark Mode" VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
                         <Switch Grid.Column="1"
                                 IsToggled="{Binding IsDarkMode}"
                                 ThumbColor="{DynamicResource Primary}"/>
@@ -31,9 +37,12 @@
             </Frame>
 
             <!-- API-Konfiguration -->
-            <Frame Padding="15" CornerRadius="10" BorderColor="{DynamicResource Gray200}">
+            <Frame Padding="15" CornerRadius="10"
+                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}">
                 <VerticalStackLayout Spacing="15">
-                    <Label Text="API-Konfiguration" FontSize="18" FontAttributes="Bold"/>
+                    <Label Text="API-Konfiguration" FontSize="18" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
 
                     <Label Text="Server-URL" FontSize="14" TextColor="{DynamicResource Gray500}"/>
                     <Entry Placeholder="http://localhost:8118/api/v1"
@@ -47,8 +56,8 @@
 
                     <Button Text="Verbindung testen"
                             Command="{Binding TestConnectionCommand}"
-                            BackgroundColor="{DynamicResource Secondary}"
-                            TextColor="{DynamicResource Primary}"/>
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource Gray600}}"
+                            TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}"/>
 
                     <Label Text="{Binding ConnectionStatus}"
                            TextColor="{Binding ConnectionStatusColor}"
@@ -58,12 +67,16 @@
             </Frame>
 
             <!-- Cache -->
-            <Frame Padding="15" CornerRadius="10" BorderColor="{DynamicResource Gray200}">
+            <Frame Padding="15" CornerRadius="10"
+                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}">
                 <VerticalStackLayout Spacing="15">
-                    <Label Text="Offline-Cache" FontSize="18" FontAttributes="Bold"/>
+                    <Label Text="Offline-Cache" FontSize="18" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
 
                     <Grid ColumnDefinitions="*,Auto">
-                        <Label Text="Offline-Caching aktivieren" VerticalOptions="Center"/>
+                        <Label Text="Offline-Caching aktivieren" VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
                         <Switch Grid.Column="1"
                                 IsToggled="{Binding IsOfflineCacheEnabled}"
                                 ThumbColor="{DynamicResource Primary}"/>
@@ -78,18 +91,22 @@
                            TextColor="{DynamicResource Gray500}"/>
 
                     <Button Text="Cache leeren"
-                            Command="{Binding ClearCacheAsyncCommand}"
-                            BackgroundColor="{DynamicResource Gray300}"
-                            TextColor="{DynamicResource Gray600}"/>
+                            Command="{Binding ClearCacheCommand}"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                            TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray200}}"/>
                 </VerticalStackLayout>
             </Frame>
 
             <!-- Über die App -->
-            <Frame Padding="15" CornerRadius="10" BorderColor="{DynamicResource Gray200}">
+            <Frame Padding="15" CornerRadius="10"
+                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                   BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}">
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="Über die App" FontSize="18" FontAttributes="Bold"/>
+                    <Label Text="Über die App" FontSize="18" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
 
-                    <Label Text="THW Ticket App" FontSize="16"/>
+                    <Label Text="THW Ticket App" FontSize="16"
+                           TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
                     <Label Text="{Binding AppVersion, StringFormat='Version: {0}'}"
                            TextColor="{DynamicResource Gray500}"/>
                     <Label Text="Technisches Hilfswerk"

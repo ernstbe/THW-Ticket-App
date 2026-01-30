@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="THWTicketApp.LoginPage">
+             xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             x:Class="THWTicketApp.LoginPage"
+             x:DataType="viewmodels:LoginPageViewModel">
     <VerticalStackLayout Padding="30" Spacing="20">
         <Label Text="Login to TrueDesk" FontSize="24" HorizontalOptions="Center" />
     <Entry Placeholder="Username" Text="{Binding Username}" />
     <Entry Placeholder="Password" IsPassword="True" Text="{Binding Password}" />
-    <Button Text="Login" Command="{Binding LoginAsyncCommand}" />
+    <Button Text="Login" Command="{Binding LoginCommand}" />
     <Label Text="{Binding LoginStatus}" TextColor="Red" />
     </VerticalStackLayout>
 </ContentPage>

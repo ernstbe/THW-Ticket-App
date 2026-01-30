@@ -3,41 +3,70 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:mdv="clr-namespace:Plugin.Maui.MarkdownView;assembly=Plugin.Maui.MarkdownView"
              x:Class="THWTicketApp.Views.TicketDetailPage">
-    <VerticalStackLayout Padding="20"
-                         Spacing="15">
+    <ScrollView>
+        <VerticalStackLayout Padding="20"
+                             Spacing="15">
         <Label Text="{Binding Ticket.Subject , StringFormat='Titel: {0}'}"
                FontSize="24"/>
-        <Label Text="{Binding Ticket.Issue, StringFormat='Beschreibung: {0}'}"/>
+        <Label Text="Beschreibung:" FontAttributes="Bold"/>
+        <Label Text="{Binding Ticket.Issue}" TextType="Html"/>
         <Label Text="{Binding Ticket.Status.Name, StringFormat='Status: {0}'}"/>
         <Label Text="{Binding Ticket.Priority.Name, StringFormat='Priorität: {0}'}"/>
         <Label Text="{Binding Ticket.Owner.Fullname, StringFormat='Ersteller: {0}'}"/>
         <Label Text="{Binding Ticket.Assignee.Fullname, StringFormat='Zugewiesen: {0}'}"/>
 
+        <Label Text="Status ändern:" FontAttributes="Bold"/>
+        <Picker x:Name="StatusPicker"
+                Title="Status wählen"
+                ItemsSource="{Binding Statuses}"
+                TitleColor="Blue"
+                ItemDisplayBinding="{Binding Name}"
+                SelectedItem="{Binding SelectedStatus, Mode=TwoWay}"/>
+        <Button Text="Status ändern"
+                Command="{Binding ChangeStatusCommand}"/>
+
+        <Label Text="Zuweisen:" FontAttributes="Bold" Margin="0,10,0,0"/>
         <Picker x:Name="AssigneePicker"
-                Title="Wähle einen Benutzer zum Zuweisen"
+                Title="Benutzer wählen"
                 ItemsSource="{Binding Users}"
                 TitleColor="Blue"
                 ItemDisplayBinding="{Binding Fullname}"
                 SelectedItem="{Binding SelectedAssignee}"/>
         <Button Text="Zuweisen"
                 Command="{Binding AssignCommand}"/>
-        <Label Text="Comments:"
+        <Label Text="Kommentare:"
                FontAttributes="Bold"/>
-        <CollectionView ItemsSource="{Binding Ticket.Comments}">
+        <CollectionView ItemsSource="{Binding Ticket.Comments}"
+                        HeightRequest="200">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <HorizontalStackLayout Spacing="10"
-                                           Padding="5"
-                                           BackgroundColor="LightGray">
-                        <Label TextType="Html"
-                               Text="{Binding Text}"/>
-                        <Label Text="{Binding Owner.Fullname, StringFormat='Von: {0}'}"/>
-                        <Label Text="{Binding Date, StringFormat='Am: {0}'}"/>
-                    </HorizontalStackLayout>
+                    <Frame Padding="10" Margin="0,5" CornerRadius="5"
+                           BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}">
+                        <VerticalStackLayout Spacing="5">
+                            <Label TextType="Html"
+                                   Text="{Binding Text}"/>
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="{Binding Owner.Fullname, StringFormat='Von: {0}'}"
+                                       FontSize="12" TextColor="{DynamicResource Gray500}"/>
+                                <Label Text="{Binding Date, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
+                                       FontSize="12" TextColor="{DynamicResource Gray500}"/>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
+        <Label Text="Neuer Kommentar:" FontAttributes="Bold" Margin="0,10,0,0"/>
+        <Editor Placeholder="Kommentar eingeben..."
+                Text="{Binding NewComment}"
+                HeightRequest="100"
+                AutoSize="TextChanges"/>
+        <Button Text="Kommentar hinzufügen"
+                Command="{Binding AddCommentCommand}"/>
+
         <Label Text="{Binding StatusMessage}"
                TextColor="Green"/>
-    </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

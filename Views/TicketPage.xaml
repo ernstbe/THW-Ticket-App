@@ -6,6 +6,7 @@
              xmlns:converters="clr-namespace:THWTicketApp.Converters"
              x:Class="THWTicketApp.TicketPage"
              x:DataType="viewmodels:TicketPageViewModel"
+             NavigationPage.HasBackButton="False"
              Title="Tickets">
 
     <ContentPage.Resources>

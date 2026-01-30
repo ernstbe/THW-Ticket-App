@@ -7,6 +7,10 @@ public partial class App : Application
 	{
 		InitializeComponent();
 		_loginPage = loginPage;
+
+		// Apply saved theme preference on startup (default to dark mode)
+		var isDarkMode = Preferences.Get("DarkMode", true);
+		UserAppTheme = isDarkMode ? AppTheme.Dark : AppTheme.Light;
 	}
 
 	protected override Window CreateWindow(IActivationState? activationState)

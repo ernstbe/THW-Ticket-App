@@ -23,7 +23,10 @@ namespace THWTicketApp.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            await _viewModel.LoadUsersAsync();
+            await Task.WhenAll(
+                _viewModel.LoadUsersAsync(),
+                _viewModel.LoadStatusesAsync()
+            );
         }
     }
 }

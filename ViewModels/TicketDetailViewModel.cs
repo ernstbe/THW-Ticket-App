@@ -32,6 +32,12 @@ namespace THWTicketApp.ViewModels
         private ObservableCollection<User> _users = [];
 
         [ObservableProperty]
+        private ObservableCollection<Status> _statuses = [];
+
+        [ObservableProperty]
+        private Status? _selectedStatus;
+
+        [ObservableProperty]
         private bool _isLoading;
 
         private readonly TrueDeskApiService _apiService;
@@ -46,6 +52,11 @@ namespace THWTicketApp.ViewModels
             Ticket = ticket;
             EditSubject = ticket.Subject ?? string.Empty;
             EditIssue = ticket.Issue ?? string.Empty;
+            // Set current status as selected
+            if (ticket.Status != null && Statuses.Count > 0)
+            {
+                SelectedStatus = Statuses.FirstOrDefault(s => s.Id == ticket.Status.Id);
+            }
         }
 
         public async Task LoadUsersAsync()
@@ -90,6 +101,76 @@ namespace THWTicketApp.ViewModels
             }
         }
 
+        public async Task LoadStatusesAsync()
+        {
+            try
+            {
+                var json = await _apiService.GetStatusesAsync();
+                Statuses.Clear();
+
+                var options = new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var statusResponse = System.Text.Json.JsonSerializer.Deserialize<GetStatusResponse>(json, options);
+
+                if (statusResponse?.Statuses != null)
+                {
+                    foreach (var status in statusResponse.Statuses)
+                    {
+                        Statuses.Add(status);
+                    }
+                }
+
+                // Set current ticket status as selected after items are loaded
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    if (Ticket?.Status?.Id != null)
+                    {
+                        SelectedStatus = Statuses.FirstOrDefault(s => s.Id == Ticket.Status.Id);
+                    }
+                });
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Failed to load statuses.";
+            }
+        }
+
+        [RelayCommand]
+        private async Task ChangeStatusAsync()
+        {
+            if (Ticket == null || SelectedStatus == null)
+            {
+                StatusMessage = "Bitte wählen Sie einen Status.";
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                var success = await _apiService.UpdateTicketStatusAsync(Ticket.Id, SelectedStatus.Id);
+                if (success)
+                {
+                    Ticket.Status = SelectedStatus;
+                    OnPropertyChanged(nameof(Ticket));
+                    StatusMessage = "Status aktualisiert.";
+                }
+                else
+                {
+                    StatusMessage = "Status-Änderung fehlgeschlagen.";
+                }
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Fehler beim Ändern des Status.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
         [RelayCommand]
         private async Task AssignAsync()
         {
@@ -103,11 +184,24 @@ namespace THWTicketApp.ViewModels
             try
             {
                 var success = await _apiService.AssignTicketAsync(Ticket.Id, SelectedAssignee.Id);
-                StatusMessage = success ? "Assignment updated." : "Assignment failed.";
+                if (success)
+                {
+                    Ticket.Assignee = new Assignee
+                    {
+                        Id = SelectedAssignee.Id,
+                        Fullname = SelectedAssignee.Fullname
+                    };
+                    OnPropertyChanged(nameof(Ticket));
+                    StatusMessage = "Zuweisung aktualisiert.";
+                }
+                else
+                {
+                    StatusMessage = "Zuweisung fehlgeschlagen.";
+                }
             }
             catch (Exception)
             {
-                StatusMessage = "Failed to update assignment.";
+                StatusMessage = "Fehler bei der Zuweisung.";
             }
             finally
             {
@@ -133,22 +227,22 @@ namespace THWTicketApp.ViewModels
             IsLoading = true;
             try
             {
-                var ownerId = Ticket.Owner?.Id ?? string.Empty;
-                var success = await _apiService.AddCommentAsync(Ticket.Id, ownerId, NewComment);
+                var success = await _apiService.AddCommentAsync(Ticket.Id, NewComment);
 
                 if (success)
                 {
-                    StatusMessage = "Comment added.";
+                    StatusMessage = "Kommentar hinzugefügt.";
                     NewComment = string.Empty;
+                    OnPropertyChanged(nameof(Ticket));
                 }
                 else
                 {
-                    StatusMessage = "Failed to add comment.";
+                    StatusMessage = "Kommentar konnte nicht hinzugefügt werden.";
                 }
             }
             catch (Exception)
             {
-                StatusMessage = "Error adding comment.";
+                StatusMessage = "Fehler beim Hinzufügen des Kommentars.";
             }
             finally
             {

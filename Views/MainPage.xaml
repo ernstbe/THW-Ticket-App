@@ -27,14 +27,14 @@
                 Text="Manage your support tickets"
                 FontSize="16"
                 HorizontalTextAlignment="Center"
-                TextColor="{StaticResource Gray400}"
+                TextColor="{DynamicResource Gray400}"
                 SemanticProperties.HeadingLevel="Level2" />
 
             <Button
                 Text="Logout"
                 Command="{Binding LogoutAsyncCommand}"
                 IsVisible="{Binding IsAuthenticated}"
-                BackgroundColor="{StaticResource Gray500}"
+                BackgroundColor="{DynamicResource Gray500}"
                 TextColor="White"
                 HorizontalOptions="Center"
                 Margin="0,20,0,0" />

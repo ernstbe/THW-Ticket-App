@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(git remote:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(dotnet build:*)",
+      "Bash(\"C:/Program Files/dotnet/dotnet.exe\" build THWTicketApp.csproj -f net9.0-windows10.0.19041.0)",
+      "Bash(where:*)"
     ]
   }
 }
