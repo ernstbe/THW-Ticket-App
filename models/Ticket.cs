@@ -3,10 +3,10 @@ namespace THWTicketApp.Models;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-public class Ticket : BindableObject
+public class Ticket
 {
     [JsonPropertyName("_id")]
-    public required string Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public Group? Group { get; set; }
     public bool Deleted { get; set; }
     public TicketType? Type { get; set; }

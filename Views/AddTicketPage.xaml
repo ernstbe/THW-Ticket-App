@@ -2,85 +2,158 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             xmlns:converters="clr-namespace:THWTicketApp.Converters"
              x:Class="THWTicketApp.Views.AddTicketPage"
              x:DataType="viewmodels:AddTicketViewModel"
-             Title="Neues Ticket">
+             Title="Neues Ticket"
+             BackgroundColor="{AppThemeBinding Light=White, Dark=#1f1f1f}">
+
+    <ContentPage.Resources>
+        <converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
+    </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
+        <VerticalStackLayout Padding="15" Spacing="15">
 
-            <!-- Titel -->
-            <Label Text="Ticket erstellen"
-                   FontSize="24"
-                   FontAttributes="Bold"
-                   HorizontalOptions="Center"
-                   Margin="0,0,0,20"/>
+            <!-- Header -->
+            <Frame Padding="15" CornerRadius="10"
+                   BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Neues Ticket erstellen"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+                    <Label Text="Füllen Sie die Felder aus, um ein neues Ticket zu erstellen."
+                           FontSize="14"
+                           TextColor="{DynamicResource Gray500}"/>
+                </VerticalStackLayout>
+            </Frame>
 
-            <!-- Betreff -->
-            <Label Text="Betreff *" FontAttributes="Bold"/>
-            <Entry Placeholder="Kurze Beschreibung des Problems"
-                   Text="{Binding Subject}"
-                   MaxLength="200"/>
+            <!-- Betreff und Beschreibung -->
+            <Frame Padding="15" CornerRadius="10"
+                   BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Ticket-Inhalt" FontSize="18" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
 
-            <!-- Beschreibung -->
-            <Label Text="Beschreibung" FontAttributes="Bold"/>
-            <Editor Placeholder="Detaillierte Beschreibung..."
-                    Text="{Binding Issue}"
-                    HeightRequest="150"
-                    AutoSize="TextChanges"/>
+                    <!-- Betreff -->
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Betreff *" FontSize="14" TextColor="{DynamicResource Gray500}"/>
+                        <Entry Placeholder="Kurze Beschreibung des Problems"
+                               Text="{Binding Subject}"
+                               MaxLength="200"
+                               BackgroundColor="{AppThemeBinding Light=#E1E1E1, Dark=#2A2A2A}"
+                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+                    </VerticalStackLayout>
 
-            <!-- Typ -->
-            <Label Text="Ticket-Typ" FontAttributes="Bold"/>
-            <Picker Title="Typ auswählen"
-                    ItemsSource="{Binding TicketTypes}"
-                    ItemDisplayBinding="{Binding Name}"
-                    SelectedItem="{Binding SelectedType}"/>
+                    <!-- Beschreibung -->
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Beschreibung" FontSize="14" TextColor="{DynamicResource Gray500}"/>
+                        <Editor Placeholder="Detaillierte Beschreibung des Problems..."
+                                Text="{Binding Issue}"
+                                HeightRequest="120"
+                                AutoSize="TextChanges"
+                                BackgroundColor="{AppThemeBinding Light=#E1E1E1, Dark=#2A2A2A}"
+                                TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
 
-            <!-- Priorität -->
-            <Label Text="Priorität" FontAttributes="Bold"/>
-            <Picker Title="Priorität auswählen"
-                    ItemsSource="{Binding Priorities}"
-                    ItemDisplayBinding="{Binding Name}"
-                    SelectedItem="{Binding SelectedPriority}"/>
+            <!-- Klassifizierung -->
+            <Frame Padding="15" CornerRadius="10"
+                   BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Klassifizierung" FontSize="18" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
 
-            <!-- Gruppe -->
-            <Label Text="Gruppe" FontAttributes="Bold"/>
-            <Picker Title="Gruppe auswählen"
-                    ItemsSource="{Binding Groups}"
-                    ItemDisplayBinding="{Binding Name}"
-                    SelectedItem="{Binding SelectedGroup}"/>
+                    <!-- Typ und Priorität in einer Zeile -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0" Spacing="5">
+                            <Label Text="Ticket-Typ" FontSize="14" TextColor="{DynamicResource Gray500}"/>
+                            <Picker Title="Typ auswählen"
+                                    ItemsSource="{Binding TicketTypes}"
+                                    ItemDisplayBinding="{Binding Name}"
+                                    SelectedItem="{Binding SelectedType}"/>
+                        </VerticalStackLayout>
 
-            <!-- Zuweisen an -->
-            <Label Text="Zuweisen an" FontAttributes="Bold"/>
-            <Picker Title="Benutzer auswählen (optional)"
-                    ItemsSource="{Binding Users}"
-                    ItemDisplayBinding="{Binding Fullname}"
-                    SelectedItem="{Binding SelectedAssignee}"/>
+                        <VerticalStackLayout Grid.Column="1" Spacing="5">
+                            <Label Text="Priorität" FontSize="14" TextColor="{DynamicResource Gray500}"/>
+                            <Picker Title="Priorität auswählen"
+                                    ItemsSource="{Binding Priorities}"
+                                    ItemDisplayBinding="{Binding Name}"
+                                    SelectedItem="{Binding SelectedPriority}"/>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <!-- Gruppe -->
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Gruppe *" FontSize="14" TextColor="{DynamicResource Gray500}"/>
+                        <Picker Title="Gruppe auswählen"
+                                ItemsSource="{Binding Groups}"
+                                ItemDisplayBinding="{Binding Name}"
+                                SelectedItem="{Binding SelectedGroup}"/>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Zuweisung -->
+            <Frame Padding="15" CornerRadius="10"
+                   BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Zuweisung" FontSize="18" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Zuweisen an (optional)" FontSize="14" TextColor="{DynamicResource Gray500}"/>
+                        <Picker Title="Benutzer auswählen"
+                                ItemsSource="{Binding Users}"
+                                ItemDisplayBinding="{Binding Fullname}"
+                                SelectedItem="{Binding SelectedAssignee}"/>
+                        <Label Text="Das Ticket kann auch später zugewiesen werden."
+                               FontSize="12"
+                               TextColor="{DynamicResource Gray400}"/>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
 
             <!-- Status-Meldung -->
-            <Label Text="{Binding StatusMessage}"
-                   TextColor="{Binding StatusColor}"
-                   IsVisible="{Binding HasStatusMessage}"
-                   HorizontalTextAlignment="Center"/>
+            <Frame Padding="15" CornerRadius="10"
+                   BorderColor="{Binding StatusColor}"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}"
+                   IsVisible="{Binding HasStatusMessage}">
+                <Label Text="{Binding StatusMessage}"
+                       TextColor="{Binding StatusColor}"
+                       HorizontalTextAlignment="Center"
+                       FontSize="14"/>
+            </Frame>
 
             <!-- Ladeindikator -->
             <ActivityIndicator IsRunning="{Binding IsLoading}"
                                IsVisible="{Binding IsLoading}"
-                               Color="{DynamicResource Primary}"/>
+                               Color="{DynamicResource Primary}"
+                               HeightRequest="40"/>
 
             <!-- Buttons -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="15" Margin="0,20,0,0">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="15" Margin="0,10,0,20">
                 <Button Grid.Column="0"
                         Text="Abbrechen"
                         Command="{Binding CancelCommand}"
-                        BackgroundColor="{DynamicResource Gray400}"
-                        TextColor="White"/>
+                        BackgroundColor="{AppThemeBinding Light=#ACACAC, Dark=#404040}"
+                        TextColor="{AppThemeBinding Light=#404040, Dark=White}"
+                        CornerRadius="8"
+                        HeightRequest="50"/>
                 <Button Grid.Column="1"
-                        Text="Erstellen"
+                        Text="Ticket erstellen"
                         Command="{Binding CreateTicketCommand}"
                         IsEnabled="{Binding CanCreate}"
                         BackgroundColor="{DynamicResource Primary}"
-                        TextColor="White"/>
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="50"/>
             </Grid>
 
         </VerticalStackLayout>

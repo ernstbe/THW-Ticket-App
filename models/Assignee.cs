@@ -1,16 +1,31 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
-using THWTicketApp.Models;
 
 namespace THWTicketApp.Models;
 
-public class Assignee : BindableObject
+public class Assignee
 {
     [JsonPropertyName("_id")]
     public string Id { get; set; } = string.Empty;
     public string? Username { get; set; }
     public string? Fullname { get; set; }
     public string? Email { get; set; }
-    public Role? Role { get; set; }
+    [JsonIgnore]
+    public string? RoleName { get; set; }
+    public JsonElement? Role
+    {
+        get => null;
+        set
+        {
+            if (value.HasValue)
+            {
+                if (value.Value.ValueKind == JsonValueKind.String)
+                    RoleName = value.Value.GetString();
+                else if (value.Value.ValueKind == JsonValueKind.Object && value.Value.TryGetProperty("name", out var nameProp))
+                    RoleName = nameProp.GetString();
+            }
+        }
+    }
     public string? Title { get; set; }
     public bool Deleted { get; set; }
 }

@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace THWTicketApp.Models;
 
-public class TicketType : BindableObject
+public class TicketType
 {
     [JsonPropertyName("_id")]
     public string? Id { get; set; }

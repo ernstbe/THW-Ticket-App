@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace THWTicketApp.Models;
 
-public class Owner : BindableObject
+public class Owner
 {
     [JsonPropertyName("_id")]
     public string Id { get; set; } = string.Empty;

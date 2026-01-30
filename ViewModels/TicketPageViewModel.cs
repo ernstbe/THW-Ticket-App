@@ -3,6 +3,7 @@ using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using THWTicketApp.Models;
+using THWTicketApp.Models.Responses;
 using THWTicketApp.Services;
 
 namespace THWTicketApp.ViewModels;
@@ -86,16 +87,24 @@ public partial class TicketPageViewModel : ObservableObject
         // Apply status filter
         filtered = ActiveFilter switch
         {
-            "open" => filtered.Where(t => t.Status?.Name?.ToLowerInvariant() == "open" ||
-                                          t.Status?.Name?.ToLowerInvariant() == "neu" ||
-                                          t.Status?.Name?.ToLowerInvariant() == "new"),
-            "pending" => filtered.Where(t => t.Status?.Name?.ToLowerInvariant() == "pending" ||
-                                             t.Status?.Name?.ToLowerInvariant() == "in bearbeitung" ||
-                                             t.Status?.Name?.ToLowerInvariant() == "in progress"),
-            "closed" => filtered.Where(t => t.Status?.IsResolved == true ||
-                                            t.Status?.Name?.ToLowerInvariant() == "closed" ||
-                                            t.Status?.Name?.ToLowerInvariant() == "geschlossen" ||
-                                            t.Status?.Name?.ToLowerInvariant() == "resolved"),
+            "open" => filtered.Where(t =>
+                t.Status?.IsResolved != true &&
+                (t.Status?.Name?.ToLowerInvariant().Contains("open") == true ||
+                 t.Status?.Name?.ToLowerInvariant().Contains("neu") == true ||
+                 t.Status?.Name?.ToLowerInvariant().Contains("new") == true ||
+                 t.Status?.Name?.ToLowerInvariant().Contains("offen") == true)),
+            "pending" => filtered.Where(t =>
+                t.Status?.IsResolved != true &&
+                (t.Status?.Name?.ToLowerInvariant().Contains("pending") == true ||
+                 t.Status?.Name?.ToLowerInvariant().Contains("progress") == true ||
+                 t.Status?.Name?.ToLowerInvariant().Contains("bearbeitung") == true ||
+                 t.Status?.Name?.ToLowerInvariant().Contains("arbeit") == true)),
+            "closed" => filtered.Where(t =>
+                t.Status?.IsResolved == true ||
+                t.Status?.Name?.ToLowerInvariant().Contains("closed") == true ||
+                t.Status?.Name?.ToLowerInvariant().Contains("geschlossen") == true ||
+                t.Status?.Name?.ToLowerInvariant().Contains("resolved") == true ||
+                t.Status?.Name?.ToLowerInvariant().Contains("erledigt") == true),
             _ => filtered
         };
 
@@ -124,14 +133,31 @@ public partial class TicketPageViewModel : ObservableObject
 
             var options = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true
+                PropertyNameCaseInsensitive = true,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+                NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString
             };
-            var tickets = JsonSerializer.Deserialize<Ticket[]>(json, options);
+
+            // Try to detect if response is array or object
+            List<Ticket>? tickets = null;
+            var trimmedJson = json?.TrimStart();
+            if (trimmedJson?.StartsWith("[") == true)
+            {
+                // Direct array response
+                tickets = JsonSerializer.Deserialize<List<Ticket>>(json!, options);
+            }
+            else
+            {
+                // Wrapped response
+                var response = JsonSerializer.Deserialize<GetTicketsResponse>(json!, options);
+                tickets = response?.Tickets;
+            }
 
             _allTickets.Clear();
             Tickets.Clear();
+            FilteredTickets.Clear();
 
-            if (tickets == null || tickets.Length == 0)
+            if (tickets == null || tickets.Count == 0)
             {
                 StatusMessage = "Keine Tickets gefunden.";
             }
@@ -141,17 +167,17 @@ public partial class TicketPageViewModel : ObservableObject
                 {
                     _allTickets.Add(ticket);
                     Tickets.Add(ticket);
+                    FilteredTickets.Add(ticket);
                 }
-                StatusMessage = string.Empty;
 
                 // Save to cache if enabled
                 if (_isOfflineCacheEnabled)
                 {
                     await _databaseService.SaveTicketsAsync(tickets);
                 }
-            }
 
-            ApplyFilters();
+                StatusMessage = $"{_allTickets.Count} Tickets geladen.";
+            }
         }
         catch (HttpRequestException)
         {
