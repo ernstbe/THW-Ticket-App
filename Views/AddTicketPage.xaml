@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             x:Class="THWTicketApp.Views.AddTicketPage"
+             x:DataType="viewmodels:AddTicketViewModel"
+             Title="Neues Ticket">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <!-- Titel -->
+            <Label Text="Ticket erstellen"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,20"/>
+
+            <!-- Betreff -->
+            <Label Text="Betreff *" FontAttributes="Bold"/>
+            <Entry Placeholder="Kurze Beschreibung des Problems"
+                   Text="{Binding Subject}"
+                   MaxLength="200"/>
+
+            <!-- Beschreibung -->
+            <Label Text="Beschreibung" FontAttributes="Bold"/>
+            <Editor Placeholder="Detaillierte Beschreibung..."
+                    Text="{Binding Issue}"
+                    HeightRequest="150"
+                    AutoSize="TextChanges"/>
+
+            <!-- Typ -->
+            <Label Text="Ticket-Typ" FontAttributes="Bold"/>
+            <Picker Title="Typ auswählen"
+                    ItemsSource="{Binding TicketTypes}"
+                    ItemDisplayBinding="{Binding Name}"
+                    SelectedItem="{Binding SelectedType}"/>
+
+            <!-- Priorität -->
+            <Label Text="Priorität" FontAttributes="Bold"/>
+            <Picker Title="Priorität auswählen"
+                    ItemsSource="{Binding Priorities}"
+                    ItemDisplayBinding="{Binding Name}"
+                    SelectedItem="{Binding SelectedPriority}"/>
+
+            <!-- Gruppe -->
+            <Label Text="Gruppe" FontAttributes="Bold"/>
+            <Picker Title="Gruppe auswählen"
+                    ItemsSource="{Binding Groups}"
+                    ItemDisplayBinding="{Binding Name}"
+                    SelectedItem="{Binding SelectedGroup}"/>
+
+            <!-- Zuweisen an -->
+            <Label Text="Zuweisen an" FontAttributes="Bold"/>
+            <Picker Title="Benutzer auswählen (optional)"
+                    ItemsSource="{Binding Users}"
+                    ItemDisplayBinding="{Binding Fullname}"
+                    SelectedItem="{Binding SelectedAssignee}"/>
+
+            <!-- Status-Meldung -->
+            <Label Text="{Binding StatusMessage}"
+                   TextColor="{Binding StatusColor}"
+                   IsVisible="{Binding HasStatusMessage}"
+                   HorizontalTextAlignment="Center"/>
+
+            <!-- Ladeindikator -->
+            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                               IsVisible="{Binding IsLoading}"
+                               Color="{StaticResource Primary}"/>
+
+            <!-- Buttons -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="15" Margin="0,20,0,0">
+                <Button Grid.Column="0"
+                        Text="Abbrechen"
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="{StaticResource Gray400}"
+                        TextColor="White"/>
+                <Button Grid.Column="1"
+                        Text="Erstellen"
+                        Command="{Binding CreateTicketCommand}"
+                        IsEnabled="{Binding CanCreate}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

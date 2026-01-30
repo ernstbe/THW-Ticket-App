@@ -19,6 +19,7 @@
                 TitleColor="Blue"
                 ItemDisplayBinding="{Binding Fullname}"
                 SelectedItem="{Binding SelectedAssignee}"/>
+<<<<<<< HEAD
     <HorizontalStackLayout Spacing="10">
         <Button Text="Zuweisen"
             Command="{Binding AssignCommand}" />
@@ -34,6 +35,10 @@
     <Entry Placeholder="Bearbeite Titel" Text="{Binding EditSubject}" />
     <Editor Placeholder="Bearbeite Beschreibung" Text="{Binding EditIssue}" HeightRequest="120" />
     <Button Text="Änderungen speichern" Command="{Binding EditCommand}" />
+=======
+        <Button Text="Zuweisen"
+                Command="{Binding AssignCommand}"/>
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
         <Label Text="Comments:"
                FontAttributes="Bold"/>
         <CollectionView ItemsSource="{Binding Ticket.Comments}">

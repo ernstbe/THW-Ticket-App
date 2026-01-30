@@ -43,7 +43,11 @@
 
 	<ItemGroup>
 		<!-- App Icon -->
+<<<<<<< HEAD
 		<MauiIcon Include="Resources\AppIcon\logo_thw_min_svg.svg" ForegroundFile="Resources\AppIcon\logo_thw_min_svg.svg" Color="#512BD4" />
+=======
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
 
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
@@ -64,6 +68,11 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.5" />
 		<PackageReference Include="Plugin.Maui.MarkdownView" Version="1.0.5" />
+<<<<<<< HEAD
+=======
+		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.10" />
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
 	</ItemGroup>
 
 </Project>

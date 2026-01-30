@@ -1,11 +1,20 @@
+<<<<<<< HEAD
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="THWTicketApp.MainPage">
+=======
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="THWTicketApp.MainPage"
+             Title="Home">
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
 
     <ScrollView>
         <VerticalStackLayout
             Padding="30,0"
+<<<<<<< HEAD
             Spacing="25">
             <Image
                 Source="dotnet_bot.png"
@@ -29,6 +38,40 @@
                 Command="{Binding CounterCommand}"
                 SemanticProperties.Hint="Counts the number of times you click"
                 HorizontalOptions="Fill" />
+=======
+            Spacing="25"
+            VerticalOptions="Center">
+
+            <Image
+                Source="thw_logo.svg"
+                HeightRequest="120"
+                Aspect="AspectFit"
+                SemanticProperties.Description="THW Logo" />
+
+            <Label
+                Text="{Binding WelcomeMessage}"
+                FontSize="24"
+                FontAttributes="Bold"
+                HorizontalTextAlignment="Center"
+                SemanticProperties.HeadingLevel="Level1" />
+
+            <Label
+                Text="Manage your support tickets"
+                FontSize="16"
+                HorizontalTextAlignment="Center"
+                TextColor="{StaticResource Gray400}"
+                SemanticProperties.HeadingLevel="Level2" />
+
+            <Button
+                Text="Logout"
+                Command="{Binding LogoutAsyncCommand}"
+                IsVisible="{Binding IsAuthenticated}"
+                BackgroundColor="{StaticResource Gray500}"
+                TextColor="White"
+                HorizontalOptions="Center"
+                Margin="0,20,0,0" />
+
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
         </VerticalStackLayout>
     </ScrollView>
 

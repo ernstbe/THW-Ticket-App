@@ -10,30 +10,41 @@ namespace THWTicketApp.ViewModels
 {
     public partial class TicketDetailViewModel : ObservableObject
     {
-        [ObservableProperty] private Ticket ticket;
-        [ObservableProperty] private string newComment;
-        [ObservableProperty] private string editSubject;
-        [ObservableProperty] private string editIssue;
-        [ObservableProperty] private string statusMessage;
-    [ObservableProperty] private User? selectedAssignee;
+<<<<<<< HEAD
+        [ObservableProperty]
+        private Ticket? _ticket;
+
+        [ObservableProperty]
+        private string _newComment = string.Empty;
+        [ObservableProperty]
+        [ObservableProperty]
+        private string _editSubject = string.Empty;
+        private ObservableCollection<User> _users = new();
+        [ObservableProperty]
+        private string _editIssue = string.Empty;
+
+        [ObservableProperty]
+        private string _statusMessage = string.Empty;
+        private readonly TrueDeskApiService _apiService;
+        [ObservableProperty]
+        private User? _selectedAssignee;
 
         [ObservableProperty]
         private ObservableCollection<User> _users = new();
-
-        private readonly TrueDeskApiService _apiService;
-
         public TicketDetailViewModel(Ticket ticket, TrueDeskApiService apiService)
+        private readonly TrueDeskApiService _apiService;
         {
-            Ticket = ticket;
+        public TicketDetailViewModel(TrueDeskApiService apiService)
+        {
             _apiService = apiService;
-            NewComment = string.Empty;
-            StatusMessage = string.Empty;
-            SelectedAssignee = null;
-            EditSubject = ticket?.Subject ?? string.Empty;
-            EditIssue = ticket?.Issue ?? string.Empty;
         }
-
         public async Task LoadUsers()
+        public void SetTicket(Ticket ticket)
+        {
+            _ticket = ticket;
+            _editSubject = ticket.Subject ?? string.Empty;
+            _editIssue = ticket.Issue ?? string.Empty;
+        }
         {
 
             var json = await _apiService.GetUsers();
@@ -69,8 +80,8 @@ namespace THWTicketApp.ViewModels
                 return;
             }
 
-            var success = await _apiService.AssignTicketAsync(Ticket.Id, SelectedAssignee.Id);
-            StatusMessage = success ? "Assignment updated." : "Assignment failed.";
+                var json = await _apiService.GetUsersAsync();
+                _users.Clear();
             if (success)
             {
                 // reload ticket
@@ -82,12 +93,117 @@ namespace THWTicketApp.ViewModels
                     Ticket = updated;
                     THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
                 }
+=======
+        [ObservableProperty]
+        private Ticket? _ticket;
+
+        [ObservableProperty]
+        private string _newComment = string.Empty;
+
+        [ObservableProperty]
+        private string _editSubject = string.Empty;
+
+        [ObservableProperty]
+        private string _editIssue = string.Empty;
+
+        [ObservableProperty]
+        private string _statusMessage = string.Empty;
+
+        [ObservableProperty]
+        private User? _selectedAssignee;
+
+        [ObservableProperty]
+        private ObservableCollection<User> _users = [];
+        private async Task AssignAsync()
+        [ObservableProperty]
+        private bool _isLoading;
+
+        private readonly TrueDeskApiService _apiService;
+
+        public TicketDetailViewModel(TrueDeskApiService apiService)
+        {
+            _apiService = apiService;
+        }
+
+        public void SetTicket(Ticket ticket)
+        {
+            Ticket = ticket;
+            EditSubject = ticket.Subject ?? string.Empty;
+            EditIssue = ticket.Issue ?? string.Empty;
+        }
+
+        public async Task LoadUsersAsync()
+        {
+            if (IsLoading) return;
+
+            IsLoading = true;
+            StatusMessage = string.Empty;
+
+            try
+            {
+                var json = await _apiService.GetUsersAsync();
+                Users.Clear();
+
+                var options = new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var userResponse = System.Text.Json.JsonSerializer.Deserialize<GetUserResponse>(json, options);
+
+                if (userResponse?.Users != null)
+                {
+                    if (userResponse.Count == 0)
+                    {
+                        StatusMessage = "No users found.";
+                        return;
+                    }
+
+                    foreach (var user in userResponse.Users)
+                    {
+                        Users.Add(user);
+                    }
+        private async Task AddCommentAsync()
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Failed to load users.";
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
         [RelayCommand]
-        private async Task ClearAssignee()
+        private async Task AssignAsync()
         {
+            if (Ticket == null || SelectedAssignee == null)
+            {
+                StatusMessage = "Please select an assignee.";
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                var success = await _apiService.AssignTicketAsync(Ticket.Id, SelectedAssignee.Id);
+                StatusMessage = success ? "Assignment updated." : "Assignment failed.";
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Failed to update assignment.";
+            }
+            finally
+            {
+                IsLoading = false;
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
+            }
+        }
+
+        [RelayCommand]
+<<<<<<< HEAD
+        private async Task ClearAssignee()
+        private async Task EditAsync()
             var success = await _apiService.ClearTicketAssigneeAsync(Ticket.Id);
             if (success)
             {
@@ -130,11 +246,38 @@ namespace THWTicketApp.ViewModels
                             Ticket = updated;
                             THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
                         }
+=======
+        private async Task AddCommentAsync()
+        {
+            if (Ticket == null)
+            {
+                StatusMessage = "No ticket selected.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(NewComment))
+            {
+                StatusMessage = "Please enter a comment.";
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                var ownerId = Ticket.Owner?.Id ?? string.Empty;
+                var success = await _apiService.AddCommentAsync(Ticket.Id, ownerId, NewComment);
+
+                if (success)
+                {
+                    StatusMessage = "Comment added.";
+                    NewComment = string.Empty;
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
                 }
                 else
                 {
                     StatusMessage = "Failed to add comment.";
                 }
+<<<<<<< HEAD
                 // if (comment != null)
                 // {
                 //     Ticket.Comments.Add(comment);
@@ -145,16 +288,59 @@ namespace THWTicketApp.ViewModels
                 // {
                 //     StatusMessage = "Failed to add comment.";
                 // }
+=======
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Error adding comment.";
+            }
+            finally
+            {
+                IsLoading = false;
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
             }
         }
 
         [RelayCommand]
+<<<<<<< HEAD
         private async Task Edit()
         {
             Ticket.Subject = EditSubject;
             Ticket.Issue = EditIssue;
             var success = await _apiService.EditTicketAsync(Ticket);
             StatusMessage = success ? "Ticket updated." : "Update failed.";
+=======
+        private async Task EditAsync()
+        {
+            if (Ticket == null)
+            {
+                StatusMessage = "No ticket selected.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(EditSubject))
+            {
+                StatusMessage = "Subject is required.";
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                Ticket.Subject = EditSubject;
+                Ticket.Issue = EditIssue;
+                var success = await _apiService.EditTicketAsync(Ticket);
+                StatusMessage = success ? "Ticket updated." : "Update failed.";
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Error updating ticket.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
         }
     }
 }

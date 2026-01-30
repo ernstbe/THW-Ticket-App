@@ -6,7 +6,11 @@
         <Label Text="Login to TrueDesk" FontSize="24" HorizontalOptions="Center" />
     <Entry Placeholder="Username" Text="{Binding Username}" />
     <Entry Placeholder="Password" IsPassword="True" Text="{Binding Password}" />
+<<<<<<< HEAD
     <Button Text="Login" Command="{Binding LoginCommand}" />
+=======
+    <Button Text="Login" Command="{Binding LoginAsyncCommand}" />
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
     <Label Text="{Binding LoginStatus}" TextColor="Red" />
     </VerticalStackLayout>
 </ContentPage>
