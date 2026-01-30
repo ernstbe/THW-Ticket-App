@@ -1,0 +1,45 @@
+# .NET MAUI / Visual Studio / VS Code
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+# Build results
+[Dd]ebug/
+[Rr]elease/
+# VS Code
+.vscode/
+# Maui
+*.apk
+*.aab
+*.app
+*.ipa
+*.xcarchive
+*.xcuserstate
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+# Others
+*.log
+*.tmp
+*.bak
+*.swp
+*.lock
+# Rider
+.idea/
+*.iml
+# NuGet
+*.nupkg
+# Test results
+TestResults/
+# Docker
+*.pid
+# JetBrains
+.idea/
+# User-specific files
+*.vspscc
+*.vssscc

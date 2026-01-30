@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mdv="clr-namespace:Plugin.Maui.MarkdownView;assembly=Plugin.Maui.MarkdownView"
+             x:Class="THWTicketApp.Views.TicketDetailPage">
+    <VerticalStackLayout Padding="20"
+                         Spacing="15">
+        <Label Text="{Binding Ticket.Subject , StringFormat='Titel: {0}'}"
+               FontSize="24"/>
+        <Label Text="{Binding Ticket.Issue, StringFormat='Beschreibung: {0}'}"/>
+        <Label Text="{Binding Ticket.Status.Name, StringFormat='Status: {0}'}"/>
+        <Label Text="{Binding Ticket.Priority.Name, StringFormat='Priorität: {0}'}"/>
+        <Label Text="{Binding Ticket.Owner.Fullname, StringFormat='Ersteller: {0}'}"/>
+        <Label Text="{Binding Ticket.Assignee.Fullname, StringFormat='Zugewiesen: {0}'}"/>
+
+        <Picker x:Name="AssigneePicker"
+                Title="Wähle einen Benutzer zum Zuweisen"
+                ItemsSource="{Binding Users}"
+                TitleColor="Blue"
+                ItemDisplayBinding="{Binding Fullname}"
+                SelectedItem="{Binding SelectedAssignee}"/>
+        <Button Text="Zuweisen"
+                Command="{Binding AssignCommand}"/>
+        <Label Text="Comments:"
+               FontAttributes="Bold"/>
+        <CollectionView ItemsSource="{Binding Ticket.Comments}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <HorizontalStackLayout Spacing="10"
+                                           Padding="5"
+                                           BackgroundColor="LightGray">
+                        <Label TextType="Html"
+                               Text="{Binding Text}"/>
+                        <Label Text="{Binding Owner.Fullname, StringFormat='Von: {0}'}"/>
+                        <Label Text="{Binding Date, StringFormat='Am: {0}'}"/>
+                    </HorizontalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Label Text="{Binding StatusMessage}"
+               TextColor="Green"/>
+    </VerticalStackLayout>
+</ContentPage>
