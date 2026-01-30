@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-namespace THWTicketApp.Models;
-
-    public class Attachment{ }
-=======
 using System.Text.Json.Serialization;
 
 namespace THWTicketApp.Models;
@@ -27,4 +22,3 @@ public class Attachment
     [JsonPropertyName("uploadDate")]
     public DateTime? UploadDate { get; set; }
 }
->>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)

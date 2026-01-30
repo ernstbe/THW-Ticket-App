@@ -128,12 +128,10 @@ namespace THWTicketApp.Services
 
         public async Task<bool> AssignTicketAsync(string ticketId, string userId)
         {
-<<<<<<< HEAD
-<<<<<<< HEAD
             // Use the dedicated assignee endpoint: PUT /tickets/{id}/assignee
             var payload = new { assignee = userId };
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync($"{BaseUrl}/tickets/{ticketId}/assignee", content);
+            var response = await _httpClient.PutAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}/assignee", content);
             return response.IsSuccessStatusCode;
         }
 
@@ -142,11 +140,11 @@ namespace THWTicketApp.Services
         /// </summary>
         public async Task<bool> ClearTicketAssigneeAsync(string ticketId)
         {
-            var response = await _httpClient.DeleteAsync($"{BaseUrl}/tickets/{ticketId}/assignee");
+            var response = await _httpClient.DeleteAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}/assignee");
             return response.IsSuccessStatusCode;
         }
 
-        internal async Task<bool> AddCommentAsync(string id, string ownerId, string newComment)
+        public async Task<bool> AddCommentAsync(string id, string ownerId, string newComment)
         {
             var payload = new { ticketId = id, owner = ownerId, comment = newComment };
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
