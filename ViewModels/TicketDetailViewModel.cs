@@ -10,94 +10,183 @@ namespace THWTicketApp.ViewModels
 {
     public partial class TicketDetailViewModel : ObservableObject
     {
-        [ObservableProperty] private Ticket ticket;
-        [ObservableProperty] private string newComment;
-        [ObservableProperty] private string editSubject;
-        [ObservableProperty] private string editIssue;
-        [ObservableProperty] private string statusMessage;
-        [ObservableProperty] private User selectedAssignee;
+        [ObservableProperty]
+        private Ticket? _ticket;
 
         [ObservableProperty]
-        private ObservableCollection<User> _users = new();
+        private string _newComment = string.Empty;
+
+        [ObservableProperty]
+        private string _editSubject = string.Empty;
+
+        [ObservableProperty]
+        private string _editIssue = string.Empty;
+
+        [ObservableProperty]
+        private string _statusMessage = string.Empty;
+
+        [ObservableProperty]
+        private User? _selectedAssignee;
+
+        [ObservableProperty]
+        private ObservableCollection<User> _users = [];
+
+        [ObservableProperty]
+        private bool _isLoading;
 
         private readonly TrueDeskApiService _apiService;
 
-        public TicketDetailViewModel(Ticket ticket, TrueDeskApiService apiService)
+        public TicketDetailViewModel(TrueDeskApiService apiService)
+        {
+            _apiService = apiService;
+        }
+
+        public void SetTicket(Ticket ticket)
         {
             Ticket = ticket;
-            _apiService = apiService;
-            EditSubject = ticket.Subject;
-            EditIssue = ticket.Issue;
+            EditSubject = ticket.Subject ?? string.Empty;
+            EditIssue = ticket.Issue ?? string.Empty;
         }
 
-        public async Task LoadUsers()
+        public async Task LoadUsersAsync()
         {
+            if (IsLoading) return;
 
-            var json = await _apiService.GetUsers();
-            Users.Clear();
-            var options = new System.Text.Json.JsonSerializerOptions
+            IsLoading = true;
+            StatusMessage = string.Empty;
+
+            try
             {
-                PropertyNameCaseInsensitive = true
-            };
-            var userResponse = System.Text.Json.JsonSerializer.Deserialize<GetUserResponse>(json, options);
+                var json = await _apiService.GetUsersAsync();
+                Users.Clear();
 
-            if (userResponse != null)
-            {
-                if (userResponse.Count == 0)
+                var options = new System.Text.Json.JsonSerializerOptions
                 {
-                    StatusMessage = "No users found.";
-                    return;
-                }
+                    PropertyNameCaseInsensitive = true
+                };
+                var userResponse = System.Text.Json.JsonSerializer.Deserialize<GetUserResponse>(json, options);
 
-                foreach (var user in userResponse.Users)
+                if (userResponse?.Users != null)
                 {
-                    Users.Add(user);
+                    if (userResponse.Count == 0)
+                    {
+                        StatusMessage = "No users found.";
+                        return;
+                    }
+
+                    foreach (var user in userResponse.Users)
+                    {
+                        Users.Add(user);
+                    }
                 }
             }
-
-        }
-
-        [RelayCommand]
-        private async Task Assign()
-        {
-            var success = await _apiService.AssignTicketAsync(Ticket.Id, SelectedAssignee.Id);
-            StatusMessage = success ? "Assignment updated." : "Assignment failed.";
-        }
-
-        [RelayCommand]
-        private async Task AddComment()
-        {
-            if (!string.IsNullOrWhiteSpace(NewComment))
+            catch (Exception)
             {
-                var comment = await _apiService.AddCommentAsync(Ticket.Id, Ticket.Owner.Id, NewComment);
-                if (comment == true)
+                StatusMessage = "Failed to load users.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task AssignAsync()
+        {
+            if (Ticket == null || SelectedAssignee == null)
+            {
+                StatusMessage = "Please select an assignee.";
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                var success = await _apiService.AssignTicketAsync(Ticket.Id, SelectedAssignee.Id);
+                StatusMessage = success ? "Assignment updated." : "Assignment failed.";
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Failed to update assignment.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task AddCommentAsync()
+        {
+            if (Ticket == null)
+            {
+                StatusMessage = "No ticket selected.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(NewComment))
+            {
+                StatusMessage = "Please enter a comment.";
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                var ownerId = Ticket.Owner?.Id ?? string.Empty;
+                var success = await _apiService.AddCommentAsync(Ticket.Id, ownerId, NewComment);
+
+                if (success)
                 {
                     StatusMessage = "Comment added.";
+                    NewComment = string.Empty;
                 }
                 else
                 {
                     StatusMessage = "Failed to add comment.";
                 }
-                // if (comment != null)
-                // {
-                //     Ticket.Comments.Add(comment);
-                //     NewComment = string.Empty;
-                //     StatusMessage = "Comment added.";
-                // }
-                // else
-                // {
-                //     StatusMessage = "Failed to add comment.";
-                // }
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Error adding comment.";
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
         [RelayCommand]
-        private async Task Edit()
+        private async Task EditAsync()
         {
-            Ticket.Subject = EditSubject;
-            Ticket.Issue = EditIssue;
-            var success = await _apiService.EditTicketAsync(Ticket);
-            StatusMessage = success ? "Ticket updated." : "Update failed.";
+            if (Ticket == null)
+            {
+                StatusMessage = "No ticket selected.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(EditSubject))
+            {
+                StatusMessage = "Subject is required.";
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                Ticket.Subject = EditSubject;
+                Ticket.Issue = EditIssue;
+                var success = await _apiService.EditTicketAsync(Ticket);
+                StatusMessage = success ? "Ticket updated." : "Update failed.";
+            }
+            catch (Exception)
+            {
+                StatusMessage = "Error updating ticket.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
     }
 }

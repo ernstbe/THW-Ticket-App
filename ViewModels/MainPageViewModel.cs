@@ -1,30 +1,36 @@
-using System.Windows.Input;
-using Microsoft.Maui.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using THWTicketApp.Services;
 
 namespace THWTicketApp.ViewModels
 {
-    public class MainPageViewModel : BindableObject
+    public partial class MainPageViewModel : ObservableObject
     {
-        private int _count;
-        public int Count
+        private readonly TrueDeskApiService _apiService;
+
+        [ObservableProperty]
+        private string _welcomeMessage = "Welcome to THW Ticket App";
+
+        [ObservableProperty]
+        private bool _isAuthenticated;
+
+        public MainPageViewModel(TrueDeskApiService apiService)
         {
-            get => _count;
-            set { _count = value; OnPropertyChanged(); }
+            _apiService = apiService;
+            IsAuthenticated = _apiService.IsAuthenticated;
         }
 
-        public ICommand CounterCommand { get; }
-
-        public string CounterText => Count == 1 ? $"Clicked {Count} time" : $"Clicked {Count} times";
-
-        public MainPageViewModel()
+        [RelayCommand]
+        private async Task LogoutAsync()
         {
-            CounterCommand = new Command(OnCounterClicked);
-        }
+            _apiService.Logout();
+            IsAuthenticated = false;
 
-        private void OnCounterClicked()
-        {
-            Count++;
-            OnPropertyChanged(nameof(CounterText));
+            var window = Application.Current?.Windows.FirstOrDefault();
+            if (window?.Page is NavigationPage nav)
+            {
+                await nav.Navigation.PopToRootAsync();
+            }
         }
     }
 }
