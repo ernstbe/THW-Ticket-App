@@ -3,9 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:THWTicketApp.Models"
              xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             xmlns:converters="clr-namespace:THWTicketApp.Converters"
              x:Class="THWTicketApp.TicketPage"
              x:DataType="viewmodels:TicketPageViewModel"
              Title="Tickets">
+
+    <ContentPage.Resources>
+        <converters:FilterColorConverter x:Key="FilterColorConverter"/>
+    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,Auto,*,Auto">
 
@@ -15,7 +20,7 @@
                        Placeholder="Tickets durchsuchen..."
                        Text="{Binding SearchText}"
                        SearchCommand="{Binding SearchCommand}"
-                       CancelButtonColor="{StaticResource Primary}"/>
+                       CancelButtonColor="{DynamicResource Primary}"/>
             <Button Grid.Column="1"
                     Text="+"
                     FontSize="20"
@@ -23,7 +28,7 @@
                     HeightRequest="50"
                     CornerRadius="25"
                     Command="{Binding ShowAddTicketCommand}"
-                    BackgroundColor="{StaticResource Primary}"
+                    BackgroundColor="{DynamicResource Primary}"
                     TextColor="White"
                     Margin="10,0,0,0"/>
             <ImageButton Grid.Column="2"
@@ -40,22 +45,22 @@
                                Padding="15,0,15,10"
                                Spacing="10">
             <Button Text="Alle"
-                    Style="{StaticResource FilterChipStyle}"
+                    Style="{DynamicResource FilterChipStyle}"
                     Command="{Binding FilterCommand}"
                     CommandParameter="all"
                     BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=all}"/>
             <Button Text="Offen"
-                    Style="{StaticResource FilterChipStyle}"
+                    Style="{DynamicResource FilterChipStyle}"
                     Command="{Binding FilterCommand}"
                     CommandParameter="open"
                     BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=open}"/>
             <Button Text="In Bearbeitung"
-                    Style="{StaticResource FilterChipStyle}"
+                    Style="{DynamicResource FilterChipStyle}"
                     Command="{Binding FilterCommand}"
                     CommandParameter="pending"
                     BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=pending}"/>
             <Button Text="Geschlossen"
-                    Style="{StaticResource FilterChipStyle}"
+                    Style="{DynamicResource FilterChipStyle}"
                     Command="{Binding FilterCommand}"
                     CommandParameter="closed"
                     BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=closed}"/>
@@ -65,7 +70,7 @@
         <RefreshView Grid.Row="2"
                      IsRefreshing="{Binding IsRefreshing}"
                      Command="{Binding RefreshTicketsCommand}"
-                     RefreshColor="{StaticResource Primary}">
+                     RefreshColor="{DynamicResource Primary}">
             <CollectionView x:Name="TicketsCollectionView"
                             ItemsSource="{Binding FilteredTickets}"
                             SelectionMode="Single"
@@ -75,7 +80,7 @@
                 <CollectionView.Header>
                     <ActivityIndicator IsRunning="{Binding IsLoading}"
                                        IsVisible="{Binding IsLoading}"
-                                       Color="{StaticResource Primary}"
+                                       Color="{DynamicResource Primary}"
                                        HeightRequest="50"/>
                 </CollectionView.Header>
 
@@ -107,7 +112,7 @@
                                 <HorizontalStackLayout Grid.Row="1" Grid.ColumnSpan="2"
                                                        Spacing="15"
                                                        Margin="0,8,0,0">
-                                    <Label TextColor="{StaticResource Gray500}">
+                                    <Label TextColor="{DynamicResource Gray500}">
                                         <Label.FormattedText>
                                             <FormattedString>
                                                 <Span Text="Typ: " FontAttributes="Bold"/>
@@ -129,7 +134,7 @@
                                 <HorizontalStackLayout Grid.Row="2" Grid.ColumnSpan="2"
                                                        Spacing="15"
                                                        Margin="0,5,0,0">
-                                    <Label TextColor="{StaticResource Gray400}" FontSize="12">
+                                    <Label TextColor="{DynamicResource Gray400}" FontSize="12">
                                         <Label.FormattedText>
                                             <FormattedString>
                                                 <Span Text="Zugewiesen: "/>
@@ -137,7 +142,7 @@
                                             </FormattedString>
                                         </Label.FormattedText>
                                     </Label>
-                                    <Label TextColor="{StaticResource Gray400}" FontSize="12">
+                                    <Label TextColor="{DynamicResource Gray400}" FontSize="12">
                                         <Label.FormattedText>
                                             <FormattedString>
                                                 <Span Text="Erstellt: "/>
@@ -158,12 +163,12 @@
             <!-- Offline-Indikator -->
             <Frame Padding="8"
                    IsVisible="{Binding IsOfflineMode}"
-                   BackgroundColor="{StaticResource Warning}"
+                   BackgroundColor="{DynamicResource Warning}"
                    CornerRadius="0">
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
                     <Label Text="&#x26A0;" FontSize="16"/>
                     <Label Text="Offline-Modus - Zeige gecachte Daten"
-                           TextColor="{StaticResource Gray900}"
+                           TextColor="{DynamicResource Gray900}"
                            FontAttributes="Bold"/>
                 </HorizontalStackLayout>
             </Frame>
@@ -171,11 +176,11 @@
             <!-- Status-Meldung -->
             <Frame Padding="10"
                    IsVisible="{Binding HasStatusMessage}"
-                   BackgroundColor="{StaticResource Gray100}"
+                   BackgroundColor="{DynamicResource Gray100}"
                    CornerRadius="0">
                 <Label Text="{Binding StatusMessage}"
                        HorizontalTextAlignment="Center"
-                       TextColor="{StaticResource Gray600}"/>
+                       TextColor="{DynamicResource Gray600}"/>
             </Frame>
         </VerticalStackLayout>
     </Grid>

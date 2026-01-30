@@ -206,7 +206,11 @@ public partial class AddTicketViewModel : ObservableObject
 
                 // Navigate back after short delay
                 await Task.Delay(1000);
-                await Shell.Current.GoToAsync("..");
+                var window = Application.Current?.Windows.FirstOrDefault();
+                if (window?.Page is NavigationPage nav)
+                {
+                    await nav.Navigation.PopAsync();
+                }
             }
             else
             {

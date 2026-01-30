@@ -17,7 +17,7 @@
                    Margin="0,0,0,20"/>
 
             <!-- Erscheinungsbild -->
-            <Frame Padding="15" CornerRadius="10" BorderColor="{StaticResource Gray200}">
+            <Frame Padding="15" CornerRadius="10" BorderColor="{DynamicResource Gray200}">
                 <VerticalStackLayout Spacing="15">
                     <Label Text="Erscheinungsbild" FontSize="18" FontAttributes="Bold"/>
 
@@ -25,30 +25,30 @@
                         <Label Text="Dark Mode" VerticalOptions="Center"/>
                         <Switch Grid.Column="1"
                                 IsToggled="{Binding IsDarkMode}"
-                                ThumbColor="{StaticResource Primary}"/>
+                                ThumbColor="{DynamicResource Primary}"/>
                     </Grid>
                 </VerticalStackLayout>
             </Frame>
 
             <!-- API-Konfiguration -->
-            <Frame Padding="15" CornerRadius="10" BorderColor="{StaticResource Gray200}">
+            <Frame Padding="15" CornerRadius="10" BorderColor="{DynamicResource Gray200}">
                 <VerticalStackLayout Spacing="15">
                     <Label Text="API-Konfiguration" FontSize="18" FontAttributes="Bold"/>
 
-                    <Label Text="Server-URL" FontSize="14" TextColor="{StaticResource Gray500}"/>
+                    <Label Text="Server-URL" FontSize="14" TextColor="{DynamicResource Gray500}"/>
                     <Entry Placeholder="http://localhost:8118/api/v1"
                            Text="{Binding ApiBaseUrl}"
                            Keyboard="Url"/>
 
-                    <Label Text="Verbindungs-Timeout (Sekunden)" FontSize="14" TextColor="{StaticResource Gray500}"/>
+                    <Label Text="Verbindungs-Timeout (Sekunden)" FontSize="14" TextColor="{DynamicResource Gray500}"/>
                     <Entry Placeholder="30"
                            Text="{Binding ConnectionTimeout}"
                            Keyboard="Numeric"/>
 
                     <Button Text="Verbindung testen"
                             Command="{Binding TestConnectionCommand}"
-                            BackgroundColor="{StaticResource Secondary}"
-                            TextColor="{StaticResource Primary}"/>
+                            BackgroundColor="{DynamicResource Secondary}"
+                            TextColor="{DynamicResource Primary}"/>
 
                     <Label Text="{Binding ConnectionStatus}"
                            TextColor="{Binding ConnectionStatusColor}"
@@ -58,7 +58,7 @@
             </Frame>
 
             <!-- Cache -->
-            <Frame Padding="15" CornerRadius="10" BorderColor="{StaticResource Gray200}">
+            <Frame Padding="15" CornerRadius="10" BorderColor="{DynamicResource Gray200}">
                 <VerticalStackLayout Spacing="15">
                     <Label Text="Offline-Cache" FontSize="18" FontAttributes="Bold"/>
 
@@ -66,48 +66,48 @@
                         <Label Text="Offline-Caching aktivieren" VerticalOptions="Center"/>
                         <Switch Grid.Column="1"
                                 IsToggled="{Binding IsOfflineCacheEnabled}"
-                                ThumbColor="{StaticResource Primary}"/>
+                                ThumbColor="{DynamicResource Primary}"/>
                     </Grid>
 
                     <Label Text="Wenn aktiviert, werden Tickets lokal gespeichert und bei Verbindungsproblemen angezeigt."
                            FontSize="12"
-                           TextColor="{StaticResource Gray400}"/>
+                           TextColor="{DynamicResource Gray400}"/>
 
                     <Label Text="{Binding CacheInfo}"
                            FontSize="14"
-                           TextColor="{StaticResource Gray500}"/>
+                           TextColor="{DynamicResource Gray500}"/>
 
                     <Button Text="Cache leeren"
                             Command="{Binding ClearCacheAsyncCommand}"
-                            BackgroundColor="{StaticResource Gray300}"
-                            TextColor="{StaticResource Gray600}"/>
+                            BackgroundColor="{DynamicResource Gray300}"
+                            TextColor="{DynamicResource Gray600}"/>
                 </VerticalStackLayout>
             </Frame>
 
             <!-- Über die App -->
-            <Frame Padding="15" CornerRadius="10" BorderColor="{StaticResource Gray200}">
+            <Frame Padding="15" CornerRadius="10" BorderColor="{DynamicResource Gray200}">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="Über die App" FontSize="18" FontAttributes="Bold"/>
 
                     <Label Text="THW Ticket App" FontSize="16"/>
                     <Label Text="{Binding AppVersion, StringFormat='Version: {0}'}"
-                           TextColor="{StaticResource Gray500}"/>
+                           TextColor="{DynamicResource Gray500}"/>
                     <Label Text="Technisches Hilfswerk"
-                           TextColor="{StaticResource Gray500}"/>
+                           TextColor="{DynamicResource Gray500}"/>
                 </VerticalStackLayout>
             </Frame>
 
             <!-- Speichern-Button -->
             <Button Text="Einstellungen speichern"
                     Command="{Binding SaveSettingsCommand}"
-                    BackgroundColor="{StaticResource Primary}"
+                    BackgroundColor="{DynamicResource Primary}"
                     TextColor="White"
                     Margin="0,20,0,0"/>
 
             <!-- Abmelden -->
             <Button Text="Abmelden"
                     Command="{Binding LogoutCommand}"
-                    BackgroundColor="{StaticResource Danger}"
+                    BackgroundColor="{DynamicResource Danger}"
                     TextColor="White"/>
 
         </VerticalStackLayout>

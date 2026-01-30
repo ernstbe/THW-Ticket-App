@@ -66,20 +66,20 @@
             <!-- Ladeindikator -->
             <ActivityIndicator IsRunning="{Binding IsLoading}"
                                IsVisible="{Binding IsLoading}"
-                               Color="{StaticResource Primary}"/>
+                               Color="{DynamicResource Primary}"/>
 
             <!-- Buttons -->
             <Grid ColumnDefinitions="*,*" ColumnSpacing="15" Margin="0,20,0,0">
                 <Button Grid.Column="0"
                         Text="Abbrechen"
                         Command="{Binding CancelCommand}"
-                        BackgroundColor="{StaticResource Gray400}"
+                        BackgroundColor="{DynamicResource Gray400}"
                         TextColor="White"/>
                 <Button Grid.Column="1"
                         Text="Erstellen"
                         Command="{Binding CreateTicketCommand}"
                         IsEnabled="{Binding CanCreate}"
-                        BackgroundColor="{StaticResource Primary}"
+                        BackgroundColor="{DynamicResource Primary}"
                         TextColor="White"/>
             </Grid>
 
