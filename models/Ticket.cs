@@ -1,6 +1,7 @@
 namespace THWTicketApp.Models;
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 
 public class Ticket
@@ -16,7 +17,7 @@ public class Ticket
     public string? Issue { get; set; }
     public List<string> Subscribers { get; set; } = new();
     public DateTime Date { get; set; }
-    public List<Comment> Comments { get; set; } = new();
+    public ObservableCollection<Comment> Comments { get; set; } = new();
     public List<Note> Notes { get; set; } = new();
     public List<Attachment> Attachments { get; set; } = new();
     public List<HistoryItem> History { get; set; } = new();

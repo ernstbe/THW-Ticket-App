@@ -75,7 +75,7 @@
                             <Label Text="Ticket-Typ" FontSize="14" TextColor="{DynamicResource Gray500}"/>
                             <Picker Title="Typ auswählen"
                                     ItemsSource="{Binding TicketTypes}"
-                                    ItemDisplayBinding="{Binding Name}"
+                                    ItemDisplayBinding="{Binding TranslatedName}"
                                     SelectedItem="{Binding SelectedType}"/>
                         </VerticalStackLayout>
 
@@ -83,7 +83,7 @@
                             <Label Text="Priorität" FontSize="14" TextColor="{DynamicResource Gray500}"/>
                             <Picker Title="Priorität auswählen"
                                     ItemsSource="{Binding Priorities}"
-                                    ItemDisplayBinding="{Binding Name}"
+                                    ItemDisplayBinding="{Binding TranslatedName}"
                                     SelectedItem="{Binding SelectedPriority}"/>
                         </VerticalStackLayout>
                     </Grid>

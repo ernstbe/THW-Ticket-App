@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using THWTicketApp.Helpers;
 
 namespace THWTicketApp.Models;
 
@@ -7,6 +8,10 @@ public class Status
     [JsonPropertyName("_id")]
     public string? Id { get; set; }
     public string? Name { get; set; }
+
+    [JsonIgnore]
+    public string TranslatedName => Translator.Translate(Name);
+
     public string? HtmlColor { get; set; }
     public int Uid { get; set; }
     public int Order { get; set; }

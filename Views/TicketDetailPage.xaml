@@ -9,6 +9,7 @@
     <ContentPage.Resources>
         <converters:IntToBoolConverter x:Key="IntToBoolConverter"/>
         <converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
+        <converters:TranslationConverter x:Key="TranslationConverter"/>
     </ContentPage.Resources>
 
     <ScrollView>
@@ -36,7 +37,7 @@
                        BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
                     <VerticalStackLayout>
                         <Label Text="Status" FontSize="12" TextColor="{DynamicResource Gray500}"/>
-                        <Label Text="{Binding Ticket.Status.Name}"
+                        <Label Text="{Binding Ticket.Status.Name, Converter={StaticResource TranslationConverter}}"
                                FontSize="16" FontAttributes="Bold"
                                TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
                     </VerticalStackLayout>
@@ -46,7 +47,7 @@
                        BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
                     <VerticalStackLayout>
                         <Label Text="Priorität" FontSize="12" TextColor="{DynamicResource Gray500}"/>
-                        <Label Text="{Binding Ticket.Priority.Name}"
+                        <Label Text="{Binding Ticket.Priority.Name, Converter={StaticResource TranslationConverter}}"
                                FontSize="16" FontAttributes="Bold"
                                TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
                     </VerticalStackLayout>
@@ -63,7 +64,7 @@
 
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="15">
                         <Label Grid.Row="0" Grid.Column="0" Text="Typ:" TextColor="{DynamicResource Gray500}"/>
-                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding Ticket.Type.Name}"
+                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding Ticket.Type.Name, Converter={StaticResource TranslationConverter}}"
                                TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
 
                         <Label Grid.Row="1" Grid.Column="0" Text="Gruppe:" TextColor="{DynamicResource Gray500}"/>
@@ -158,7 +159,7 @@
                             <Picker Grid.Column="0"
                                     Title="Status wählen"
                                     ItemsSource="{Binding Statuses}"
-                                    ItemDisplayBinding="{Binding Name}"
+                                    ItemDisplayBinding="{Binding TranslatedName}"
                                     SelectedItem="{Binding SelectedStatus, Mode=TwoWay}"/>
                             <Button Grid.Column="1" Text="Ändern"
                                     Command="{Binding ChangeStatusCommand}"
