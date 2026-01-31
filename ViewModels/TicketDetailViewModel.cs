@@ -220,7 +220,7 @@ namespace THWTicketApp.ViewModels
 
             if (string.IsNullOrWhiteSpace(NewComment))
             {
-                StatusMessage = "Please enter a comment.";
+                StatusMessage = "Bitte geben Sie einen Kommentar ein.";
                 return;
             }
 
@@ -231,9 +231,18 @@ namespace THWTicketApp.ViewModels
 
                 if (success)
                 {
-                    StatusMessage = "Kommentar hinzugefügt.";
+                    // Add comment to local list
+                    var newComment = new Comment
+                    {
+                        Text = NewComment,
+                        Date = DateTime.Now,
+                        Owner = new Assignee { Fullname = "Ich" }
+                    };
+                    Ticket.Comments.Add(newComment);
+
                     NewComment = string.Empty;
                     OnPropertyChanged(nameof(Ticket));
+                    StatusMessage = "Kommentar hinzugefügt.";
                 }
                 else
                 {
