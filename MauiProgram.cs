@@ -10,6 +10,13 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+        var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "THWTicketApp_crash.log");
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            File.WriteAllText(logPath, "AppDomain: " + e.ExceptionObject?.ToString());
+        TaskScheduler.UnobservedTaskException += (s, e) =>
+            File.WriteAllText(logPath, "Task: " + e.Exception?.ToString());
+        try
+        {
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
@@ -53,5 +60,11 @@ public static class MauiProgram
 #endif
 
         return builder.Build();
+        }
+        catch (Exception ex)
+        {
+            File.WriteAllText(logPath, "CreateMauiApp: " + ex.ToString());
+            throw;
+        }
     }
 }
