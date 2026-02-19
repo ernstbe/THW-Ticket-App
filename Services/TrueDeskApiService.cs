@@ -51,9 +51,6 @@ namespace THWTicketApp.Services
                     return true;
                 }
                 return false;
-                    }
-                }
-                return false;
             }
             catch (HttpRequestException)
             {
@@ -103,7 +100,6 @@ namespace THWTicketApp.Services
                 _httpClient.DefaultRequestHeaders.Remove("accesstoken");
             }
             SecureStorage.Remove("auth_token");
->>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
         }
 
         public async Task<string> GetTicketsAsync()
@@ -135,9 +131,6 @@ namespace THWTicketApp.Services
             return response.IsSuccessStatusCode;
         }
 
-        /// <summary>
-        /// Clear the assignee for a ticket using DELETE /tickets/{id}/assignee
-        /// </summary>
         public async Task<bool> ClearTicketAssigneeAsync(string ticketId)
         {
             var response = await _httpClient.DeleteAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}/assignee");
@@ -146,117 +139,94 @@ namespace THWTicketApp.Services
 
         public async Task<bool> AddCommentAsync(string id, string ownerId, string newComment)
         {
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(newComment))
+            {
+                return false;
+            }
+
             var payload = new { ticketId = id, owner = ownerId, comment = newComment };
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"{BaseUrl}/tickets/addcomment", content);
+            var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/addcomment", content);
             return response.IsSuccessStatusCode;
         }
 
-                    // Use the dedicated assignee endpoint: PUT /tickets/{id}/assignee
-                    var payload = new { assignee = userId };
-                    var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-                    var response = await _httpClient.PutAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}/assignee", content);
-                    return response.IsSuccessStatusCode;
-                }
-
-                /// <summary>
-                /// Clear the assignee for a ticket using DELETE /tickets/{id}/assignee
-                /// </summary>
-                public async Task<bool> ClearTicketAssigneeAsync(string ticketId)
-                {
-                    var response = await _httpClient.DeleteAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}/assignee");
-                    return response.IsSuccessStatusCode;
-                }
-
-                public async Task<bool> AddCommentAsync(string id, string ownerId, string newComment)
-                {
-                    if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(newComment))
-                    {
-                        return false;
-                    }
-
-                    var payload = new { ticketId = id, owner = ownerId, comment = newComment };
-                    var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-                    var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/addcomment", content);
-                    return response.IsSuccessStatusCode;
-                }
-
-                public async Task<string> GetTicketAsync(string ticketId)
-                {
-                    var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}");
-                    return await response.Content.ReadAsStringAsync();
-                }
-
-                public async Task<bool> EditTicketAsync(Ticket ticket)
-                {
-                    if (ticket == null || string.IsNullOrWhiteSpace(ticket.Id))
-                    {
-                        return false;
-                    }
-
-                    var payload = new
-                    {
-                        subject = ticket.Subject,
-                        issue = ticket.Issue,
-                        priority = ticket.Priority?.Id,
-                        status = ticket.Status?.Id
-                    };
-                    var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-                    var response = await _httpClient.PutAsync($"{_settings.ApiBaseUrl}/tickets/{ticket.Id}", content);
-                    return response.IsSuccessStatusCode;
-                }
-
-                public async Task<string> GetUsersAsync()
-                {
-                    var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/users");
-                    response.EnsureSuccessStatusCode();
-                    return await response.Content.ReadAsStringAsync();
-                }
-
-                public async Task<string> GetTicketTypesAsync()
-                {
-                    var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets/types");
-                    response.EnsureSuccessStatusCode();
-                    return await response.Content.ReadAsStringAsync();
-                }
-
-                public async Task<string> GetGroupsAsync()
-                {
-                    var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/groups");
-                    response.EnsureSuccessStatusCode();
-                    return await response.Content.ReadAsStringAsync();
-                }
-
-                public async Task<bool> CreateTicketAsync(
-                    string subject,
-                    string? issue,
-                    string? typeId,
-                    string? priorityId,
-                    string? groupId,
-                    string? assigneeId)
-                {
-                    if (string.IsNullOrWhiteSpace(subject))
-                    {
-                        return false;
-                    }
-
-                    var payload = new Dictionary<string, object?>
-                    {
-                        ["subject"] = subject,
-                        ["issue"] = issue ?? string.Empty,
-                    };
-
-                    if (!string.IsNullOrEmpty(typeId))
-                        payload["type"] = typeId;
-                    if (!string.IsNullOrEmpty(priorityId))
-                        payload["priority"] = priorityId;
-                    if (!string.IsNullOrEmpty(groupId))
-                        payload["group"] = groupId;
-                    if (!string.IsNullOrEmpty(assigneeId))
-                        payload["assignee"] = assigneeId;
-
-                    var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-                    var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/create", content);
-                    return response.IsSuccessStatusCode;
-                }
+        public async Task<string> GetTicketAsync(string ticketId)
         {
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}");
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<bool> EditTicketAsync(Ticket ticket)
+        {
+            if (ticket == null || string.IsNullOrWhiteSpace(ticket.Id))
+            {
+                return false;
+            }
+
+            var payload = new
+            {
+                subject = ticket.Subject,
+                issue = ticket.Issue,
+                priority = ticket.Priority?.Id,
+                status = ticket.Status?.Id
+            };
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync($"{_settings.ApiBaseUrl}/tickets/{ticket.Id}", content);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<string> GetUsersAsync()
+        {
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/users");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<string> GetTicketTypesAsync()
+        {
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets/types");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<string> GetGroupsAsync()
+        {
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/groups");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<bool> CreateTicketAsync(
+            string subject,
+            string? issue,
+            string? typeId,
+            string? priorityId,
+            string? groupId,
+            string? assigneeId)
+        {
+            if (string.IsNullOrWhiteSpace(subject))
+            {
+                return false;
+            }
+
+            var payload = new Dictionary<string, object?>
+            {
+                ["subject"] = subject,
+                ["issue"] = issue ?? string.Empty,
+            };
+
+            if (!string.IsNullOrEmpty(typeId))
+                payload["type"] = typeId;
+            if (!string.IsNullOrEmpty(priorityId))
+                payload["priority"] = priorityId;
+            if (!string.IsNullOrEmpty(groupId))
+                payload["group"] = groupId;
+            if (!string.IsNullOrEmpty(assigneeId))
+                payload["assignee"] = assigneeId;
+
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/create", content);
+            return response.IsSuccessStatusCode;
+        }
+    }
+}

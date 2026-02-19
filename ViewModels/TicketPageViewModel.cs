@@ -54,7 +54,13 @@ public partial class TicketPageViewModel : ObservableObject
     public string SearchText
     {
         get => _searchText;
-        set => SetProperty(ref _searchText, value);
+        set
+        {
+            if (SetProperty(ref _searchText, value))
+            {
+                ApplyFilters();
+            }
+        }
     }
 
     private string _activeFilter = "all";
@@ -79,11 +85,6 @@ public partial class TicketPageViewModel : ObservableObject
         _serviceProvider = serviceProvider;
         _databaseService = databaseService;
         _isOfflineCacheEnabled = Preferences.Get("OfflineCache", false);
-    }
-
-    partial void OnSearchTextChanged(string value)
-    {
-        ApplyFilters();
     }
 
     [RelayCommand]
@@ -250,7 +251,7 @@ public partial class TicketPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task RefreshTickets()
+    public async Task RefreshTicketsAsync()
     {
         IsRefreshing = true;
         await LoadTicketsAsync();
@@ -302,7 +303,6 @@ public partial class TicketPageViewModel : ObservableObject
         {
             IsLoading = false;
             OnPropertyChanged(nameof(HasStatusMessage));
->>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
         }
     }
 }

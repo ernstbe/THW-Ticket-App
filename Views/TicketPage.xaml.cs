@@ -36,10 +36,6 @@ public partial class TicketPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-<<<<<<< HEAD
-        await _viewModel.LoadTickets();
-=======
         await _viewModel.LoadTicketsAsync();
->>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
     }
 }
