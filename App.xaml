@@ -21,7 +21,85 @@
                 <Setter Property="CornerRadius" Value="17"/>
                 <Setter Property="FontSize" Value="12"/>
                 <Setter Property="TextColor" Value="White"/>
+                <Setter Property="FontFamily" Value="OpenSansRegular"/>
             </Style>
+
+            <!-- Card Style (Material Design) -->
+            <Style x:Key="CardStyle" TargetType="Frame">
+                <Setter Property="BackgroundColor" Value="{StaticResource CardBackground}"/>
+                <Setter Property="BorderColor" Value="{StaticResource CardBorder}"/>
+                <Setter Property="CornerRadius" Value="10"/>
+                <Setter Property="Padding" Value="15"/>
+                <Setter Property="HasShadow" Value="True"/>
+            </Style>
+
+            <!-- Status Badge Style -->
+            <Style x:Key="StatusBadgeStyle" TargetType="Frame">
+                <Setter Property="Padding" Value="10,4"/>
+                <Setter Property="CornerRadius" Value="12"/>
+                <Setter Property="HasShadow" Value="False"/>
+                <Setter Property="HeightRequest" Value="25"/>
+            </Style>
+
+            <!-- Header Label Style -->
+            <Style x:Key="HeaderLabelStyle" TargetType="Label">
+                <Setter Property="TextColor" Value="{StaticResource HeaderText}"/>
+                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="FontFamily" Value="OpenSansRegular"/>
+            </Style>
+
+            <!-- Section Header Style -->
+            <Style x:Key="SectionHeaderStyle" TargetType="Label">
+                <Setter Property="TextColor" Value="{StaticResource THWBlueDark}"/>
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="FontFamily" Value="OpenSansRegular"/>
+                <Setter Property="Margin" Value="0,10,0,5"/>
+            </Style>
+
+            <!-- Primary Button Style -->
+            <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{StaticResource THWBlue}"/>
+                <Setter Property="TextColor" Value="White"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="FontFamily" Value="OpenSansRegular"/>
+                <Setter Property="FontSize" Value="15"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="Padding" Value="20,12"/>
+                <Setter Property="MinimumHeightRequest" Value="48"/>
+            </Style>
+
+            <!-- Secondary Button Style -->
+            <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{StaticResource THWBlueSurface}"/>
+                <Setter Property="TextColor" Value="{StaticResource THWBlue}"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="FontFamily" Value="OpenSansRegular"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Padding" Value="20,10"/>
+                <Setter Property="MinimumHeightRequest" Value="44"/>
+            </Style>
+
+            <!-- Danger Button Style -->
+            <Style x:Key="DangerButtonStyle" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{StaticResource Danger}"/>
+                <Setter Property="TextColor" Value="White"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="FontFamily" Value="OpenSansRegular"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Padding" Value="20,10"/>
+                <Setter Property="MinimumHeightRequest" Value="44"/>
+            </Style>
+
+            <!-- Form Label Style -->
+            <Style x:Key="FormLabelStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="TextColor" Value="{StaticResource Gray600}"/>
+                <Setter Property="Margin" Value="0,5,0,2"/>
+            </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -11,6 +11,7 @@ public partial class AddTicketViewModel : ObservableObject
     private readonly TrueDeskApiService _apiService;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanCreate))]
     private string _subject = string.Empty;
 
     [ObservableProperty]
@@ -41,12 +42,14 @@ public partial class AddTicketViewModel : ObservableObject
     private ObservableCollection<User> _users = [];
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasStatusMessage))]
     private string _statusMessage = string.Empty;
 
     [ObservableProperty]
     private Color _statusColor = Colors.Red;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanCreate))]
     private bool _isLoading;
 
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
@@ -176,7 +179,7 @@ public partial class AddTicketViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(Subject))
         {
-            StatusMessage = "Bitte geben Sie einen Betreff ein.";
+            StatusMessage = "Bitte gib einen gültigen Betreff ein.";
             StatusColor = Colors.Red;
             OnPropertyChanged(nameof(HasStatusMessage));
             return;
@@ -200,7 +203,7 @@ public partial class AddTicketViewModel : ObservableObject
 
             if (success)
             {
-                StatusMessage = "Ticket erfolgreich erstellt!";
+                StatusMessage = "Erfolg! Ticket erstellt.";
                 StatusColor = Colors.Green;
                 OnPropertyChanged(nameof(HasStatusMessage));
 
@@ -217,7 +220,7 @@ public partial class AddTicketViewModel : ObservableObject
         }
         catch (Exception)
         {
-            StatusMessage = "Verbindungsfehler. Bitte versuchen Sie es erneut.";
+            StatusMessage = "Netzwerkfehler. Bitte erneut versuchen.";
             StatusColor = Colors.Red;
             OnPropertyChanged(nameof(HasStatusMessage));
         }

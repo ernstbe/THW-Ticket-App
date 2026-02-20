@@ -4,7 +4,8 @@
       "Bash(git remote:*)",
       "Bash(git push:*)",
       "Bash(git pull:*)",
-      "Bash(git -C \"C:/Users/b.ernst/Projects/THW-Ticket-App-main\" status)"
+      "Bash(git -C \"C:/Users/b.ernst/Projects/THW-Ticket-App-main\" status)",
+      "Bash(dotnet build:*)"
     ]
   }
 }

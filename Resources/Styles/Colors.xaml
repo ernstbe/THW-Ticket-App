@@ -8,7 +8,10 @@
     <!-- THW Brand Colors -->
     <Color x:Key="THWBlue">#003399</Color>
     <Color x:Key="THWBlueDark">#002266</Color>
+    <Color x:Key="THWBlueLight">#1A4DB3</Color>
+    <Color x:Key="THWBlueSurface">#E8EEF7</Color>
 
+    <!-- Primary/Secondary/Tertiary (kept for backward compat) -->
     <Color x:Key="Primary">#003399</Color>
     <Color x:Key="PrimaryDark">#6699CC</Color>
     <Color x:Key="PrimaryDarkText">#242424</Color>
@@ -16,6 +19,29 @@
     <Color x:Key="SecondaryDarkText">#6699CC</Color>
     <Color x:Key="Tertiary">#001A4D</Color>
 
+    <!-- Trudesk-inspired Backgrounds -->
+    <Color x:Key="PageBackground">#F7F8FA</Color>
+    <Color x:Key="CardBackground">#FFFFFF</Color>
+    <Color x:Key="SidebarBackground">#E6E7E8</Color>
+
+    <!-- Header -->
+    <Color x:Key="HeaderBackground">#003399</Color>
+    <Color x:Key="HeaderText">#F6F7F8</Color>
+
+    <!-- Status Colors (Trudesk-inspired) -->
+    <Color x:Key="StatusNew">#29B955</Color>
+    <Color x:Key="StatusOpen">#D32F2F</Color>
+    <Color x:Key="StatusPending">#2196F3</Color>
+    <Color x:Key="StatusClosed">#9E9E9E</Color>
+
+    <!-- Accent -->
+    <Color x:Key="Accent">#E74C3C</Color>
+
+    <!-- Card/Divider -->
+    <Color x:Key="CardBorder">#E0E0E0</Color>
+    <Color x:Key="Divider">#E0E0E0</Color>
+
+    <!-- Base Colors -->
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
     <Color x:Key="Magenta">#D600AA</Color>
@@ -32,12 +58,13 @@
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
 
-    <!-- Status Colors -->
+    <!-- Legacy Status Colors (kept for backward compat) -->
     <Color x:Key="Success">#28A745</Color>
     <Color x:Key="Warning">#FFC107</Color>
     <Color x:Key="Danger">#DC3545</Color>
     <Color x:Key="Info">#17A2B8</Color>
 
+    <!-- Brushes -->
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
     <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>

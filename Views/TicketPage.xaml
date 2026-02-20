@@ -7,175 +7,227 @@
              x:DataType="viewmodels:TicketPageViewModel"
              Title="Tickets">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*,Auto"
+          BackgroundColor="{StaticResource PageBackground}">
 
-        <!-- Header mit Suche -->
-        <Grid Grid.Row="0" Padding="15" ColumnDefinitions="*,Auto,Auto">
-            <SearchBar Grid.Column="0"
-                       Placeholder="Tickets durchsuchen..."
-                       Text="{Binding SearchText}"
-                       SearchCommand="{Binding SearchCommand}"
-                       CancelButtonColor="{StaticResource Primary}"/>
-            <Button Grid.Column="1"
-                    Text="+"
-                    FontSize="20"
-                    WidthRequest="50"
-                    HeightRequest="50"
-                    CornerRadius="25"
-                    Command="{Binding ShowAddTicketCommand}"
-                    BackgroundColor="{StaticResource Primary}"
-                    TextColor="White"
-                    Margin="10,0,0,0"/>
-            <ImageButton Grid.Column="2"
+        <!-- Header with THW-blue background -->
+        <Grid Grid.Row="0"
+              BackgroundColor="{StaticResource HeaderBackground}"
+              Padding="15,10"
+              ColumnDefinitions="*,Auto">
+            <!-- Search bar on white background -->
+            <Border Grid.Column="0"
+                    StrokeShape="RoundRectangle 8"
+                    Stroke="Transparent"
+                    BackgroundColor="White"
+                    Padding="5,0">
+                <SearchBar Placeholder="Suchen..."
+                           Text="{Binding SearchText}"
+                           SearchCommand="{Binding SearchCommand}"
+                           BackgroundColor="Transparent"
+                           CancelButtonColor="{StaticResource THWBlue}"/>
+            </Border>
+            <ImageButton Grid.Column="1"
                          Source="settings.png"
                          WidthRequest="40"
                          HeightRequest="40"
                          Command="{Binding ShowSettingsCommand}"
                          BackgroundColor="Transparent"
-                         Margin="5,0,0,0"/>
+                         Margin="10,0,0,0"/>
         </Grid>
 
-        <!-- Filter-Chips -->
-        <HorizontalStackLayout Grid.Row="1"
-                               Padding="15,0,15,10"
-                               Spacing="10">
-            <Button Text="Alle"
-                    Style="{StaticResource FilterChipStyle}"
-                    Command="{Binding FilterCommand}"
-                    CommandParameter="all"
-                    BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=all}"/>
-            <Button Text="Offen"
-                    Style="{StaticResource FilterChipStyle}"
-                    Command="{Binding FilterCommand}"
-                    CommandParameter="open"
-                    BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=open}"/>
-            <Button Text="In Bearbeitung"
-                    Style="{StaticResource FilterChipStyle}"
-                    Command="{Binding FilterCommand}"
-                    CommandParameter="pending"
-                    BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=pending}"/>
-            <Button Text="Geschlossen"
-                    Style="{StaticResource FilterChipStyle}"
-                    Command="{Binding FilterCommand}"
-                    CommandParameter="closed"
-                    BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=closed}"/>
-        </HorizontalStackLayout>
+        <!-- Filter Chips -->
+        <ScrollView Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalScrollBarVisibility="Never">
+            <HorizontalStackLayout Padding="15,10"
+                                   Spacing="8">
+                <Button Text="Alle"
+                        Style="{StaticResource FilterChipStyle}"
+                        Command="{Binding FilterCommand}"
+                        CommandParameter="all"
+                        BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=all}"/>
+                <Button Text="Offen"
+                        Style="{StaticResource FilterChipStyle}"
+                        Command="{Binding FilterCommand}"
+                        CommandParameter="open"
+                        BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=open}"/>
+                <Button Text="Ausstehend"
+                        Style="{StaticResource FilterChipStyle}"
+                        Command="{Binding FilterCommand}"
+                        CommandParameter="pending"
+                        BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=pending}"/>
+                <Button Text="Geschlossen"
+                        Style="{StaticResource FilterChipStyle}"
+                        Command="{Binding FilterCommand}"
+                        CommandParameter="closed"
+                        BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=closed}"/>
+            </HorizontalStackLayout>
+        </ScrollView>
 
-        <!-- Ticket-Liste mit Pull-to-Refresh -->
+        <!-- Ticket List with Pull-to-Refresh -->
         <RefreshView Grid.Row="2"
                      IsRefreshing="{Binding IsRefreshing}"
                      Command="{Binding RefreshTicketsCommand}"
-                     RefreshColor="{StaticResource Primary}">
+                     RefreshColor="{StaticResource THWBlue}">
             <CollectionView x:Name="TicketsCollectionView"
                             ItemsSource="{Binding FilteredTickets}"
                             SelectionMode="Single"
-                            EmptyView="Keine Tickets gefunden">
+                            EmptyView="Keine Ergebnisse">
 
-                <!-- Ladeanimation -->
+                <!-- Loading indicator -->
                 <CollectionView.Header>
                     <ActivityIndicator IsRunning="{Binding IsLoading}"
                                        IsVisible="{Binding IsLoading}"
-                                       Color="{StaticResource Primary}"
+                                       Color="{StaticResource THWBlue}"
                                        HeightRequest="50"/>
                 </CollectionView.Header>
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Ticket">
-                        <Frame Margin="10,5"
-                               Padding="15"
-                               CornerRadius="10"
-                               BorderColor="{Binding Status.HtmlColor}"
-                               HasShadow="True">
-                            <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
-                                <!-- Titel und Status -->
-                                <Label Grid.Row="0" Grid.Column="0"
-                                       Text="{Binding Subject}"
-                                       FontAttributes="Bold"
-                                       FontSize="16"
-                                       LineBreakMode="TailTruncation"/>
-                                <Frame Grid.Row="0" Grid.Column="1"
-                                       BackgroundColor="{Binding Status.HtmlColor}"
-                                       Padding="8,4"
-                                       CornerRadius="12"
-                                       HasShadow="False">
-                                    <Label Text="{Binding Status.Name}"
-                                           TextColor="White"
-                                           FontSize="12"/>
-                                </Frame>
+                        <!-- Ticket Card with left priority bar (Trudesk-style) -->
+                        <Border Margin="10,5"
+                                StrokeShape="RoundRectangle 10"
+                                Stroke="{StaticResource CardBorder}"
+                                StrokeThickness="1"
+                                BackgroundColor="{StaticResource CardBackground}">
+                            <Border.Shadow>
+                                <Shadow Brush="Black"
+                                        Offset="0,2"
+                                        Radius="6"
+                                        Opacity="0.1"/>
+                            </Border.Shadow>
+                            <Grid ColumnDefinitions="5,*">
+                                <!-- Left Priority Color Bar -->
+                                <BoxView Grid.Column="0"
+                                         BackgroundColor="{Binding Priority.HtmlColor}"
+                                         WidthRequest="5"/>
 
-                                <!-- Details -->
-                                <HorizontalStackLayout Grid.Row="1" Grid.ColumnSpan="2"
-                                                       Spacing="15"
-                                                       Margin="0,8,0,0">
-                                    <Label TextColor="{StaticResource Gray500}">
-                                        <Label.FormattedText>
-                                            <FormattedString>
-                                                <Span Text="Typ: " FontAttributes="Bold"/>
-                                                <Span Text="{Binding Type.Name}"/>
-                                            </FormattedString>
-                                        </Label.FormattedText>
-                                    </Label>
-                                    <Label TextColor="{Binding Priority.HtmlColor}">
-                                        <Label.FormattedText>
-                                            <FormattedString>
-                                                <Span Text="Priorität: " FontAttributes="Bold"/>
-                                                <Span Text="{Binding Priority.Name}"/>
-                                            </FormattedString>
-                                        </Label.FormattedText>
-                                    </Label>
-                                </HorizontalStackLayout>
+                                <!-- Ticket Content -->
+                                <Grid Grid.Column="1"
+                                      Padding="15"
+                                      RowDefinitions="Auto,Auto,Auto"
+                                      ColumnDefinitions="*,Auto">
 
-                                <!-- Zuweiser und Datum -->
-                                <HorizontalStackLayout Grid.Row="2" Grid.ColumnSpan="2"
-                                                       Spacing="15"
-                                                       Margin="0,5,0,0">
-                                    <Label TextColor="{StaticResource Gray400}" FontSize="12">
-                                        <Label.FormattedText>
-                                            <FormattedString>
-                                                <Span Text="Zugewiesen: "/>
-                                                <Span Text="{Binding Assignee.Fullname, TargetNullValue='Nicht zugewiesen'}"/>
-                                            </FormattedString>
-                                        </Label.FormattedText>
-                                    </Label>
-                                    <Label TextColor="{StaticResource Gray400}" FontSize="12">
-                                        <Label.FormattedText>
-                                            <FormattedString>
-                                                <Span Text="Erstellt: "/>
-                                                <Span Text="{Binding Date, StringFormat='{0:dd.MM.yyyy HH:mm}'}"/>
-                                            </FormattedString>
-                                        </Label.FormattedText>
-                                    </Label>
-                                </HorizontalStackLayout>
+                                    <!-- Title -->
+                                    <Label Grid.Row="0" Grid.Column="0"
+                                           Text="{Binding Subject}"
+                                           FontAttributes="Bold"
+                                           FontSize="15"
+                                           TextColor="{StaticResource Gray900}"
+                                           LineBreakMode="TailTruncation"/>
+
+                                    <!-- Status Badge -->
+                                    <Frame Grid.Row="0" Grid.Column="1"
+                                           BackgroundColor="{Binding Status.HtmlColor}"
+                                           Padding="10,4"
+                                           CornerRadius="12"
+                                           HasShadow="False"
+                                           BorderColor="Transparent">
+                                        <Label Text="{Binding Status.Name}"
+                                               TextColor="White"
+                                               FontSize="11"
+                                               FontAttributes="Bold"/>
+                                    </Frame>
+
+                                    <!-- Type and Priority -->
+                                    <HorizontalStackLayout Grid.Row="1" Grid.ColumnSpan="2"
+                                                           Spacing="15"
+                                                           Margin="0,8,0,0">
+                                        <Label TextColor="{StaticResource Gray500}" FontSize="13">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="Typ: " FontAttributes="Bold"/>
+                                                    <Span Text="{Binding Type.Name}"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                        <Label TextColor="{Binding Priority.HtmlColor}" FontSize="13">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="Priorität: " FontAttributes="Bold"/>
+                                                    <Span Text="{Binding Priority.Name}"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </HorizontalStackLayout>
+
+                                    <!-- Assignee and Date -->
+                                    <HorizontalStackLayout Grid.Row="2" Grid.ColumnSpan="2"
+                                                           Spacing="15"
+                                                           Margin="0,5,0,0">
+                                        <Label TextColor="{StaticResource Gray400}" FontSize="12">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="Zuständig: "/>
+                                                    <Span Text="{Binding Assignee.Fullname, TargetNullValue='Kein Benutzer zugewiesen'}"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                        <Label TextColor="{StaticResource Gray400}" FontSize="12">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="Erstellt: "/>
+                                                    <Span Text="{Binding Date, StringFormat='{0:dd.MM.yyyy HH:mm}'}"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </HorizontalStackLayout>
+                                </Grid>
                             </Grid>
-                        </Frame>
+                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </RefreshView>
 
-        <!-- Status-Leiste -->
+        <!-- Floating Action Button -->
+        <Button Grid.Row="2"
+                Text="+"
+                FontSize="24"
+                FontAttributes="Bold"
+                WidthRequest="56"
+                HeightRequest="56"
+                CornerRadius="28"
+                Command="{Binding ShowAddTicketCommand}"
+                BackgroundColor="{StaticResource THWBlue}"
+                TextColor="White"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                Margin="0,0,20,20">
+            <Button.Shadow>
+                <Shadow Brush="Black"
+                        Offset="0,4"
+                        Radius="8"
+                        Opacity="0.25"/>
+            </Button.Shadow>
+        </Button>
+
+        <!-- Status Bar -->
         <VerticalStackLayout Grid.Row="3">
-            <!-- Offline-Indikator -->
+            <!-- Offline Indicator -->
             <Frame Padding="8"
                    IsVisible="{Binding IsOfflineMode}"
                    BackgroundColor="{StaticResource Warning}"
-                   CornerRadius="0">
+                   CornerRadius="0"
+                   BorderColor="Transparent">
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
                     <Label Text="&#x26A0;" FontSize="16"/>
-                    <Label Text="Offline-Modus - Zeige gecachte Daten"
+                    <Label Text="Offline-Modus - Gecachte Daten"
                            TextColor="{StaticResource Gray900}"
                            FontAttributes="Bold"/>
                 </HorizontalStackLayout>
             </Frame>
 
-            <!-- Status-Meldung -->
+            <!-- Status Message -->
             <Frame Padding="10"
                    IsVisible="{Binding HasStatusMessage}"
-                   BackgroundColor="{StaticResource Gray100}"
-                   CornerRadius="0">
+                   BackgroundColor="{StaticResource THWBlueSurface}"
+                   CornerRadius="0"
+                   BorderColor="Transparent">
                 <Label Text="{Binding StatusMessage}"
                        HorizontalTextAlignment="Center"
-                       TextColor="{StaticResource Gray600}"/>
+                       TextColor="{StaticResource THWBlueDark}"/>
             </Frame>
         </VerticalStackLayout>
     </Grid>

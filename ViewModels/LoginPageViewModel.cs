@@ -33,12 +33,12 @@ namespace THWTicketApp.ViewModels
         {
             if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
             {
-                LoginStatus = "Please enter username and password.";
+                LoginStatus = "Bitte Benutzername und Passwort eingeben.";
                 return;
             }
 
             IsLoading = true;
-            LoginStatus = "Logging in...";
+            LoginStatus = "Anmelden...";
 
             try
             {
@@ -46,7 +46,7 @@ namespace THWTicketApp.ViewModels
 
                 if (success)
                 {
-                    LoginStatus = "Login successful!";
+                    LoginStatus = "Anmeldung erfolgreich!";
                     Password = string.Empty; // Clear password from memory
 
                     var window = Application.Current?.Windows.FirstOrDefault();
@@ -58,12 +58,12 @@ namespace THWTicketApp.ViewModels
                 }
                 else
                 {
-                    LoginStatus = "Login failed. Please check your credentials.";
+                    LoginStatus = "Anmeldung fehlgeschlagen. Ungültige Anmeldedaten.";
                 }
             }
             catch (Exception)
             {
-                LoginStatus = "Connection error. Please check your network.";
+                LoginStatus = "Netzwerkfehler. Bitte Verbindung prüfen.";
             }
             finally
             {

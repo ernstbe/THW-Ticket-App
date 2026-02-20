@@ -4,42 +4,78 @@
              x:Class="THWTicketApp.MainPage"
              Title="Home">
 
-    <ScrollView>
+    <ScrollView BackgroundColor="{StaticResource PageBackground}">
         <VerticalStackLayout
-            Padding="30,0"
-            Spacing="25"
+            Padding="30,40"
+            Spacing="20"
             VerticalOptions="Center">
 
+            <!-- THW Logo -->
             <Image
                 Source="thw_logo.svg"
                 HeightRequest="120"
                 Aspect="AspectFit"
                 SemanticProperties.Description="THW Logo" />
 
+            <!-- App Title -->
             <Label
-                Text="{Binding WelcomeMessage}"
-                FontSize="24"
+                Text="THW Ticket System"
+                FontSize="28"
                 FontAttributes="Bold"
+                TextColor="{StaticResource THWBlueDark}"
                 HorizontalTextAlignment="Center"
                 SemanticProperties.HeadingLevel="Level1" />
 
-            <Label
-                Text="Manage your support tickets"
-                FontSize="16"
-                HorizontalTextAlignment="Center"
-                TextColor="{StaticResource Gray400}"
-                SemanticProperties.HeadingLevel="Level2" />
+            <!-- Welcome message -->
+            <Frame Style="{StaticResource CardStyle}"
+                   BorderColor="Transparent"
+                   Margin="0,10">
+                <VerticalStackLayout Spacing="10"
+                                     HorizontalOptions="Center">
+                    <Label
+                        Text="{Binding WelcomeMessage}"
+                        FontSize="20"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource THWBlue}"
+                        HorizontalTextAlignment="Center" />
 
+                    <Label
+                        Text="Support-Tickets verwalten"
+                        FontSize="14"
+                        HorizontalTextAlignment="Center"
+                        TextColor="{StaticResource Gray500}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Quick Access Card -->
+            <Frame Style="{StaticResource CardStyle}"
+                   BorderColor="Transparent">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Schnellübersicht"
+                           Style="{StaticResource SectionHeaderStyle}"
+                           HorizontalTextAlignment="Center"
+                           Margin="0"/>
+
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{StaticResource Divider}"/>
+
+                    <Label Text="Nutzen Sie die Navigation, um Tickets zu verwalten, neue Tickets zu erstellen oder die Einstellungen anzupassen."
+                           FontSize="13"
+                           TextColor="{StaticResource Gray500}"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,5"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Logout -->
             <Button
-                Text="Logout"
-                Command="{Binding LogoutAsyncCommand}"
+                Text="Abmelden"
+                Command="{Binding LogoutCommand}"
                 IsVisible="{Binding IsAuthenticated}"
-                BackgroundColor="{StaticResource Gray500}"
-                TextColor="White"
+                Style="{StaticResource SecondaryButtonStyle}"
                 HorizontalOptions="Center"
-                Margin="0,20,0,0" />
+                Margin="0,10,0,0" />
 
         </VerticalStackLayout>
     </ScrollView>
-
 </ContentPage>
