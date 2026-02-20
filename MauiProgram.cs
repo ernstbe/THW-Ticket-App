@@ -50,7 +50,7 @@ public static class MauiProgram
         // Views
         builder.Services.AddSingleton<LoginPage>();
         builder.Services.AddSingleton<MainPage>();
-        builder.Services.AddSingleton<TicketPage>();
+        builder.Services.AddTransient<TicketPage>();
         builder.Services.AddTransient<TicketDetailPage>();
         builder.Services.AddTransient<Views.AddTicketPage>();
         builder.Services.AddTransient<Views.SettingsPage>();

@@ -1,13 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using THWTicketApp.Services;
 
 namespace THWTicketApp.ViewModels
 {
     public partial class LoginPageViewModel : ObservableObject
     {
-        private readonly TicketPage _ticketPage;
         private readonly TrueDeskApiService _apiService;
+        private readonly IServiceProvider _serviceProvider;
 
         [ObservableProperty]
         private string _username = string.Empty;
@@ -21,10 +22,10 @@ namespace THWTicketApp.ViewModels
         [ObservableProperty]
         private bool _isLoading;
 
-        public LoginPageViewModel(TrueDeskApiService apiService, TicketPage ticketPage)
+        public LoginPageViewModel(TrueDeskApiService apiService, IServiceProvider serviceProvider)
         {
             _apiService = apiService;
-            _ticketPage = ticketPage;
+            _serviceProvider = serviceProvider;
         }
 
         [RelayCommand]
@@ -51,7 +52,8 @@ namespace THWTicketApp.ViewModels
                     var window = Application.Current?.Windows.FirstOrDefault();
                     if (window?.Page is NavigationPage nav)
                     {
-                        await nav.PushAsync(_ticketPage);
+                        var ticketPage = _serviceProvider.GetRequiredService<TicketPage>();
+                        await nav.PushAsync(ticketPage);
                     }
                 }
                 else
@@ -77,7 +79,8 @@ namespace THWTicketApp.ViewModels
                 var window = Application.Current?.Windows.FirstOrDefault();
                 if (window?.Page is NavigationPage nav)
                 {
-                    await nav.PushAsync(_ticketPage);
+                    var ticketPage = _serviceProvider.GetRequiredService<TicketPage>();
+                    await nav.PushAsync(ticketPage);
                 }
             }
         }
