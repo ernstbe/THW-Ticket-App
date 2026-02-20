@@ -116,19 +116,13 @@ public partial class TicketPageViewModel : ObservableObject
             );
         }
 
-        // Apply status filter
+        // Apply status filter (check both German translated and English original names)
         filtered = ActiveFilter switch
         {
-            "open" => filtered.Where(t => t.Status?.Name?.ToLowerInvariant() == "open" ||
-                                          t.Status?.Name?.ToLowerInvariant() == "neu" ||
-                                          t.Status?.Name?.ToLowerInvariant() == "new"),
-            "pending" => filtered.Where(t => t.Status?.Name?.ToLowerInvariant() == "pending" ||
-                                             t.Status?.Name?.ToLowerInvariant() == "in bearbeitung" ||
-                                             t.Status?.Name?.ToLowerInvariant() == "in progress"),
+            "open" => filtered.Where(t => t.Status?.Name?.ToLowerInvariant() is "offen" or "open" or "neu" or "new"),
+            "pending" => filtered.Where(t => t.Status?.Name?.ToLowerInvariant() is "ausstehend" or "pending" or "in bearbeitung" or "in progress" or "wartend" or "on hold"),
             "closed" => filtered.Where(t => t.Status?.IsResolved == true ||
-                                            t.Status?.Name?.ToLowerInvariant() == "closed" ||
-                                            t.Status?.Name?.ToLowerInvariant() == "geschlossen" ||
-                                            t.Status?.Name?.ToLowerInvariant() == "resolved"),
+                                            t.Status?.Name?.ToLowerInvariant() is "geschlossen" or "closed" or "gelöst" or "resolved"),
             _ => filtered
         };
 
@@ -172,6 +166,7 @@ public partial class TicketPageViewModel : ObservableObject
             {
                 foreach (var ticket in tickets)
                 {
+                    TrudeskTranslationHelper.TranslateTicket(ticket);
                     _allTickets.Add(ticket);
                     Tickets.Add(ticket);
                 }

@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using THWTicketApp.Models;
 using THWTicketApp.Services;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using THWTicketApp.Models.Responses;
 
 namespace THWTicketApp.ViewModels
@@ -43,6 +42,7 @@ namespace THWTicketApp.ViewModels
 
         public void SetTicket(Ticket ticket)
         {
+            TrudeskTranslationHelper.TranslateTicket(ticket);
             Ticket = ticket;
             EditSubject = ticket?.Subject ?? string.Empty;
             EditIssue = ticket?.Issue ?? string.Empty;
@@ -70,7 +70,7 @@ namespace THWTicketApp.ViewModels
                 {
                     if (userResponse.Count == 0)
                     {
-                        StatusMessage = "No users found.";
+                        StatusMessage = "Keine Benutzer gefunden.";
                         return;
                     }
 
@@ -82,7 +82,7 @@ namespace THWTicketApp.ViewModels
             }
             catch (Exception)
             {
-                StatusMessage = "Failed to load users.";
+                StatusMessage = "Fehler beim Laden der Benutzer.";
             }
             finally
             {
@@ -95,7 +95,7 @@ namespace THWTicketApp.ViewModels
         {
             if (Ticket == null || SelectedAssignee == null)
             {
-                StatusMessage = "Please select an assignee.";
+                StatusMessage = "Bitte einen Zuständigen auswählen.";
                 return;
             }
 
@@ -103,7 +103,7 @@ namespace THWTicketApp.ViewModels
             try
             {
                 var success = await _apiService.AssignTicketAsync(Ticket.Id, SelectedAssignee.Id);
-                StatusMessage = success ? "Assignment updated." : "Assignment failed.";
+                StatusMessage = success ? "Zuweisung aktualisiert." : "Zuweisung fehlgeschlagen.";
                 if (success)
                 {
                     // reload ticket
@@ -112,6 +112,7 @@ namespace THWTicketApp.ViewModels
                     var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
                     if (updated != null)
                     {
+                        TrudeskTranslationHelper.TranslateTicket(updated);
                         Ticket = updated;
                         THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
                     }
@@ -119,7 +120,7 @@ namespace THWTicketApp.ViewModels
             }
             catch (Exception)
             {
-                StatusMessage = "Failed to update assignment.";
+                StatusMessage = "Fehler beim Aktualisieren der Zuweisung.";
             }
             finally
             {
@@ -132,7 +133,7 @@ namespace THWTicketApp.ViewModels
         {
             if (Ticket == null)
             {
-                StatusMessage = "No ticket selected.";
+                StatusMessage = "Kein Ticket ausgewählt.";
                 return;
             }
 
@@ -143,24 +144,25 @@ namespace THWTicketApp.ViewModels
                 if (success)
                 {
                     Ticket.Assignee = null;
-                    StatusMessage = "Assignee cleared.";
+                    StatusMessage = "Zuweisung entfernt.";
                     var json = await _apiService.GetTicketAsync(Ticket.Id);
                     var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                     var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
                     if (updated != null)
                     {
+                        TrudeskTranslationHelper.TranslateTicket(updated);
                         Ticket = updated;
                         THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
                     }
                 }
                 else
                 {
-                    StatusMessage = "Failed to clear assignee.";
+                    StatusMessage = "Fehler beim Entfernen der Zuweisung.";
                 }
             }
             catch (Exception)
             {
-                StatusMessage = "Error clearing assignee.";
+                StatusMessage = "Fehler beim Entfernen der Zuweisung.";
             }
             finally
             {
@@ -173,13 +175,13 @@ namespace THWTicketApp.ViewModels
         {
             if (Ticket == null)
             {
-                StatusMessage = "No ticket selected.";
+                StatusMessage = "Kein Ticket ausgewählt.";
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(NewComment))
             {
-                StatusMessage = "Please enter a comment.";
+                StatusMessage = "Bitte einen Kommentar eingeben.";
                 return;
             }
 
@@ -191,25 +193,26 @@ namespace THWTicketApp.ViewModels
 
                 if (success)
                 {
-                    StatusMessage = "Comment added.";
+                    StatusMessage = "Kommentar hinzugefügt.";
                     NewComment = string.Empty;
                     var json = await _apiService.GetTicketAsync(Ticket.Id);
                     var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                     var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
                     if (updated != null)
                     {
+                        TrudeskTranslationHelper.TranslateTicket(updated);
                         Ticket = updated;
                         THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
                     }
                 }
                 else
                 {
-                    StatusMessage = "Failed to add comment.";
+                    StatusMessage = "Fehler beim Hinzufügen des Kommentars.";
                 }
             }
             catch (Exception)
             {
-                StatusMessage = "Error adding comment.";
+                StatusMessage = "Fehler beim Hinzufügen des Kommentars.";
             }
             finally
             {
@@ -222,13 +225,13 @@ namespace THWTicketApp.ViewModels
         {
             if (Ticket == null)
             {
-                StatusMessage = "No ticket selected.";
+                StatusMessage = "Kein Ticket ausgewählt.";
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(EditSubject))
             {
-                StatusMessage = "Subject is required.";
+                StatusMessage = "Betreff ist erforderlich.";
                 return;
             }
 
@@ -238,11 +241,11 @@ namespace THWTicketApp.ViewModels
                 Ticket.Subject = EditSubject;
                 Ticket.Issue = EditIssue;
                 var success = await _apiService.EditTicketAsync(Ticket);
-                StatusMessage = success ? "Ticket updated." : "Update failed.";
+                StatusMessage = success ? "Ticket aktualisiert." : "Aktualisierung fehlgeschlagen.";
             }
             catch (Exception)
             {
-                StatusMessage = "Error updating ticket.";
+                StatusMessage = "Fehler beim Aktualisieren des Tickets.";
             }
             finally
             {

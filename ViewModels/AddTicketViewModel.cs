@@ -120,13 +120,14 @@ public partial class AddTicketViewModel : ObservableObject
                 foreach (var type in types)
                 {
                     TicketTypes.Add(type);
-                    // Add priorities from this type
+                    // Add priorities from this type (translate names)
                     if (type.Priorities != null)
                     {
                         foreach (var priority in type.Priorities)
                         {
                             if (!Priorities.Any(p => p.Id == priority.Id))
                             {
+                                priority.Name = TrudeskTranslationHelper.TranslatePriority(priority.Name);
                                 Priorities.Add(priority);
                             }
                         }
