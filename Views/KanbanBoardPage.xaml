@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:THWTicketApp.Models"
+             xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             x:Class="THWTicketApp.Views.KanbanBoardPage"
+             x:DataType="viewmodels:KanbanBoardViewModel"
+             Title="Kanban Board">
+
+    <Grid RowDefinitions="Auto,*"
+          BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
+
+        <!-- Header -->
+        <Grid Grid.Row="0"
+              BackgroundColor="{AppThemeBinding Light={StaticResource HeaderBackground}, Dark={StaticResource HeaderBackgroundDark}}"
+              Padding="15,10">
+            <Label Text="Kanban Board"
+                   TextColor="White"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"/>
+        </Grid>
+
+        <!-- Loading -->
+        <ActivityIndicator Grid.Row="1"
+                           IsRunning="{Binding IsLoading}"
+                           IsVisible="{Binding IsLoading}"
+                           Color="{StaticResource THWBlue}"
+                           VerticalOptions="Center"/>
+
+        <!-- Kanban Columns (horizontal scroll) -->
+        <ScrollView Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalScrollBarVisibility="Always"
+                    IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+            <HorizontalStackLayout Spacing="10" Padding="10">
+                <BindableLayout.ItemsSource>
+                    <Binding Path="Columns"/>
+                </BindableLayout.ItemsSource>
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="viewmodels:KanbanColumn">
+                        <Frame WidthRequest="280"
+                               Padding="10"
+                               CornerRadius="10"
+                               BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
+                               BorderColor="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}">
+                            <VerticalStackLayout Spacing="8">
+                                <!-- Column Header -->
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                    <BoxView Grid.Column="0"
+                                             WidthRequest="4"
+                                             HeightRequest="20"
+                                             BackgroundColor="{Binding StatusColor}"
+                                             CornerRadius="2"/>
+                                    <Label Grid.Column="1"
+                                           Text="{Binding StatusName}"
+                                           FontSize="16"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light={StaticResource THWBlueDark}, Dark={StaticResource THWBlueLight}}"/>
+                                    <Frame Grid.Column="2"
+                                           BackgroundColor="{Binding StatusColor}"
+                                           Padding="6,2"
+                                           CornerRadius="10"
+                                           HasShadow="False"
+                                           BorderColor="Transparent">
+                                        <Label Text="{Binding TicketCount}"
+                                               TextColor="White"
+                                               FontSize="11"
+                                               FontAttributes="Bold"/>
+                                    </Frame>
+                                </Grid>
+
+                                <BoxView HeightRequest="1"
+                                         BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                                <!-- Ticket Cards in Column -->
+                                <CollectionView ItemsSource="{Binding Tickets}"
+                                                VerticalScrollBarVisibility="Always">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:Ticket">
+                                            <Border Margin="0,4"
+                                                    StrokeShape="RoundRectangle 8"
+                                                    Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
+                                                    StrokeThickness="1"
+                                                    Padding="10"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
+                                                <VerticalStackLayout Spacing="4">
+                                                    <Label Text="{Binding Subject}"
+                                                           FontSize="13"
+                                                           FontAttributes="Bold"
+                                                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark=White}"
+                                                           LineBreakMode="TailTruncation"
+                                                           MaxLines="2"/>
+                                                    <HorizontalStackLayout Spacing="8">
+                                                        <Label Text="{Binding Priority.Name}"
+                                                               FontSize="10"
+                                                               TextColor="{Binding Priority.HtmlColor}"/>
+                                                        <Label Text="{Binding Assignee.Fullname, TargetNullValue='Nicht zugewiesen'}"
+                                                               FontSize="10"
+                                                               TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
+                                                    </HorizontalStackLayout>
+                                                    <Label Text="{Binding Uid, StringFormat='#{0}'}"
+                                                           FontSize="9"
+                                                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </HorizontalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

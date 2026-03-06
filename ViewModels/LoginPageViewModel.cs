@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
+using Plugin.Fingerprint.Abstractions;
 using THWTicketApp.Services;
 
 namespace THWTicketApp.ViewModels
@@ -9,6 +10,7 @@ namespace THWTicketApp.ViewModels
     {
         private readonly TrueDeskApiService _apiService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IFingerprint _fingerprint;
 
         [ObservableProperty]
         private string _username = string.Empty;
@@ -22,10 +24,29 @@ namespace THWTicketApp.ViewModels
         [ObservableProperty]
         private bool _isLoading;
 
-        public LoginPageViewModel(TrueDeskApiService apiService, IServiceProvider serviceProvider)
+        [ObservableProperty]
+        private bool _isBiometricAvailable;
+
+        public LoginPageViewModel(TrueDeskApiService apiService, IServiceProvider serviceProvider, IFingerprint fingerprint)
         {
             _apiService = apiService;
             _serviceProvider = serviceProvider;
+            _fingerprint = fingerprint;
+            _ = CheckBiometricAsync();
+        }
+
+        private async Task CheckBiometricAsync()
+        {
+            try
+            {
+                var available = await _fingerprint.IsAvailableAsync();
+                var hasSavedCredentials = Preferences.Get("BiometricEnabled", false);
+                IsBiometricAvailable = available && hasSavedCredentials;
+            }
+            catch
+            {
+                IsBiometricAvailable = false;
+            }
         }
 
         [RelayCommand]
@@ -47,6 +68,16 @@ namespace THWTicketApp.ViewModels
                 if (success)
                 {
                     LoginStatus = "Anmeldung erfolgreich!";
+
+                    // Save credentials for biometric login
+                    try
+                    {
+                        await SecureStorage.SetAsync("bio_username", Username);
+                        await SecureStorage.SetAsync("bio_password", Password);
+                        Preferences.Set("BiometricEnabled", true);
+                    }
+                    catch { }
+
                     Password = string.Empty; // Clear password from memory
 
                     var window = Application.Current?.Windows.FirstOrDefault();
@@ -64,6 +95,63 @@ namespace THWTicketApp.ViewModels
             catch (Exception)
             {
                 LoginStatus = "Netzwerkfehler. Bitte Verbindung prüfen.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task BiometricLoginAsync()
+        {
+            try
+            {
+                var request = new AuthenticationRequestConfiguration(
+                    "THW Ticket App",
+                    "Bitte authentifizieren Sie sich, um sich anzumelden.")
+                {
+                    AllowAlternativeAuthentication = true
+                };
+
+                var result = await _fingerprint.AuthenticateAsync(request);
+                if (result.Authenticated)
+                {
+                    IsLoading = true;
+                    LoginStatus = "Anmelden...";
+
+                    var username = await SecureStorage.GetAsync("bio_username");
+                    var password = await SecureStorage.GetAsync("bio_password");
+
+                    if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                    {
+                        var success = await _apiService.AuthenticateAsync(username, password);
+                        if (success)
+                        {
+                            LoginStatus = "Anmeldung erfolgreich!";
+                            var window = Application.Current?.Windows.FirstOrDefault();
+                            if (window?.Page is NavigationPage nav)
+                            {
+                                var mainPage = _serviceProvider.GetRequiredService<MainPage>();
+                                await nav.PushAsync(mainPage);
+                            }
+                        }
+                        else
+                        {
+                            LoginStatus = "Gespeicherte Anmeldedaten ungültig. Bitte manuell anmelden.";
+                            Preferences.Set("BiometricEnabled", false);
+                            IsBiometricAvailable = false;
+                        }
+                    }
+                }
+                else
+                {
+                    LoginStatus = "Authentifizierung abgebrochen.";
+                }
+            }
+            catch (Exception)
+            {
+                LoginStatus = "Biometrische Authentifizierung fehlgeschlagen.";
             }
             finally
             {

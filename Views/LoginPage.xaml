@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
              x:Class="THWTicketApp.LoginPage"
+             x:DataType="viewmodels:LoginPageViewModel"
              Shell.NavBarIsVisible="False">
 
     <!-- Full-page THW-Blue background -->
@@ -101,6 +103,17 @@
                                 MinimumHeightRequest="48"
                                 Command="{Binding LoginCommand}"
                                 Margin="0,10,0,0"/>
+
+                        <!-- Biometric Login Button -->
+                        <Button IsVisible="{Binding IsBiometricAvailable}"
+                                Text="&#x1F510; Biometrisch anmelden"
+                                BackgroundColor="{AppThemeBinding Light=#E8EEF7, Dark=#2A3A5C}"
+                                TextColor="{AppThemeBinding Light=#003399, Dark=#B3CCFF}"
+                                CornerRadius="8"
+                                FontSize="14"
+                                Padding="20,12"
+                                MinimumHeightRequest="48"
+                                Command="{Binding BiometricLoginCommand}"/>
 
                         <!-- Status Text -->
                         <Label Text="{Binding LoginStatus}"

@@ -10,6 +10,14 @@ public partial class AddTicketPage : ContentPage
         BindingContext = viewModel;
     }
 
+    public void SetScannedSubject(string subject)
+    {
+        if (BindingContext is AddTicketViewModel vm)
+        {
+            vm.Subject = $"[Scan] {subject}";
+        }
+    }
+
     protected override async void OnAppearing()
     {
         base.OnAppearing();

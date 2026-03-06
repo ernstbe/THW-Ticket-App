@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using THWTicketApp.Models;
 using THWTicketApp.Services;
+using THWTicketApp.Data;
 using System.Collections.ObjectModel;
 using THWTicketApp.Models.Responses;
 
@@ -51,15 +52,175 @@ namespace THWTicketApp.ViewModels
         [ObservableProperty]
         private int _pendingActionsCount;
 
+        [ObservableProperty]
+        private ObservableCollection<string> _quickReplyTemplates = [];
+
+        [ObservableProperty]
+        private string? _selectedQuickReply;
+
+        [ObservableProperty]
+        private string _newTemplateName = string.Empty;
+
+        [ObservableProperty]
+        private bool _isTemplateEditorVisible;
+
+        // Time tracking
+        [ObservableProperty]
+        private bool _isTimerRunning;
+
+        [ObservableProperty]
+        private string _timerDisplay = "00:00:00";
+
+        [ObservableProperty]
+        private string _totalTimeDisplay = "0h 0m";
+
+        [ObservableProperty]
+        private ObservableCollection<TimeEntry> _timeEntries = [];
+
+        [ObservableProperty]
+        private string _timeEntryDescription = string.Empty;
+
+        private int? _activeTimerEntryId;
+        private IDispatcherTimer? _timerTick;
+
+        // Linked Tickets
+        [ObservableProperty]
+        private ObservableCollection<LinkedTicket> _linkedTickets = [];
+
+        [ObservableProperty]
+        private bool _isLinkPickerVisible;
+
+        [ObservableProperty]
+        private ObservableCollection<Models.Ticket> _availableTicketsForLink = [];
+
+        [ObservableProperty]
+        private Models.Ticket? _selectedTicketToLink;
+
+        [ObservableProperty]
+        private string _selectedLinkType = "related";
+
+        // @Mentions
+        [ObservableProperty]
+        private ObservableCollection<User> _mentionSuggestions = [];
+
+        [ObservableProperty]
+        private bool _isMentionPopupVisible;
+
         private readonly TrueDeskApiService _apiService;
         private readonly SyncService _syncService;
+        private readonly DatabaseService _databaseService;
 
-        public TicketDetailViewModel(TrueDeskApiService apiService, SyncService syncService)
+        private static readonly string[] DefaultTemplates =
+        [
+            "Vielen Dank für Ihre Anfrage. Wir bearbeiten Ihr Ticket.",
+            "Das Problem wurde behoben. Bitte bestätigen Sie.",
+            "Könnten Sie weitere Details bereitstellen?",
+            "Das Ticket wurde an die zuständige Abteilung weitergeleitet.",
+            "Wir benötigen Ihre Rückmeldung, um fortzufahren."
+        ];
+
+        public TicketDetailViewModel(TrueDeskApiService apiService, SyncService syncService, DatabaseService databaseService)
         {
             _apiService = apiService;
             _syncService = syncService;
+            _databaseService = databaseService;
             _syncService.PendingCountChanged += count =>
                 MainThread.BeginInvokeOnMainThread(() => PendingActionsCount = count);
+            LoadQuickReplyTemplates();
+        }
+
+        private void LoadQuickReplyTemplates()
+        {
+            var saved = Preferences.Get("QuickReplyTemplates", string.Empty);
+            QuickReplyTemplates.Clear();
+
+            if (!string.IsNullOrEmpty(saved))
+            {
+                try
+                {
+                    var templates = System.Text.Json.JsonSerializer.Deserialize<string[]>(saved);
+                    if (templates != null)
+                        foreach (var t in templates) QuickReplyTemplates.Add(t);
+                }
+                catch { }
+            }
+
+            if (QuickReplyTemplates.Count == 0)
+            {
+                foreach (var t in DefaultTemplates)
+                    QuickReplyTemplates.Add(t);
+                SaveTemplates();
+            }
+        }
+
+        private void SaveTemplates()
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(QuickReplyTemplates.ToArray());
+            Preferences.Set("QuickReplyTemplates", json);
+        }
+
+        partial void OnSelectedQuickReplyChanged(string? value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                NewComment = value;
+                SelectedQuickReply = null;
+            }
+        }
+
+        partial void OnNewCommentChanged(string value)
+        {
+            CheckForMentions(value);
+        }
+
+        private void CheckForMentions(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                IsMentionPopupVisible = false;
+                return;
+            }
+
+            // Find the last @ in the text
+            var lastAtIndex = text.LastIndexOf('@');
+            if (lastAtIndex < 0 || lastAtIndex == text.Length - 1)
+            {
+                IsMentionPopupVisible = false;
+                return;
+            }
+
+            // Check if there's a space after the @, if so we're not in a mention anymore
+            var afterAt = text[(lastAtIndex + 1)..];
+            if (afterAt.Contains(' '))
+            {
+                IsMentionPopupVisible = false;
+                return;
+            }
+
+            // Filter users by the text after @
+            var query = afterAt.ToLowerInvariant();
+            var matches = Users.Where(u =>
+                (u.Fullname?.ToLowerInvariant().Contains(query) ?? false) ||
+                (u.Username?.ToLowerInvariant().Contains(query) ?? false))
+                .Take(5)
+                .ToList();
+
+            MentionSuggestions.Clear();
+            foreach (var m in matches) MentionSuggestions.Add(m);
+            IsMentionPopupVisible = matches.Count > 0;
+        }
+
+        [RelayCommand]
+        private void InsertMention(User user)
+        {
+            if (user == null || string.IsNullOrEmpty(NewComment)) return;
+
+            var lastAtIndex = NewComment.LastIndexOf('@');
+            if (lastAtIndex >= 0)
+            {
+                NewComment = NewComment[..(lastAtIndex)] + $"@{user.Username} ";
+            }
+            IsMentionPopupVisible = false;
         }
 
         public void SetTicket(Ticket ticket)
@@ -68,6 +229,149 @@ namespace THWTicketApp.ViewModels
             Ticket = ticket;
             EditSubject = ticket?.Subject ?? string.Empty;
             EditIssue = ticket?.Issue ?? string.Empty;
+            _ = LoadTimeTrackingAsync();
+            _ = LoadLinkedTicketsAsync();
+        }
+
+        private async Task LoadLinkedTicketsAsync()
+        {
+            if (Ticket == null) return;
+            var links = await _databaseService.GetLinkedTicketsAsync(Ticket.Id);
+            LinkedTickets.Clear();
+            foreach (var l in links) LinkedTickets.Add(l);
+        }
+
+        [RelayCommand]
+        private async Task ToggleLinkPickerAsync()
+        {
+            IsLinkPickerVisible = !IsLinkPickerVisible;
+            if (IsLinkPickerVisible && AvailableTicketsForLink.Count == 0)
+            {
+                try
+                {
+                    var json = await _apiService.GetTicketsAsync();
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var tickets = System.Text.Json.JsonSerializer.Deserialize<Models.Ticket[]>(json, options);
+                    AvailableTicketsForLink.Clear();
+                    if (tickets != null)
+                    {
+                        foreach (var t in tickets.Where(t => t.Id != Ticket?.Id))
+                            AvailableTicketsForLink.Add(t);
+                    }
+                }
+                catch { StatusMessage = "Tickets konnten nicht geladen werden."; }
+            }
+        }
+
+        [RelayCommand]
+        private async Task AddLinkedTicketAsync()
+        {
+            if (Ticket == null || SelectedTicketToLink == null) return;
+
+            await _databaseService.AddLinkedTicketAsync(
+                Ticket.Id,
+                SelectedTicketToLink.Id,
+                SelectedTicketToLink.Subject ?? "",
+                SelectedTicketToLink.Uid,
+                SelectedLinkType);
+
+            SelectedTicketToLink = null;
+            IsLinkPickerVisible = false;
+            await LoadLinkedTicketsAsync();
+            StatusMessage = "Ticket verknüpft.";
+        }
+
+        [RelayCommand]
+        private async Task RemoveLinkedTicketAsync(LinkedTicket link)
+        {
+            if (link == null) return;
+            await _databaseService.RemoveLinkedTicketAsync(link.Id);
+            await LoadLinkedTicketsAsync();
+        }
+
+        private async Task LoadTimeTrackingAsync()
+        {
+            if (Ticket == null) return;
+
+            var activeTimer = await _databaseService.GetActiveTimerAsync(Ticket.Id);
+            if (activeTimer != null)
+            {
+                _activeTimerEntryId = activeTimer.Id;
+                IsTimerRunning = true;
+                StartTimerTick(activeTimer.StartTime);
+            }
+
+            await RefreshTimeEntriesAsync();
+        }
+
+        private async Task RefreshTimeEntriesAsync()
+        {
+            if (Ticket == null) return;
+            var entries = await _databaseService.GetTimeEntriesAsync(Ticket.Id);
+            TimeEntries.Clear();
+            foreach (var e in entries) TimeEntries.Add(e);
+
+            var totalMinutes = await _databaseService.GetTotalTimeAsync(Ticket.Id);
+            var hours = (int)(totalMinutes / 60);
+            var minutes = (int)(totalMinutes % 60);
+            TotalTimeDisplay = $"{hours}h {minutes}m";
+        }
+
+        [RelayCommand]
+        private async Task ToggleTimerAsync()
+        {
+            if (Ticket == null) return;
+
+            if (IsTimerRunning)
+            {
+                // Stop timer
+                if (_activeTimerEntryId.HasValue)
+                {
+                    await _databaseService.StopTimerAsync(_activeTimerEntryId.Value, TimeEntryDescription);
+                    TimeEntryDescription = string.Empty;
+                }
+                StopTimerTick();
+                IsTimerRunning = false;
+                _activeTimerEntryId = null;
+                TimerDisplay = "00:00:00";
+                await RefreshTimeEntriesAsync();
+            }
+            else
+            {
+                // Start timer
+                var entry = await _databaseService.StartTimerAsync(Ticket.Id);
+                _activeTimerEntryId = entry.Id;
+                IsTimerRunning = true;
+                StartTimerTick(entry.StartTime);
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteTimeEntryAsync(TimeEntry entry)
+        {
+            if (entry == null) return;
+            await _databaseService.DeleteTimeEntryAsync(entry.Id);
+            await RefreshTimeEntriesAsync();
+        }
+
+        private void StartTimerTick(DateTime startTime)
+        {
+            StopTimerTick();
+            _timerTick = Application.Current?.Dispatcher.CreateTimer();
+            if (_timerTick == null) return;
+            _timerTick.Interval = TimeSpan.FromSeconds(1);
+            _timerTick.Tick += (_, _) =>
+            {
+                var elapsed = DateTime.UtcNow - startTime;
+                TimerDisplay = elapsed.ToString(@"hh\:mm\:ss");
+            };
+            _timerTick.Start();
+        }
+
+        private void StopTimerTick()
+        {
+            _timerTick?.Stop();
+            _timerTick = null;
         }
 
         public async Task LoadUsersAsync()
@@ -198,6 +502,31 @@ namespace THWTicketApp.ViewModels
             {
                 // Priorities are optional
             }
+        }
+
+        [RelayCommand]
+        private void ToggleTemplateEditor()
+        {
+            IsTemplateEditorVisible = !IsTemplateEditorVisible;
+        }
+
+        [RelayCommand]
+        private void AddTemplate()
+        {
+            if (string.IsNullOrWhiteSpace(NewTemplateName)) return;
+            if (!QuickReplyTemplates.Contains(NewTemplateName))
+            {
+                QuickReplyTemplates.Add(NewTemplateName);
+                SaveTemplates();
+            }
+            NewTemplateName = string.Empty;
+        }
+
+        [RelayCommand]
+        private void RemoveTemplate(string template)
+        {
+            if (QuickReplyTemplates.Remove(template))
+                SaveTemplates();
         }
 
         [RelayCommand]

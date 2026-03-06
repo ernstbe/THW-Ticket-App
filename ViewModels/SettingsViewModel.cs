@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Plugin.Fingerprint.Abstractions;
 using THWTicketApp.Services;
 
 namespace THWTicketApp.ViewModels;
@@ -10,6 +11,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly AppSettings _appSettings;
     private readonly DatabaseService _databaseService;
     private readonly NotificationService _notificationService;
+    private readonly IFingerprint _fingerprint;
 
     [ObservableProperty]
     private bool _isDarkMode;
@@ -27,6 +29,15 @@ public partial class SettingsViewModel : ObservableObject
     private bool _isOfflineCacheEnabled;
 
     [ObservableProperty]
+    private bool _isBiometricEnabled;
+
+    [ObservableProperty]
+    private bool _isBiometricSupported;
+
+    [ObservableProperty]
+    private int _selectedLanguageIndex;
+
+    [ObservableProperty]
     private string _connectionStatus = string.Empty;
 
     [ObservableProperty]
@@ -40,12 +51,13 @@ public partial class SettingsViewModel : ObservableObject
 
     public bool HasConnectionStatus => !string.IsNullOrEmpty(ConnectionStatus);
 
-    public SettingsViewModel(TrueDeskApiService apiService, AppSettings appSettings, DatabaseService databaseService, NotificationService notificationService)
+    public SettingsViewModel(TrueDeskApiService apiService, AppSettings appSettings, DatabaseService databaseService, NotificationService notificationService, IFingerprint fingerprint)
     {
         _apiService = apiService;
         _appSettings = appSettings;
         _databaseService = databaseService;
         _notificationService = notificationService;
+        _fingerprint = fingerprint;
     }
 
     public async void LoadSettings()
@@ -56,6 +68,12 @@ public partial class SettingsViewModel : ObservableObject
         ApiBaseUrl = Preferences.Get("ApiBaseUrl", _appSettings.ApiBaseUrl);
         ConnectionTimeout = Preferences.Get("ConnectionTimeout", _appSettings.ConnectionTimeoutSeconds).ToString();
         IsOfflineCacheEnabled = Preferences.Get("OfflineCache", false);
+        IsBiometricEnabled = Preferences.Get("BiometricEnabled", false);
+        var currentLang = Preferences.Get("AppLanguage", "de");
+        SelectedLanguageIndex = Array.IndexOf(LocalizationService.SupportedLanguages, currentLang);
+        if (SelectedLanguageIndex < 0) SelectedLanguageIndex = 0;
+
+        try { IsBiometricSupported = await _fingerprint.IsAvailableAsync(); } catch { }
 
         // Load cache info
         await LoadCacheInfoAsync();
@@ -186,6 +204,11 @@ public partial class SettingsViewModel : ObservableObject
         Preferences.Set("ApiBaseUrl", ApiBaseUrl);
         Preferences.Set("ConnectionTimeout", timeout);
         Preferences.Set("OfflineCache", IsOfflineCacheEnabled);
+        Preferences.Set("BiometricEnabled", IsBiometricEnabled);
+        if (SelectedLanguageIndex >= 0 && SelectedLanguageIndex < LocalizationService.SupportedLanguages.Length)
+        {
+            LocalizationService.Instance.SetLanguage(LocalizationService.SupportedLanguages[SelectedLanguageIndex]);
+        }
         _notificationService.IsEnabled = IsNotificationsEnabled;
 
         // Update app settings
