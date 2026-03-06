@@ -2,7 +2,6 @@
 using Microsoft.Maui.Controls;
 using THWTicketApp.Models;
 using THWTicketApp.ViewModels;
-using THWTicketApp.Services;
 
 namespace THWTicketApp.Views
 {
