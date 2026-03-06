@@ -14,7 +14,7 @@
         <Grid Grid.Row="0"
               BackgroundColor="{AppThemeBinding Light={StaticResource HeaderBackground}, Dark={StaticResource HeaderBackgroundDark}}"
               Padding="15,10"
-              ColumnDefinitions="*,Auto,Auto">
+              ColumnDefinitions="*,Auto,Auto,Auto">
             <!-- Search bar on white background -->
             <Border Grid.Column="0"
                     StrokeShape="RoundRectangle 8"
@@ -27,8 +27,32 @@
                            BackgroundColor="Transparent"
                            CancelButtonColor="{StaticResource THWBlue}"/>
             </Border>
+            <!-- Filter toggle button -->
+            <Grid Grid.Column="1" Margin="8,0,0,0">
+                <ImageButton Source="filter.png"
+                             WidthRequest="36"
+                             HeightRequest="36"
+                             Command="{Binding ToggleFilterPanelCommand}"
+                             BackgroundColor="Transparent"/>
+                <!-- Filter count badge -->
+                <Frame IsVisible="{Binding HasActiveFilters}"
+                       BackgroundColor="{StaticResource Danger}"
+                       CornerRadius="8"
+                       Padding="4,1"
+                       HasShadow="False"
+                       BorderColor="Transparent"
+                       HorizontalOptions="End"
+                       VerticalOptions="Start"
+                       Margin="0,-2,-2,0">
+                    <Label Text="{Binding ActiveFilterCount}"
+                           TextColor="White"
+                           FontSize="9"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"/>
+                </Frame>
+            </Grid>
             <!-- Live indicator -->
-            <Border Grid.Column="1"
+            <Border Grid.Column="2"
                     IsVisible="{Binding IsRealtimeConnected}"
                     StrokeShape="RoundRectangle 4"
                     Stroke="Transparent"
@@ -37,7 +61,7 @@
                     HeightRequest="8"
                     VerticalOptions="Center"
                     Margin="8,0,0,0"/>
-            <ImageButton Grid.Column="2"
+            <ImageButton Grid.Column="3"
                          Source="settings.png"
                          WidthRequest="40"
                          HeightRequest="40"
@@ -72,8 +96,120 @@
                             Command="{Binding FilterCommand}"
                             CommandParameter="closed"
                             BackgroundColor="{Binding ActiveFilter, Converter={StaticResource FilterColorConverter}, ConverterParameter=closed}"/>
+                    <BoxView WidthRequest="1" HeightRequest="20"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                             VerticalOptions="Center"/>
+                    <Button Text="&#x2B50; Favoriten"
+                            Style="{StaticResource FilterChipStyle}"
+                            Command="{Binding ToggleFavoritesFilterCommand}"
+                            BackgroundColor="{Binding ShowOnlyFavorites, Converter={StaticResource BoolToFavoriteColorConverter}}"/>
                 </HorizontalStackLayout>
             </ScrollView>
+
+            <!-- Advanced Filter Panel (collapsible) -->
+            <Frame IsVisible="{Binding IsFilterPanelVisible}"
+                   Style="{StaticResource CardStyle}"
+                   Margin="10,5"
+                   Padding="12">
+                <VerticalStackLayout Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Erweiterte Filter"
+                               Style="{StaticResource SectionHeaderStyle}"
+                               FontSize="15"
+                               Margin="0"/>
+                        <Button Grid.Column="1"
+                                Text="Zurücksetzen"
+                                FontSize="11"
+                                Padding="8,4"
+                                CornerRadius="12"
+                                HeightRequest="28"
+                                MinimumHeightRequest="28"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                                TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
+                                Command="{Binding ClearAllFiltersCommand}"/>
+                    </Grid>
+
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                    <!-- Priority Filter -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Label Grid.Column="0" Text="Priorität:"
+                               Style="{StaticResource FormLabelStyle}"
+                               VerticalOptions="Center" Margin="0"/>
+                        <Picker Grid.Column="1"
+                                Title="Alle"
+                                ItemsSource="{Binding AvailablePriorities}"
+                                ItemDisplayBinding="{Binding Name}"
+                                SelectedItem="{Binding SelectedPriorityFilter}"
+                                FontSize="13"/>
+                    </Grid>
+
+                    <!-- Type Filter -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Label Grid.Column="0" Text="Typ:"
+                               Style="{StaticResource FormLabelStyle}"
+                               VerticalOptions="Center" Margin="0"/>
+                        <Picker Grid.Column="1"
+                                Title="Alle"
+                                ItemsSource="{Binding AvailableTypes}"
+                                ItemDisplayBinding="{Binding Name}"
+                                SelectedItem="{Binding SelectedTypeFilter}"
+                                FontSize="13"/>
+                    </Grid>
+
+                    <!-- Group Filter -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Label Grid.Column="0" Text="Gruppe:"
+                               Style="{StaticResource FormLabelStyle}"
+                               VerticalOptions="Center" Margin="0"/>
+                        <Picker Grid.Column="1"
+                                Title="Alle"
+                                ItemsSource="{Binding AvailableGroups}"
+                                ItemDisplayBinding="{Binding Name}"
+                                SelectedItem="{Binding SelectedGroupFilter}"
+                                FontSize="13"/>
+                    </Grid>
+
+                    <!-- My Tickets Toggle -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Nur meine Tickets"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
+                               FontSize="13"
+                               VerticalOptions="Center"/>
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding ShowOnlyMyTickets}"/>
+                    </Grid>
+
+                    <!-- Favorites Toggle -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Nur Favoriten"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
+                               FontSize="13"
+                               VerticalOptions="Center"/>
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding ShowOnlyFavorites}"/>
+                    </Grid>
+
+                    <!-- Date Range -->
+                    <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="8">
+                        <Label Grid.Column="0" Text="Von:"
+                               Style="{StaticResource FormLabelStyle}"
+                               VerticalOptions="Center" Margin="0"/>
+                        <DatePicker Grid.Column="1"
+                                    Date="{Binding DateFrom}"
+                                    FontSize="12"
+                                    Format="dd.MM.yyyy"/>
+                        <Label Grid.Column="2" Text="Bis:"
+                               Style="{StaticResource FormLabelStyle}"
+                               VerticalOptions="Center" Margin="0"/>
+                        <DatePicker Grid.Column="3"
+                                    Date="{Binding DateTo}"
+                                    FontSize="12"
+                                    Format="dd.MM.yyyy"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
 
             <!-- Sort Picker -->
             <Grid Padding="15,0,15,5" ColumnDefinitions="Auto,*">
@@ -121,12 +257,16 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Ticket">
                         <SwipeView>
-                            <!-- Swipe Right: Assign to me -->
+                            <!-- Swipe Right: Assign to me / Favorite -->
                             <SwipeView.LeftItems>
-                                <SwipeItems Mode="Execute">
+                                <SwipeItems Mode="Reveal">
                                     <SwipeItem Text="Mir zuweisen"
                                                BackgroundColor="{StaticResource THWBlue}"
                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TicketPageViewModel}}, Path=AssignToMeCommand}"
+                                               CommandParameter="{Binding .}"/>
+                                    <SwipeItem Text="Favorit"
+                                               BackgroundColor="#FF9800"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TicketPageViewModel}}, Path=ToggleFavoriteCommand}"
                                                CommandParameter="{Binding .}"/>
                                 </SwipeItems>
                             </SwipeView.LeftItems>

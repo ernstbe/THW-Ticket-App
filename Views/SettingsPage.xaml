@@ -47,6 +47,21 @@
                         <Switch Grid.Column="1"
                                 IsToggled="{Binding IsNotificationsEnabled}"/>
                     </Grid>
+
+                    <!-- Language -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Label Text="Sprache / Language"
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"/>
+                        <Picker Grid.Column="1"
+                                SelectedIndex="{Binding SelectedLanguageIndex}"
+                                VerticalOptions="Center">
+                            <Picker.Items>
+                                <x:String>Deutsch</x:String>
+                                <x:String>English</x:String>
+                            </Picker.Items>
+                        </Picker>
+                    </Grid>
                 </VerticalStackLayout>
             </Frame>
 
@@ -129,6 +144,31 @@
                             TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
                             CornerRadius="8"
                             Command="{Binding ClearCacheCommand}"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Security Card -->
+            <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent"
+                   IsVisible="{Binding IsBiometricSupported}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Sicherheit"
+                           Style="{StaticResource SectionHeaderStyle}"
+                           Margin="0"/>
+
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout VerticalOptions="Center">
+                            <Label Text="Biometrische Anmeldung"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"/>
+                            <Label Text="Fingerabdruck oder Gesichtserkennung verwenden"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding IsBiometricEnabled}"/>
+                    </Grid>
                 </VerticalStackLayout>
             </Frame>
 

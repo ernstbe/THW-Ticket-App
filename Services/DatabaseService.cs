@@ -22,6 +22,8 @@ public class DatabaseService
         _database = new SQLiteAsyncConnection(_dbPath, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.SharedCache);
         await _database.CreateTableAsync<CachedTicket>();
         await _database.CreateTableAsync<PendingAction>();
+        await _database.CreateTableAsync<FavoriteTicket>();
+        await _database.CreateTableAsync<TimeEntry>();
     }
 
     public async Task<List<CachedTicket>> GetCachedTicketsAsync()
@@ -208,5 +210,95 @@ public class DatabaseService
             action.RetryCount++;
             await _database.UpdateAsync(action);
         }
+    }
+
+    // --- Favorites ---
+
+    public async Task<bool> IsFavoriteAsync(string ticketId)
+    {
+        await InitAsync();
+        var fav = await _database!.Table<FavoriteTicket>()
+            .FirstOrDefaultAsync(f => f.TicketId == ticketId);
+        return fav != null;
+    }
+
+    public async Task ToggleFavoriteAsync(string ticketId)
+    {
+        await InitAsync();
+        var existing = await _database!.Table<FavoriteTicket>()
+            .FirstOrDefaultAsync(f => f.TicketId == ticketId);
+
+        if (existing != null)
+            await _database.DeleteAsync(existing);
+        else
+            await _database.InsertAsync(new FavoriteTicket
+            {
+                TicketId = ticketId,
+                AddedAt = DateTime.UtcNow
+            });
+    }
+
+    public async Task<HashSet<string>> GetFavoriteIdsAsync()
+    {
+        await InitAsync();
+        var favorites = await _database!.Table<FavoriteTicket>().ToListAsync();
+        return favorites.Select(f => f.TicketId).ToHashSet();
+    }
+
+    // --- Time Tracking ---
+
+    public async Task<TimeEntry> StartTimerAsync(string ticketId)
+    {
+        await InitAsync();
+        var entry = new TimeEntry
+        {
+            TicketId = ticketId,
+            StartTime = DateTime.UtcNow
+        };
+        await _database!.InsertAsync(entry);
+        return entry;
+    }
+
+    public async Task StopTimerAsync(int entryId, string? description = null)
+    {
+        await InitAsync();
+        var entry = await _database!.FindAsync<TimeEntry>(entryId);
+        if (entry != null)
+        {
+            entry.EndTime = DateTime.UtcNow;
+            entry.Description = description;
+            await _database.UpdateAsync(entry);
+        }
+    }
+
+    public async Task<TimeEntry?> GetActiveTimerAsync(string ticketId)
+    {
+        await InitAsync();
+        return await _database!.Table<TimeEntry>()
+            .FirstOrDefaultAsync(t => t.TicketId == ticketId && t.EndTime == null);
+    }
+
+    public async Task<List<TimeEntry>> GetTimeEntriesAsync(string ticketId)
+    {
+        await InitAsync();
+        return await _database!.Table<TimeEntry>()
+            .Where(t => t.TicketId == ticketId)
+            .OrderByDescending(t => t.StartTime)
+            .ToListAsync();
+    }
+
+    public async Task<double> GetTotalTimeAsync(string ticketId)
+    {
+        await InitAsync();
+        var entries = await _database!.Table<TimeEntry>()
+            .Where(t => t.TicketId == ticketId && t.EndTime != null)
+            .ToListAsync();
+        return entries.Sum(e => e.DurationMinutes);
+    }
+
+    public async Task DeleteTimeEntryAsync(int entryId)
+    {
+        await InitAsync();
+        await _database!.DeleteAsync<TimeEntry>(entryId);
     }
 }

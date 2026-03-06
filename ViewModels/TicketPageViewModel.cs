@@ -115,6 +115,99 @@ public partial class TicketPageViewModel : ObservableObject
         set => SetProperty(ref _isRealtimeConnected, value);
     }
 
+    // Advanced Filter properties
+    private bool _isFilterPanelVisible;
+    public bool IsFilterPanelVisible
+    {
+        get => _isFilterPanelVisible;
+        set => SetProperty(ref _isFilterPanelVisible, value);
+    }
+
+    private ObservableCollection<Priority> _availablePriorities = new();
+    public ObservableCollection<Priority> AvailablePriorities
+    {
+        get => _availablePriorities;
+        set => SetProperty(ref _availablePriorities, value);
+    }
+
+    private Priority? _selectedPriorityFilter;
+    public Priority? SelectedPriorityFilter
+    {
+        get => _selectedPriorityFilter;
+        set { if (SetProperty(ref _selectedPriorityFilter, value)) ApplyFilters(); }
+    }
+
+    private ObservableCollection<TicketType> _availableTypes = new();
+    public ObservableCollection<TicketType> AvailableTypes
+    {
+        get => _availableTypes;
+        set => SetProperty(ref _availableTypes, value);
+    }
+
+    private TicketType? _selectedTypeFilter;
+    public TicketType? SelectedTypeFilter
+    {
+        get => _selectedTypeFilter;
+        set { if (SetProperty(ref _selectedTypeFilter, value)) ApplyFilters(); }
+    }
+
+    private ObservableCollection<Group> _availableGroups = new();
+    public ObservableCollection<Group> AvailableGroups
+    {
+        get => _availableGroups;
+        set => SetProperty(ref _availableGroups, value);
+    }
+
+    private Group? _selectedGroupFilter;
+    public Group? SelectedGroupFilter
+    {
+        get => _selectedGroupFilter;
+        set { if (SetProperty(ref _selectedGroupFilter, value)) ApplyFilters(); }
+    }
+
+    private bool _showOnlyMyTickets;
+    public bool ShowOnlyMyTickets
+    {
+        get => _showOnlyMyTickets;
+        set { if (SetProperty(ref _showOnlyMyTickets, value)) ApplyFilters(); }
+    }
+
+    private DateTime? _dateFrom;
+    public DateTime? DateFrom
+    {
+        get => _dateFrom;
+        set { if (SetProperty(ref _dateFrom, value)) ApplyFilters(); }
+    }
+
+    private DateTime? _dateTo;
+    public DateTime? DateTo
+    {
+        get => _dateTo;
+        set { if (SetProperty(ref _dateTo, value)) ApplyFilters(); }
+    }
+
+    private int _activeFilterCount;
+    public int ActiveFilterCount
+    {
+        get => _activeFilterCount;
+        set
+        {
+            if (SetProperty(ref _activeFilterCount, value))
+                OnPropertyChanged(nameof(HasActiveFilters));
+        }
+    }
+
+    public bool HasActiveFilters => ActiveFilterCount > 0;
+
+    private bool _showOnlyFavorites;
+    public bool ShowOnlyFavorites
+    {
+        get => _showOnlyFavorites;
+        set { if (SetProperty(ref _showOnlyFavorites, value)) ApplyFilters(); }
+    }
+
+    private HashSet<string> _favoriteIds = new();
+
     public TicketPageViewModel(TrueDeskApiService apiService, IServiceProvider serviceProvider, DatabaseService databaseService, SyncService syncService, RealtimeService realtimeService)
     {
         _apiService = apiService;
@@ -160,6 +253,106 @@ public partial class TicketPageViewModel : ObservableObject
         ApplyFilters();
     }
 
+    [RelayCommand]
+    private void ToggleFavoritesFilter()
+    {
+        ShowOnlyFavorites = !ShowOnlyFavorites;
+    }
+
+    [RelayCommand]
+    private async Task ToggleFavoriteAsync(Ticket ticket)
+    {
+        if (ticket == null) return;
+        await _databaseService.ToggleFavoriteAsync(ticket.Id);
+        _favoriteIds = await _databaseService.GetFavoriteIdsAsync();
+        ApplyFilters();
+    }
+
+    public bool IsFavorite(string ticketId) => _favoriteIds.Contains(ticketId);
+
+    [RelayCommand]
+    private void ToggleFilterPanel()
+    {
+        IsFilterPanelVisible = !IsFilterPanelVisible;
+        if (IsFilterPanelVisible && AvailablePriorities.Count == 0)
+        {
+            _ = LoadFilterOptionsAsync();
+        }
+    }
+
+    [RelayCommand]
+    private void ClearAllFilters()
+    {
+        _selectedPriorityFilter = null;
+        OnPropertyChanged(nameof(SelectedPriorityFilter));
+        _selectedTypeFilter = null;
+        OnPropertyChanged(nameof(SelectedTypeFilter));
+        _selectedGroupFilter = null;
+        OnPropertyChanged(nameof(SelectedGroupFilter));
+        _showOnlyMyTickets = false;
+        OnPropertyChanged(nameof(ShowOnlyMyTickets));
+        _showOnlyFavorites = false;
+        OnPropertyChanged(nameof(ShowOnlyFavorites));
+        _dateFrom = null;
+        OnPropertyChanged(nameof(DateFrom));
+        _dateTo = null;
+        OnPropertyChanged(nameof(DateTo));
+        ActiveFilter = "all";
+        ApplyFilters();
+    }
+
+    private async Task LoadFilterOptionsAsync()
+    {
+        try
+        {
+            // Load types
+            var typesJson = await _apiService.GetTicketTypesAsync();
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var types = JsonSerializer.Deserialize<TicketType[]>(typesJson, options);
+            AvailableTypes.Clear();
+            if (types != null)
+            {
+                foreach (var t in types)
+                    AvailableTypes.Add(t);
+
+                // Extract all unique priorities from types
+                AvailablePriorities.Clear();
+                var seenPriorities = new HashSet<string>();
+                foreach (var type in types)
+                {
+                    foreach (var p in type.Priorities)
+                    {
+                        if (p.Id != null && seenPriorities.Add(p.Id))
+                            AvailablePriorities.Add(p);
+                    }
+                }
+            }
+
+            // Load groups
+            var groupsJson = await _apiService.GetGroupsAsync();
+            var groups = JsonSerializer.Deserialize<Group[]>(groupsJson, options);
+            AvailableGroups.Clear();
+            if (groups != null)
+                foreach (var g in groups)
+                    AvailableGroups.Add(g);
+        }
+        catch { /* Filter options are best-effort */ }
+    }
+
+    private void UpdateActiveFilterCount()
+    {
+        var count = 0;
+        if (SelectedPriorityFilter != null) count++;
+        if (SelectedTypeFilter != null) count++;
+        if (SelectedGroupFilter != null) count++;
+        if (ShowOnlyMyTickets) count++;
+        if (ShowOnlyFavorites) count++;
+        if (DateFrom.HasValue) count++;
+        if (DateTo.HasValue) count++;
+        if (ActiveFilter != "all") count++;
+        ActiveFilterCount = count;
+    }
+
     private void ApplyFilters()
     {
         var filtered = _allTickets.AsEnumerable();
@@ -172,7 +365,9 @@ public partial class TicketPageViewModel : ObservableObject
                 (t.Subject?.ToLowerInvariant().Contains(search) ?? false) ||
                 (t.Issue?.ToLowerInvariant().Contains(search) ?? false) ||
                 (t.Owner?.Fullname?.ToLowerInvariant().Contains(search) ?? false) ||
-                (t.Assignee?.Fullname?.ToLowerInvariant().Contains(search) ?? false)
+                (t.Assignee?.Fullname?.ToLowerInvariant().Contains(search) ?? false) ||
+                (t.Uid.ToString().Contains(search)) ||
+                (t.Tags?.Any(tag => tag.Name?.ToLowerInvariant().Contains(search) ?? false) ?? false)
             );
         }
 
@@ -185,6 +380,28 @@ public partial class TicketPageViewModel : ObservableObject
                                             t.Status?.Name?.ToLowerInvariant() is "geschlossen" or "closed" or "gelöst" or "resolved"),
             _ => filtered
         };
+
+        // Apply advanced filters
+        if (SelectedPriorityFilter != null)
+            filtered = filtered.Where(t => t.Priority?.Id == SelectedPriorityFilter.Id);
+
+        if (SelectedTypeFilter != null)
+            filtered = filtered.Where(t => t.Type?.Id == SelectedTypeFilter.Id);
+
+        if (SelectedGroupFilter != null)
+            filtered = filtered.Where(t => t.Group?.Id == SelectedGroupFilter.Id);
+
+        if (ShowOnlyMyTickets && !string.IsNullOrEmpty(_apiService.CurrentUserId))
+            filtered = filtered.Where(t => t.Assignee?.Id == _apiService.CurrentUserId);
+
+        if (ShowOnlyFavorites)
+            filtered = filtered.Where(t => _favoriteIds.Contains(t.Id));
+
+        if (DateFrom.HasValue)
+            filtered = filtered.Where(t => t.Date >= DateFrom.Value);
+
+        if (DateTo.HasValue)
+            filtered = filtered.Where(t => t.Date <= DateTo.Value.AddDays(1));
 
         // Apply sorting
         var sorted = ActiveSort switch
@@ -204,6 +421,7 @@ public partial class TicketPageViewModel : ObservableObject
             FilteredTickets.Add(ticket);
         }
 
+        UpdateActiveFilterCount();
         OnPropertyChanged(nameof(HasStatusMessage));
     }
 
@@ -216,6 +434,9 @@ public partial class TicketPageViewModel : ObservableObject
         IsOfflineMode = false;
         StatusMessage = "Lade Tickets...";
         OnPropertyChanged(nameof(HasStatusMessage));
+
+        // Load favorites
+        _favoriteIds = await _databaseService.GetFavoriteIdsAsync();
 
         // Sync any queued offline actions first
         await _syncService.SyncPendingActionsAsync();

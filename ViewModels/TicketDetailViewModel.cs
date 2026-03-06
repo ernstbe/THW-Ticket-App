@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using THWTicketApp.Models;
 using THWTicketApp.Services;
+using THWTicketApp.Data;
 using System.Collections.ObjectModel;
 using THWTicketApp.Models.Responses;
 
@@ -51,15 +52,97 @@ namespace THWTicketApp.ViewModels
         [ObservableProperty]
         private int _pendingActionsCount;
 
+        [ObservableProperty]
+        private ObservableCollection<string> _quickReplyTemplates = [];
+
+        [ObservableProperty]
+        private string? _selectedQuickReply;
+
+        [ObservableProperty]
+        private string _newTemplateName = string.Empty;
+
+        [ObservableProperty]
+        private bool _isTemplateEditorVisible;
+
+        // Time tracking
+        [ObservableProperty]
+        private bool _isTimerRunning;
+
+        [ObservableProperty]
+        private string _timerDisplay = "00:00:00";
+
+        [ObservableProperty]
+        private string _totalTimeDisplay = "0h 0m";
+
+        [ObservableProperty]
+        private ObservableCollection<TimeEntry> _timeEntries = [];
+
+        [ObservableProperty]
+        private string _timeEntryDescription = string.Empty;
+
+        private int? _activeTimerEntryId;
+        private IDispatcherTimer? _timerTick;
+
         private readonly TrueDeskApiService _apiService;
         private readonly SyncService _syncService;
+        private readonly DatabaseService _databaseService;
 
-        public TicketDetailViewModel(TrueDeskApiService apiService, SyncService syncService)
+        private static readonly string[] DefaultTemplates =
+        [
+            "Vielen Dank für Ihre Anfrage. Wir bearbeiten Ihr Ticket.",
+            "Das Problem wurde behoben. Bitte bestätigen Sie.",
+            "Könnten Sie weitere Details bereitstellen?",
+            "Das Ticket wurde an die zuständige Abteilung weitergeleitet.",
+            "Wir benötigen Ihre Rückmeldung, um fortzufahren."
+        ];
+
+        public TicketDetailViewModel(TrueDeskApiService apiService, SyncService syncService, DatabaseService databaseService)
         {
             _apiService = apiService;
             _syncService = syncService;
+            _databaseService = databaseService;
             _syncService.PendingCountChanged += count =>
                 MainThread.BeginInvokeOnMainThread(() => PendingActionsCount = count);
+            LoadQuickReplyTemplates();
+        }
+
+        private void LoadQuickReplyTemplates()
+        {
+            var saved = Preferences.Get("QuickReplyTemplates", string.Empty);
+            QuickReplyTemplates.Clear();
+
+            if (!string.IsNullOrEmpty(saved))
+            {
+                try
+                {
+                    var templates = System.Text.Json.JsonSerializer.Deserialize<string[]>(saved);
+                    if (templates != null)
+                        foreach (var t in templates) QuickReplyTemplates.Add(t);
+                }
+                catch { }
+            }
+
+            if (QuickReplyTemplates.Count == 0)
+            {
+                foreach (var t in DefaultTemplates)
+                    QuickReplyTemplates.Add(t);
+                SaveTemplates();
+            }
+        }
+
+        private void SaveTemplates()
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(QuickReplyTemplates.ToArray());
+            Preferences.Set("QuickReplyTemplates", json);
+        }
+
+        partial void OnSelectedQuickReplyChanged(string? value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                NewComment = value;
+                SelectedQuickReply = null;
+            }
         }
 
         public void SetTicket(Ticket ticket)
@@ -68,6 +151,92 @@ namespace THWTicketApp.ViewModels
             Ticket = ticket;
             EditSubject = ticket?.Subject ?? string.Empty;
             EditIssue = ticket?.Issue ?? string.Empty;
+            _ = LoadTimeTrackingAsync();
+        }
+
+        private async Task LoadTimeTrackingAsync()
+        {
+            if (Ticket == null) return;
+
+            var activeTimer = await _databaseService.GetActiveTimerAsync(Ticket.Id);
+            if (activeTimer != null)
+            {
+                _activeTimerEntryId = activeTimer.Id;
+                IsTimerRunning = true;
+                StartTimerTick(activeTimer.StartTime);
+            }
+
+            await RefreshTimeEntriesAsync();
+        }
+
+        private async Task RefreshTimeEntriesAsync()
+        {
+            if (Ticket == null) return;
+            var entries = await _databaseService.GetTimeEntriesAsync(Ticket.Id);
+            TimeEntries.Clear();
+            foreach (var e in entries) TimeEntries.Add(e);
+
+            var totalMinutes = await _databaseService.GetTotalTimeAsync(Ticket.Id);
+            var hours = (int)(totalMinutes / 60);
+            var minutes = (int)(totalMinutes % 60);
+            TotalTimeDisplay = $"{hours}h {minutes}m";
+        }
+
+        [RelayCommand]
+        private async Task ToggleTimerAsync()
+        {
+            if (Ticket == null) return;
+
+            if (IsTimerRunning)
+            {
+                // Stop timer
+                if (_activeTimerEntryId.HasValue)
+                {
+                    await _databaseService.StopTimerAsync(_activeTimerEntryId.Value, TimeEntryDescription);
+                    TimeEntryDescription = string.Empty;
+                }
+                StopTimerTick();
+                IsTimerRunning = false;
+                _activeTimerEntryId = null;
+                TimerDisplay = "00:00:00";
+                await RefreshTimeEntriesAsync();
+            }
+            else
+            {
+                // Start timer
+                var entry = await _databaseService.StartTimerAsync(Ticket.Id);
+                _activeTimerEntryId = entry.Id;
+                IsTimerRunning = true;
+                StartTimerTick(entry.StartTime);
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteTimeEntryAsync(TimeEntry entry)
+        {
+            if (entry == null) return;
+            await _databaseService.DeleteTimeEntryAsync(entry.Id);
+            await RefreshTimeEntriesAsync();
+        }
+
+        private void StartTimerTick(DateTime startTime)
+        {
+            StopTimerTick();
+            _timerTick = Application.Current?.Dispatcher.CreateTimer();
+            if (_timerTick == null) return;
+            _timerTick.Interval = TimeSpan.FromSeconds(1);
+            _timerTick.Tick += (_, _) =>
+            {
+                var elapsed = DateTime.UtcNow - startTime;
+                TimerDisplay = elapsed.ToString(@"hh\:mm\:ss");
+            };
+            _timerTick.Start();
+        }
+
+        private void StopTimerTick()
+        {
+            _timerTick?.Stop();
+            _timerTick = null;
         }
 
         public async Task LoadUsersAsync()
@@ -198,6 +367,31 @@ namespace THWTicketApp.ViewModels
             {
                 // Priorities are optional
             }
+        }
+
+        [RelayCommand]
+        private void ToggleTemplateEditor()
+        {
+            IsTemplateEditorVisible = !IsTemplateEditorVisible;
+        }
+
+        [RelayCommand]
+        private void AddTemplate()
+        {
+            if (string.IsNullOrWhiteSpace(NewTemplateName)) return;
+            if (!QuickReplyTemplates.Contains(NewTemplateName))
+            {
+                QuickReplyTemplates.Add(NewTemplateName);
+                SaveTemplates();
+            }
+            NewTemplateName = string.Empty;
+        }
+
+        [RelayCommand]
+        private void RemoveTemplate(string template)
+        {
+            if (QuickReplyTemplates.Remove(template))
+                SaveTemplates();
         }
 
         [RelayCommand]

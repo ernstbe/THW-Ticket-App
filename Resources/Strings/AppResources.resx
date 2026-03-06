@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter</value></resheader>
+
+  <!-- Navigation -->
+  <data name="Tickets" xml:space="preserve"><value>Tickets</value></data>
+  <data name="Settings" xml:space="preserve"><value>Einstellungen</value></data>
+  <data name="Login" xml:space="preserve"><value>Anmelden</value></data>
+  <data name="Logout" xml:space="preserve"><value>Abmelden</value></data>
+  <data name="Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+
+  <!-- Login Page -->
+  <data name="LoginTitle" xml:space="preserve"><value>THW Ticket System</value></data>
+  <data name="Username" xml:space="preserve"><value>Benutzername</value></data>
+  <data name="Password" xml:space="preserve"><value>Passwort</value></data>
+  <data name="LoginButton" xml:space="preserve"><value>Anmelden</value></data>
+  <data name="BiometricLogin" xml:space="preserve"><value>Biometrisch anmelden</value></data>
+  <data name="LoginSuccess" xml:space="preserve"><value>Anmeldung erfolgreich!</value></data>
+  <data name="LoginFailed" xml:space="preserve"><value>Anmeldung fehlgeschlagen. Ungültige Anmeldedaten.</value></data>
+  <data name="NetworkError" xml:space="preserve"><value>Netzwerkfehler. Bitte Verbindung prüfen.</value></data>
+  <data name="EnterCredentials" xml:space="preserve"><value>Bitte Benutzername und Passwort eingeben.</value></data>
+
+  <!-- Ticket List -->
+  <data name="AllTickets" xml:space="preserve"><value>Alle</value></data>
+  <data name="OpenTickets" xml:space="preserve"><value>Offen</value></data>
+  <data name="PendingTickets" xml:space="preserve"><value>Ausstehend</value></data>
+  <data name="ClosedTickets" xml:space="preserve"><value>Geschlossen</value></data>
+  <data name="Favorites" xml:space="preserve"><value>Favoriten</value></data>
+  <data name="Search" xml:space="preserve"><value>Suchen...</value></data>
+  <data name="NoResults" xml:space="preserve"><value>Keine Ergebnisse</value></data>
+  <data name="SortBy" xml:space="preserve"><value>Sortierung:</value></data>
+  <data name="NewestFirst" xml:space="preserve"><value>Neueste zuerst</value></data>
+  <data name="OldestFirst" xml:space="preserve"><value>Älteste zuerst</value></data>
+  <data name="LastUpdated" xml:space="preserve"><value>Zuletzt aktualisiert</value></data>
+  <data name="Priority" xml:space="preserve"><value>Priorität</value></data>
+  <data name="DueDate" xml:space="preserve"><value>Fälligkeitsdatum</value></data>
+  <data name="SubjectAZ" xml:space="preserve"><value>Betreff A-Z</value></data>
+  <data name="AssignToMe" xml:space="preserve"><value>Mir zuweisen</value></data>
+  <data name="CloseTicket" xml:space="preserve"><value>Schließen</value></data>
+  <data name="LoadingTickets" xml:space="preserve"><value>Lade Tickets...</value></data>
+  <data name="NoTicketsFound" xml:space="preserve"><value>Keine Tickets gefunden.</value></data>
+
+  <!-- Ticket Detail -->
+  <data name="TicketDetails" xml:space="preserve"><value>Ticket-Details</value></data>
+  <data name="Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Type" xml:space="preserve"><value>Typ</value></data>
+  <data name="Group" xml:space="preserve"><value>Gruppe</value></data>
+  <data name="Assignee" xml:space="preserve"><value>Zuständig</value></data>
+  <data name="CreatedAt" xml:space="preserve"><value>Erstellt</value></data>
+  <data name="UpdatedAt" xml:space="preserve"><value>Aktualisiert</value></data>
+  <data name="AddComment" xml:space="preserve"><value>Kommentar hinzufügen</value></data>
+  <data name="PostComment" xml:space="preserve"><value>Kommentar posten</value></data>
+  <data name="CommentPlaceholder" xml:space="preserve"><value>Neuen Kommentar eingeben...</value></data>
+  <data name="QuickReply" xml:space="preserve"><value>Schnellantwort wählen...</value></data>
+  <data name="ManageTemplates" xml:space="preserve"><value>Vorlagen verwalten</value></data>
+  <data name="NewTemplate" xml:space="preserve"><value>Neue Vorlage...</value></data>
+  <data name="TimeTracking" xml:space="preserve"><value>Zeiterfassung</value></data>
+  <data name="Total" xml:space="preserve"><value>Gesamt</value></data>
+  <data name="StartTimer" xml:space="preserve"><value>Timer starten</value></data>
+  <data name="StopTimer" xml:space="preserve"><value>Timer stoppen</value></data>
+  <data name="EditTicket" xml:space="preserve"><value>Ticket bearbeiten</value></data>
+  <data name="Save" xml:space="preserve"><value>Speichern</value></data>
+
+  <!-- Add Ticket -->
+  <data name="CreateTicket" xml:space="preserve"><value>Ticket erstellen</value></data>
+  <data name="Subject" xml:space="preserve"><value>Betreff</value></data>
+  <data name="Description" xml:space="preserve"><value>Beschreibung</value></data>
+  <data name="SelectOption" xml:space="preserve"><value>Option auswählen</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="Create" xml:space="preserve"><value>Erstellen</value></data>
+
+  <!-- Settings -->
+  <data name="Appearance" xml:space="preserve"><value>Erscheinungsbild</value></data>
+  <data name="DarkMode" xml:space="preserve"><value>Dark Mode</value></data>
+  <data name="Notifications" xml:space="preserve"><value>Benachrichtigungen</value></data>
+  <data name="NotificationsDesc" xml:space="preserve"><value>Über neue Tickets und Änderungen informieren</value></data>
+  <data name="ApiConfig" xml:space="preserve"><value>API-Konfiguration</value></data>
+  <data name="ServerUrl" xml:space="preserve"><value>Server-URL</value></data>
+  <data name="ConnectionTimeout" xml:space="preserve"><value>Verbindungs-Timeout (Sekunden)</value></data>
+  <data name="TestConnection" xml:space="preserve"><value>Einstellungen testen</value></data>
+  <data name="OfflineCache" xml:space="preserve"><value>Offline-Cache</value></data>
+  <data name="EnableOfflineCache" xml:space="preserve"><value>Offline-Caching aktivieren</value></data>
+  <data name="OfflineCacheDesc" xml:space="preserve"><value>Wenn aktiviert, werden Tickets lokal gespeichert und bei Verbindungsproblemen angezeigt.</value></data>
+  <data name="ClearCache" xml:space="preserve"><value>Löschen</value></data>
+  <data name="Security" xml:space="preserve"><value>Sicherheit</value></data>
+  <data name="BiometricAuth" xml:space="preserve"><value>Biometrische Anmeldung</value></data>
+  <data name="BiometricDesc" xml:space="preserve"><value>Fingerabdruck oder Gesichtserkennung verwenden</value></data>
+  <data name="SaveSettings" xml:space="preserve"><value>Speichern</value></data>
+  <data name="Language" xml:space="preserve"><value>Sprache</value></data>
+
+  <!-- Advanced Filters -->
+  <data name="AdvancedFilters" xml:space="preserve"><value>Erweiterte Filter</value></data>
+  <data name="Reset" xml:space="preserve"><value>Zurücksetzen</value></data>
+  <data name="OnlyMyTickets" xml:space="preserve"><value>Nur meine Tickets</value></data>
+  <data name="OnlyFavorites" xml:space="preserve"><value>Nur Favoriten</value></data>
+  <data name="From" xml:space="preserve"><value>Von:</value></data>
+  <data name="To" xml:space="preserve"><value>Bis:</value></data>
+
+  <!-- Common -->
+  <data name="Retry" xml:space="preserve"><value>Erneut</value></data>
+  <data name="OfflineMode" xml:space="preserve"><value>Offline-Modus - Gecachte Daten</value></data>
+  <data name="PendingSync" xml:space="preserve"><value>ausstehende Aktion(en) - Sync bei Verbindung</value></data>
+  <data name="Yes" xml:space="preserve"><value>Ja</value></data>
+  <data name="No" xml:space="preserve"><value>Nein</value></data>
+  <data name="OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Error" xml:space="preserve"><value>Fehler</value></data>
+  <data name="About" xml:space="preserve"><value>Über die App</value></data>
+</root>

@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using Plugin.Fingerprint;
+using Plugin.Fingerprint.Abstractions;
 using Plugin.LocalNotification;
 using THWTicketApp.Services;
 using THWTicketApp.ViewModels;
@@ -36,6 +38,12 @@ public static class MauiProgram
             ConnectionTimeoutSeconds = 30
         };
         builder.Services.AddSingleton(appSettings);
+
+        // Biometric authentication
+        builder.Services.AddSingleton(typeof(IFingerprint), CrossFingerprint.Current);
+
+        // Localization
+        builder.Services.AddSingleton(LocalizationService.Instance);
 
         // Services
         builder.Services.AddSingleton<TrueDeskApiService>();

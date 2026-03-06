@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter</value></resheader>
+
+  <!-- Navigation -->
+  <data name="Tickets" xml:space="preserve"><value>Tickets</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Login" xml:space="preserve"><value>Login</value></data>
+  <data name="Logout" xml:space="preserve"><value>Logout</value></data>
+  <data name="Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+
+  <!-- Login Page -->
+  <data name="LoginTitle" xml:space="preserve"><value>THW Ticket System</value></data>
+  <data name="Username" xml:space="preserve"><value>Username</value></data>
+  <data name="Password" xml:space="preserve"><value>Password</value></data>
+  <data name="LoginButton" xml:space="preserve"><value>Login</value></data>
+  <data name="BiometricLogin" xml:space="preserve"><value>Biometric Login</value></data>
+  <data name="LoginSuccess" xml:space="preserve"><value>Login successful!</value></data>
+  <data name="LoginFailed" xml:space="preserve"><value>Login failed. Invalid credentials.</value></data>
+  <data name="NetworkError" xml:space="preserve"><value>Network error. Please check your connection.</value></data>
+  <data name="EnterCredentials" xml:space="preserve"><value>Please enter username and password.</value></data>
+
+  <!-- Ticket List -->
+  <data name="AllTickets" xml:space="preserve"><value>All</value></data>
+  <data name="OpenTickets" xml:space="preserve"><value>Open</value></data>
+  <data name="PendingTickets" xml:space="preserve"><value>Pending</value></data>
+  <data name="ClosedTickets" xml:space="preserve"><value>Closed</value></data>
+  <data name="Favorites" xml:space="preserve"><value>Favorites</value></data>
+  <data name="Search" xml:space="preserve"><value>Search...</value></data>
+  <data name="NoResults" xml:space="preserve"><value>No results</value></data>
+  <data name="SortBy" xml:space="preserve"><value>Sort by:</value></data>
+  <data name="NewestFirst" xml:space="preserve"><value>Newest first</value></data>
+  <data name="OldestFirst" xml:space="preserve"><value>Oldest first</value></data>
+  <data name="LastUpdated" xml:space="preserve"><value>Last updated</value></data>
+  <data name="Priority" xml:space="preserve"><value>Priority</value></data>
+  <data name="DueDate" xml:space="preserve"><value>Due date</value></data>
+  <data name="SubjectAZ" xml:space="preserve"><value>Subject A-Z</value></data>
+  <data name="AssignToMe" xml:space="preserve"><value>Assign to me</value></data>
+  <data name="CloseTicket" xml:space="preserve"><value>Close</value></data>
+  <data name="LoadingTickets" xml:space="preserve"><value>Loading tickets...</value></data>
+  <data name="NoTicketsFound" xml:space="preserve"><value>No tickets found.</value></data>
+
+  <!-- Ticket Detail -->
+  <data name="TicketDetails" xml:space="preserve"><value>Ticket Details</value></data>
+  <data name="Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Group" xml:space="preserve"><value>Group</value></data>
+  <data name="Assignee" xml:space="preserve"><value>Assignee</value></data>
+  <data name="CreatedAt" xml:space="preserve"><value>Created</value></data>
+  <data name="UpdatedAt" xml:space="preserve"><value>Updated</value></data>
+  <data name="AddComment" xml:space="preserve"><value>Add Comment</value></data>
+  <data name="PostComment" xml:space="preserve"><value>Post Comment</value></data>
+  <data name="CommentPlaceholder" xml:space="preserve"><value>Enter new comment...</value></data>
+  <data name="QuickReply" xml:space="preserve"><value>Select quick reply...</value></data>
+  <data name="ManageTemplates" xml:space="preserve"><value>Manage Templates</value></data>
+  <data name="NewTemplate" xml:space="preserve"><value>New template...</value></data>
+  <data name="TimeTracking" xml:space="preserve"><value>Time Tracking</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="StartTimer" xml:space="preserve"><value>Start Timer</value></data>
+  <data name="StopTimer" xml:space="preserve"><value>Stop Timer</value></data>
+  <data name="EditTicket" xml:space="preserve"><value>Edit Ticket</value></data>
+  <data name="Save" xml:space="preserve"><value>Save</value></data>
+
+  <!-- Add Ticket -->
+  <data name="CreateTicket" xml:space="preserve"><value>Create Ticket</value></data>
+  <data name="Subject" xml:space="preserve"><value>Subject</value></data>
+  <data name="Description" xml:space="preserve"><value>Description</value></data>
+  <data name="SelectOption" xml:space="preserve"><value>Select option</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Create" xml:space="preserve"><value>Create</value></data>
+
+  <!-- Settings -->
+  <data name="Appearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="DarkMode" xml:space="preserve"><value>Dark Mode</value></data>
+  <data name="Notifications" xml:space="preserve"><value>Notifications</value></data>
+  <data name="NotificationsDesc" xml:space="preserve"><value>Get notified about new tickets and changes</value></data>
+  <data name="ApiConfig" xml:space="preserve"><value>API Configuration</value></data>
+  <data name="ServerUrl" xml:space="preserve"><value>Server URL</value></data>
+  <data name="ConnectionTimeout" xml:space="preserve"><value>Connection Timeout (seconds)</value></data>
+  <data name="TestConnection" xml:space="preserve"><value>Test Connection</value></data>
+  <data name="OfflineCache" xml:space="preserve"><value>Offline Cache</value></data>
+  <data name="EnableOfflineCache" xml:space="preserve"><value>Enable Offline Caching</value></data>
+  <data name="OfflineCacheDesc" xml:space="preserve"><value>When enabled, tickets are stored locally and shown when offline.</value></data>
+  <data name="ClearCache" xml:space="preserve"><value>Clear</value></data>
+  <data name="Security" xml:space="preserve"><value>Security</value></data>
+  <data name="BiometricAuth" xml:space="preserve"><value>Biometric Login</value></data>
+  <data name="BiometricDesc" xml:space="preserve"><value>Use fingerprint or face recognition</value></data>
+  <data name="SaveSettings" xml:space="preserve"><value>Save</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+
+  <!-- Advanced Filters -->
+  <data name="AdvancedFilters" xml:space="preserve"><value>Advanced Filters</value></data>
+  <data name="Reset" xml:space="preserve"><value>Reset</value></data>
+  <data name="OnlyMyTickets" xml:space="preserve"><value>Only my tickets</value></data>
+  <data name="OnlyFavorites" xml:space="preserve"><value>Only favorites</value></data>
+  <data name="From" xml:space="preserve"><value>From:</value></data>
+  <data name="To" xml:space="preserve"><value>To:</value></data>
+
+  <!-- Common -->
+  <data name="Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="OfflineMode" xml:space="preserve"><value>Offline Mode - Cached Data</value></data>
+  <data name="PendingSync" xml:space="preserve"><value>pending action(s) - sync on reconnect</value></data>
+  <data name="Yes" xml:space="preserve"><value>Yes</value></data>
+  <data name="No" xml:space="preserve"><value>No</value></data>
+  <data name="OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Error" xml:space="preserve"><value>Error</value></data>
+  <data name="About" xml:space="preserve"><value>About</value></data>
+</root>
