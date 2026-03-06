@@ -3,13 +3,16 @@
 public partial class App : Application
 {
 	private readonly LoginPage _loginPage;
-	public App(LoginPage loginPage)
+	private readonly Services.NotificationService _notificationService;
+
+	public App(LoginPage loginPage, Services.NotificationService notificationService)
 	{
 		InitializeComponent();
 		_loginPage = loginPage;
+		_notificationService = notificationService;
 
-		// Apply saved theme preference on startup (default to dark mode)
-		var isDarkMode = Preferences.Get("DarkMode", true);
+		// Restore saved theme preference
+		var isDarkMode = Preferences.Get("DarkMode", false);
 		UserAppTheme = isDarkMode ? AppTheme.Dark : AppTheme.Light;
 	}
 

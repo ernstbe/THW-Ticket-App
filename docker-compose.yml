@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+version: '2.1'
+=======
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
 services:
   trudesk:
     image: polonel/trudesk:1
@@ -16,6 +20,10 @@ services:
     volumes:
       - trudesk_uploads:/usr/src/trudesk/public/uploads
       - trudesk_backups:/usr/src/trudesk/backups
+<<<<<<< HEAD
+  mongo:
+    image: mongo:5.0-focal
+=======
     depends_on:
       - mongo
       - elasticsearch
@@ -27,10 +35,17 @@ services:
 
   mongo:
     image: mongo:7.0
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
     restart: always
     ports:
       - "27017:27017"
     volumes:
+<<<<<<< HEAD
+      - mongo:/var/lib/mongo
+      - mongo_data:/data/db:rw
+  elasticsearch:
+    image: elasticsearch:8.0.0
+=======
       - mongo_data:/data/db:rw
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
@@ -40,13 +55,17 @@ services:
 
   elasticsearch:
     image: elasticsearch:8.11.0
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
     restart: always
     environment:
       - xpack.security.enabled=false
       - xpack.security.http.ssl.enabled=false
       - discovery.type=single-node
       - bootstrap.memory_lock=true
+<<<<<<< HEAD
+=======
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
     mem_limit: 1073741824
     ulimits:
       memlock:
@@ -57,6 +76,12 @@ services:
       - "9300:9300"
     volumes:
       - elasticsearch:/usr/share/elasticsearch/data
+<<<<<<< HEAD
+volumes:
+  trudesk_uploads:
+  trudesk_backups:
+  mongo:
+=======
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
@@ -66,5 +91,6 @@ services:
 volumes:
   trudesk_uploads:
   trudesk_backups:
+>>>>>>> 5748322 (Initial commit: THW Ticket App - .NET MAUI cross-platform application)
   mongo_data:
   elasticsearch:

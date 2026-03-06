@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Plugin.LocalNotification;
 using THWTicketApp.Services;
 using THWTicketApp.ViewModels;
 using THWTicketApp.Views;
@@ -10,9 +11,17 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+        var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "THWTicketApp_crash.log");
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            File.WriteAllText(logPath, "AppDomain: " + e.ExceptionObject?.ToString());
+        TaskScheduler.UnobservedTaskException += (s, e) =>
+            File.WriteAllText(logPath, "Task: " + e.Exception?.ToString());
+        try
+        {
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .UseLocalNotification()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -31,6 +40,9 @@ public static class MauiProgram
         // Services
         builder.Services.AddSingleton<TrueDeskApiService>();
         builder.Services.AddSingleton<DatabaseService>();
+        builder.Services.AddSingleton<SyncService>();
+        builder.Services.AddSingleton<RealtimeService>();
+        builder.Services.AddSingleton<NotificationService>();
 
         // ViewModels
         builder.Services.AddSingleton<LoginPageViewModel>();
@@ -43,7 +55,7 @@ public static class MauiProgram
         // Views
         builder.Services.AddSingleton<LoginPage>();
         builder.Services.AddSingleton<MainPage>();
-        builder.Services.AddSingleton<TicketPage>();
+        builder.Services.AddTransient<TicketPage>();
         builder.Services.AddTransient<TicketDetailPage>();
         builder.Services.AddTransient<Views.AddTicketPage>();
         builder.Services.AddTransient<Views.SettingsPage>();
@@ -53,5 +65,11 @@ public static class MauiProgram
 #endif
 
         return builder.Build();
+        }
+        catch (Exception ex)
+        {
+            File.WriteAllText(logPath, "CreateMauiApp: " + ex.ToString());
+            throw;
+        }
     }
 }

@@ -1,256 +1,499 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:converters="clr-namespace:THWTicketApp.Converters"
+             xmlns:mdv="clr-namespace:Plugin.Maui.MarkdownView;assembly=Plugin.Maui.MarkdownView"
+             xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             xmlns:models="clr-namespace:THWTicketApp.Models"
              x:Class="THWTicketApp.Views.TicketDetailPage"
-             Title="Ticket Details"
-             BackgroundColor="{AppThemeBinding Light=White, Dark=#1f1f1f}">
+             x:DataType="viewmodels:TicketDetailViewModel"
+             Title="Ticket-Details">
 
-    <ContentPage.Resources>
-        <converters:IntToBoolConverter x:Key="IntToBoolConverter"/>
-        <converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
-        <converters:TranslationConverter x:Key="TranslationConverter"/>
-    </ContentPage.Resources>
-
-    <ScrollView>
+    <ScrollView BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
         <VerticalStackLayout Padding="15" Spacing="15">
 
-            <!-- Header: Ticket Number and Subject -->
-            <Frame Padding="15" CornerRadius="10"
-                   BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
-                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
-                <VerticalStackLayout Spacing="5">
-                    <Label Text="{Binding Ticket.Uid, StringFormat='Ticket #{0}'}"
-                           FontSize="14"
-                           TextColor="{DynamicResource Primary}"/>
-                    <Label Text="{Binding Ticket.Subject}"
-                           FontSize="22"
-                           FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                </VerticalStackLayout>
-            </Frame>
-
-            <!-- Status and Priority Row -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Frame Grid.Column="0" Padding="10" CornerRadius="8"
-                       BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
-                       BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
-                    <VerticalStackLayout>
-                        <Label Text="Status" FontSize="12" TextColor="{DynamicResource Gray500}"/>
-                        <Label Text="{Binding Ticket.Status.Name, Converter={StaticResource TranslationConverter}}"
-                               FontSize="16" FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                    </VerticalStackLayout>
-                </Frame>
-                <Frame Grid.Column="1" Padding="10" CornerRadius="8"
-                       BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
-                       BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
-                    <VerticalStackLayout>
-                        <Label Text="Priorität" FontSize="12" TextColor="{DynamicResource Gray500}"/>
-                        <Label Text="{Binding Ticket.Priority.Name, Converter={StaticResource TranslationConverter}}"
-                               FontSize="16" FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                    </VerticalStackLayout>
-                </Frame>
-            </Grid>
-
-            <!-- Details Section -->
-            <Frame Padding="15" CornerRadius="10"
-                   BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
-                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Details" FontSize="18" FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-
-                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="15">
-                        <Label Grid.Row="0" Grid.Column="0" Text="Typ:" TextColor="{DynamicResource Gray500}"/>
-                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding Ticket.Type.Name, Converter={StaticResource TranslationConverter}}"
-                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-
-                        <Label Grid.Row="1" Grid.Column="0" Text="Gruppe:" TextColor="{DynamicResource Gray500}"/>
-                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding Ticket.Group.Name}"
-                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-
-                        <Label Grid.Row="2" Grid.Column="0" Text="Ersteller:" TextColor="{DynamicResource Gray500}"/>
-                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding Ticket.Owner.Fullname}"
-                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-
-                        <Label Grid.Row="3" Grid.Column="0" Text="Zugewiesen:" TextColor="{DynamicResource Gray500}"/>
-                        <Label Grid.Row="3" Grid.Column="1" Text="{Binding Ticket.Assignee.Fullname}"
-                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+            <!-- Header Card: Title + Status Badge + Tags -->
+            <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent">
+                <VerticalStackLayout Spacing="0">
+                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+                        <Label Grid.Row="0" Grid.Column="0"
+                               Text="{Binding Ticket.Subject}"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource THWBlueDark}, Dark={StaticResource THWBlueLight}}"
+                               LineBreakMode="WordWrap"/>
+                        <Frame Grid.Row="0" Grid.Column="1"
+                               Style="{StaticResource StatusBadgeStyle}"
+                               BackgroundColor="{Binding Ticket.Status.HtmlColor}"
+                               BorderColor="Transparent"
+                               VerticalOptions="Start">
+                            <Label Text="{Binding Ticket.Status.Name}"
+                                   TextColor="White"
+                                   FontSize="11"
+                                   FontAttributes="Bold"/>
+                        </Frame>
+                        <Label Grid.Row="1" Grid.ColumnSpan="2"
+                               Text="{Binding Ticket.Issue}"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
+                               FontSize="14"
+                               Margin="0,10,0,0"
+                               LineBreakMode="WordWrap"/>
                     </Grid>
-                </VerticalStackLayout>
-            </Frame>
 
-            <!-- Dates Section -->
-            <Frame Padding="15" CornerRadius="10"
-                   BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
-                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Zeitangaben" FontSize="18" FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-
-                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="15">
-                        <Label Grid.Row="0" Grid.Column="0" Text="Erstellt:" TextColor="{DynamicResource Gray500}"/>
-                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding Ticket.Date, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
-                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-
-                        <Label Grid.Row="1" Grid.Column="0" Text="Aktualisiert:" TextColor="{DynamicResource Gray500}"/>
-                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding Ticket.Updated, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
-                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-
-                        <Label Grid.Row="2" Grid.Column="0" Text="Fällig:" TextColor="{DynamicResource Gray500}"/>
-                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding Ticket.DueDate, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
-                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-
-                        <Label Grid.Row="3" Grid.Column="0" Text="Geschlossen:" TextColor="{DynamicResource Gray500}"/>
-                        <Label Grid.Row="3" Grid.Column="1" Text="{Binding Ticket.ClosedDate, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
-                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                    </Grid>
-                </VerticalStackLayout>
-            </Frame>
-
-            <!-- Description Section -->
-            <Frame Padding="15" CornerRadius="10"
-                   BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
-                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="Beschreibung" FontSize="18" FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                    <Label Text="{Binding Ticket.Issue}" TextType="Html"
-                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                </VerticalStackLayout>
-            </Frame>
-
-            <!-- Tags Section -->
-            <Frame Padding="15" CornerRadius="10"
-                   BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
-                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}"
-                   IsVisible="{Binding Ticket.Tags.Count, Converter={StaticResource IntToBoolConverter}}">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="Tags" FontSize="18" FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                    <FlexLayout BindableLayout.ItemsSource="{Binding Ticket.Tags}"
-                                Wrap="Wrap" Direction="Row" JustifyContent="Start">
+                    <!-- Tags -->
+                    <HorizontalStackLayout Spacing="5"
+                                           Margin="0,10,0,0"
+                                           BindableLayout.ItemsSource="{Binding Ticket.Tags}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate>
-                                <Frame Padding="8,4" Margin="0,0,5,5" CornerRadius="12"
-                                       BackgroundColor="{DynamicResource Primary}" BorderColor="Transparent">
-                                    <Label Text="{Binding Name}" FontSize="12" TextColor="White"/>
+                                <Frame Padding="8,3"
+                                       CornerRadius="10"
+                                       HasShadow="False"
+                                       BorderColor="{StaticResource THWBlueLight}"
+                                       BackgroundColor="{AppThemeBinding Light={StaticResource THWBlueSurface}, Dark={StaticResource THWBlueSurfaceDark}}">
+                                    <Label Text="{Binding Name}"
+                                           FontSize="11"
+                                           TextColor="{StaticResource THWBlue}"/>
                                 </Frame>
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
-                    </FlexLayout>
+                    </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Frame>
 
-            <!-- Actions Section -->
-            <Frame Padding="15" CornerRadius="10"
-                   BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
-                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
-                <VerticalStackLayout Spacing="15">
-                    <Label Text="Aktionen" FontSize="18" FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+            <!-- Info Cards: Details Grid -->
+            <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Ticket-Details"
+                           Style="{StaticResource SectionHeaderStyle}"
+                           Margin="0"/>
 
-                    <!-- Status Change -->
-                    <VerticalStackLayout Spacing="5">
-                        <Label Text="Status ändern:" FontSize="14" TextColor="{DynamicResource Gray500}"/>
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                            <Picker Grid.Column="0"
-                                    Title="Status wählen"
-                                    ItemsSource="{Binding Statuses}"
-                                    ItemDisplayBinding="{Binding TranslatedName}"
-                                    SelectedItem="{Binding SelectedStatus, Mode=TwoWay}"/>
-                            <Button Grid.Column="1" Text="Ändern"
-                                    Command="{Binding ChangeStatusCommand}"
-                                    BackgroundColor="{DynamicResource Primary}"
-                                    TextColor="White"
-                                    Padding="15,5"/>
-                        </Grid>
-                    </VerticalStackLayout>
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
 
-                    <!-- Assignee Change -->
-                    <VerticalStackLayout Spacing="5">
-                        <Label Text="Zuweisen an:" FontSize="14" TextColor="{DynamicResource Gray500}"/>
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                            <Picker Grid.Column="0"
-                                    Title="Benutzer wählen"
-                                    ItemsSource="{Binding Users}"
-                                    ItemDisplayBinding="{Binding Fullname}"
-                                    SelectedItem="{Binding SelectedAssignee}"/>
-                            <Button Grid.Column="1" Text="Zuweisen"
-                                    Command="{Binding AssignCommand}"
-                                    BackgroundColor="{DynamicResource Primary}"
-                                    TextColor="White"
-                                    Padding="15,5"/>
-                        </Grid>
-                    </VerticalStackLayout>
+                    <!-- Status -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="15">
+                        <Label Grid.Column="0"
+                               Text="Status:"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               WidthRequest="100"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding Ticket.Status.Name}"
+                               TextColor="{Binding Ticket.Status.HtmlColor}"
+                               FontAttributes="Bold"/>
+                    </Grid>
+
+                    <!-- Priority -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="15">
+                        <Label Grid.Column="0"
+                               Text="Priorität:"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               WidthRequest="100"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding Ticket.Priority.Name}"
+                               TextColor="{Binding Ticket.Priority.HtmlColor}"
+                               FontAttributes="Bold"/>
+                    </Grid>
+
+                    <!-- Creator -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="15">
+                        <Label Grid.Column="0"
+                               Text="Ersteller:"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               WidthRequest="100"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding Ticket.Owner.Fullname}"/>
+                    </Grid>
+
+                    <!-- Assignee -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="15">
+                        <Label Grid.Column="0"
+                               Text="Zuständig:"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               WidthRequest="100"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding Ticket.Assignee.Fullname, TargetNullValue='Kein Benutzer zugewiesen'}"/>
+                    </Grid>
+
+                    <!-- Due Date -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="15"
+                          IsVisible="{Binding Ticket.DueDate, Converter={StaticResource DueDateVisibilityConverter}}">
+                        <Label Grid.Column="0"
+                               Text="Fällig:"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               WidthRequest="100"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding Ticket.DueDate, StringFormat='{0:dd.MM.yyyy}'}"
+                               TextColor="{Binding Ticket.DueDate, Converter={StaticResource DueDateColorConverter}}"
+                               FontAttributes="Bold"/>
+                    </Grid>
+
+                    <!-- Created / Updated -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="15">
+                        <Label Grid.Column="0"
+                               Text="Erstellt:"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               WidthRequest="100"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding Ticket.Date, StringFormat='{0:dd.MM.yyyy HH:mm}'}"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="15">
+                        <Label Grid.Column="0"
+                               Text="Aktualisiert:"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               WidthRequest="100"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding Ticket.Updated, StringFormat='{0:dd.MM.yyyy HH:mm}'}"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Attachments Card -->
+            <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Anhänge"
+                           Style="{StaticResource SectionHeaderStyle}"
+                           Margin="0"/>
+
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                    <CollectionView ItemsSource="{Binding Ticket.Attachments}">
+                        <CollectionView.EmptyView>
+                            <Label Text="Keine Anhänge vorhanden."
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                   HorizontalTextAlignment="Center"
+                                   Margin="0,10"/>
+                        </CollectionView.EmptyView>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Attachment">
+                                <Grid Padding="5,6" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                    <Label Grid.Column="0"
+                                           Text="&#x1F4CE;"
+                                           FontSize="18"
+                                           VerticalOptions="Center"/>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                        <Label Text="{Binding Name}"
+                                               FontAttributes="Bold"
+                                               FontSize="13"
+                                               LineBreakMode="TailTruncation"/>
+                                        <Label FontSize="11"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding Size, StringFormat='{0:N0} Bytes'}"/>
+                                                    <Span Text=" - "/>
+                                                    <Span Text="{Binding UploadDate, StringFormat='{0:dd.MM.yyyy}'}"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </VerticalStackLayout>
+                                    <Button Grid.Column="2"
+                                            Text="&#x2B07;"
+                                            FontSize="14"
+                                            Padding="8,4"
+                                            CornerRadius="6"
+                                            BackgroundColor="{StaticResource THWBlue}"
+                                            TextColor="White"
+                                            HeightRequest="32"
+                                            MinimumHeightRequest="32"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TicketDetailViewModel}}, Path=DownloadAttachmentCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <Button Text="Datei hochladen"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding UploadAttachmentCommand}"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Assign Card -->
+            <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Zuweisen an"
+                           Style="{StaticResource SectionHeaderStyle}"
+                           Margin="0"/>
+
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                    <Picker x:Name="AssigneePicker"
+                            Title="Zuständigen setzen"
+                            ItemsSource="{Binding Users}"
+                            TitleColor="{StaticResource THWBlue}"
+                            ItemDisplayBinding="{Binding Fullname}"
+                            SelectedItem="{Binding SelectedAssignee}"/>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                Text="Zuweisen an"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding AssignCommand}"/>
+                        <Button Grid.Column="1"
+                                Text="Löschen"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding ClearAssigneeCommand}"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Add Comment Card -->
+            <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Kommentar hinzufügen"
+                           Style="{StaticResource SectionHeaderStyle}"
+                           Margin="0"/>
+
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                    <Border Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 6"
+                            Padding="10"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
+                        <Editor Placeholder="Neuen Kommentar eingeben..."
+                                Text="{Binding NewComment}"
+                                HeightRequest="80"
+                                BackgroundColor="Transparent"/>
+                    </Border>
+
+                    <Button Text="Kommentar posten"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding AddCommentCommand}"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Internal Notes Section -->
+            <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Interne Notizen"
+                           Style="{StaticResource SectionHeaderStyle}"
+                           Margin="0"/>
+
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                    <CollectionView ItemsSource="{Binding Ticket.Notes}">
+                        <CollectionView.EmptyView>
+                            <Label Text="Keine Notizen vorhanden."
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                   HorizontalTextAlignment="Center"
+                                   Margin="0,10"/>
+                        </CollectionView.EmptyView>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Stroke="{AppThemeBinding Light=#FFF3CD, Dark=#5C4D1A}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 8"
+                                        Padding="12"
+                                        Margin="0,5"
+                                        BackgroundColor="{AppThemeBinding Light=#FFFDE7, Dark=#3A3520}">
+                                    <VerticalStackLayout Spacing="5">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0"
+                                                   Text="{Binding Owner.Fullname}"
+                                                   FontAttributes="Bold"
+                                                   FontSize="13"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding Date, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
+                                                   FontSize="11"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
+                                        </Grid>
+                                        <Label Text="{Binding Content}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
+                                               LineBreakMode="WordWrap"/>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- Add Note -->
+                    <Border Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 6"
+                            Padding="10"
+                            BackgroundColor="{AppThemeBinding Light=#FFFDE7, Dark=#3A3520}">
+                        <Editor Placeholder="Interne Notiz hinzufügen..."
+                                Text="{Binding NewNote}"
+                                HeightRequest="60"
+                                BackgroundColor="Transparent"/>
+                    </Border>
+
+                    <Button Text="Notiz speichern"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding AddNoteCommand}"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Edit Ticket Card -->
+            <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Bearbeiten"
+                           Style="{StaticResource SectionHeaderStyle}"
+                           Margin="0"/>
+
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                    <Label Text="Betreff" Style="{StaticResource FormLabelStyle}"/>
+                    <Border Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 6"
+                            Padding="10,0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
+                        <Entry Placeholder="Bearbeite Titel"
+                               Text="{Binding EditSubject}"
+                               BackgroundColor="Transparent"/>
+                    </Border>
+
+                    <Label Text="Beschreibung" Style="{StaticResource FormLabelStyle}"/>
+                    <Border Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 6"
+                            Padding="10"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
+                        <Editor Placeholder="Bearbeite Beschreibung"
+                                Text="{Binding EditIssue}"
+                                HeightRequest="120"
+                                BackgroundColor="Transparent"/>
+                    </Border>
+
+                    <Label Text="Status" Style="{StaticResource FormLabelStyle}"/>
+                    <Picker Title="Status auswählen"
+                            ItemsSource="{Binding Statuses}"
+                            TitleColor="{StaticResource THWBlue}"
+                            ItemDisplayBinding="{Binding Name}"
+                            SelectedItem="{Binding SelectedStatus}"/>
+
+                    <Label Text="Priorität" Style="{StaticResource FormLabelStyle}"/>
+                    <Picker Title="Priorität auswählen"
+                            ItemsSource="{Binding Priorities}"
+                            TitleColor="{StaticResource THWBlue}"
+                            ItemDisplayBinding="{Binding Name}"
+                            SelectedItem="{Binding SelectedPriority}"/>
+
+                    <Button Text="Bearbeitung speichern"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding EditCommand}"/>
                 </VerticalStackLayout>
             </Frame>
 
             <!-- Comments Section -->
-            <Frame Padding="15" CornerRadius="10"
-                   BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
-                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
+            <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent">
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="{Binding Ticket.Comments.Count, StringFormat='Kommentare ({0})'}"
-                           FontSize="18" FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+                    <Label Text="Kommentare"
+                           x:Name="CommentsHeader"
+                           Style="{StaticResource SectionHeaderStyle}"
+                           Margin="0"/>
 
-                    <CollectionView ItemsSource="{Binding Ticket.Comments}"
-                                    HeightRequest="250">
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                    <CollectionView ItemsSource="{Binding Ticket.Comments}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Frame Padding="10" Margin="0,5" CornerRadius="8"
-                                       BackgroundColor="{AppThemeBinding Light=#E1E1E1, Dark=#2A2A2A}"
-                                       BorderColor="Transparent">
+                                <Border Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 8"
+                                        Padding="12"
+                                        Margin="0,5"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
                                     <VerticalStackLayout Spacing="5">
-                                        <HorizontalStackLayout Spacing="10">
-                                            <Label Text="{Binding Owner.Fullname}"
-                                                   FontSize="14" FontAttributes="Bold"
-                                                   TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                                            <Label Text="{Binding Date, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
-                                                   FontSize="12" TextColor="{DynamicResource Gray500}"/>
-                                        </HorizontalStackLayout>
-                                        <Label TextType="Html" Text="{Binding Text}"
-                                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0"
+                                                   Text="{Binding Owner.Fullname}"
+                                                   FontAttributes="Bold"
+                                                   FontSize="13"
+                                                   TextColor="{AppThemeBinding Light={StaticResource THWBlueDark}, Dark={StaticResource THWBlueLight}}"/>
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding Date, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
+                                                   FontSize="11"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
+                                        </Grid>
+                                        <Label TextType="Html"
+                                               Text="{Binding Text}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"/>
                                     </VerticalStackLayout>
-                                </Frame>
+                                </Border>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
-                        <CollectionView.EmptyView>
-                            <Label Text="Keine Kommentare vorhanden"
-                                   TextColor="{DynamicResource Gray500}"
-                                   HorizontalOptions="Center"
-                                   Margin="0,20"/>
-                        </CollectionView.EmptyView>
                     </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
 
-                    <!-- Add Comment -->
-                    <BoxView HeightRequest="1" Color="{DynamicResource Gray300}" Margin="0,5"/>
-                    <Label Text="Neuer Kommentar:" FontSize="14" TextColor="{DynamicResource Gray500}"/>
-                    <Editor Placeholder="Kommentar eingeben..."
-                            Text="{Binding NewComment}"
-                            HeightRequest="80"
-                            AutoSize="TextChanges"
-                            BackgroundColor="{AppThemeBinding Light=#E1E1E1, Dark=#2A2A2A}"/>
-                    <Button Text="Kommentar hinzufügen"
-                            Command="{Binding AddCommentCommand}"
-                            BackgroundColor="{DynamicResource Primary}"
-                            TextColor="White"/>
+            <!-- History Section -->
+            <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Verlauf"
+                           Style="{StaticResource SectionHeaderStyle}"
+                           Margin="0"/>
+
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                    <CollectionView ItemsSource="{Binding Ticket.History}">
+                        <CollectionView.EmptyView>
+                            <Label Text="Kein Verlauf vorhanden."
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                   HorizontalTextAlignment="Center"
+                                   Margin="0,10"/>
+                        </CollectionView.EmptyView>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="0,6" ColumnDefinitions="4,*">
+                                    <!-- Timeline bar -->
+                                    <BoxView Grid.Column="0"
+                                             BackgroundColor="{StaticResource THWBlueLight}"
+                                             WidthRequest="4"
+                                             CornerRadius="2"/>
+
+                                    <VerticalStackLayout Grid.Column="1" Padding="10,0" Spacing="2">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0"
+                                                   Text="{Binding Action}"
+                                                   FontAttributes="Bold"
+                                                   FontSize="13"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding Date, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
+                                                   FontSize="11"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
+                                        </Grid>
+                                        <Label Text="{Binding Description}"
+                                               FontSize="12"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                               LineBreakMode="WordWrap"/>
+                                        <Label Text="{Binding Owner.Fullname}"
+                                               FontSize="11"
+                                               TextColor="{StaticResource THWBlue}"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
                 </VerticalStackLayout>
             </Frame>
 
             <!-- Status Message -->
             <Label Text="{Binding StatusMessage}"
-                   TextColor="{DynamicResource Primary}"
+                   TextColor="{StaticResource StatusNew}"
                    HorizontalTextAlignment="Center"
-                   IsVisible="{Binding StatusMessage, Converter={StaticResource StringToBoolConverter}}"/>
-
-            <!-- Loading Indicator -->
-            <ActivityIndicator IsRunning="{Binding IsLoading}"
-                               IsVisible="{Binding IsLoading}"
-                               Color="{DynamicResource Primary}"/>
+                   FontSize="14"
+                   Margin="0,0,0,20"/>
 
         </VerticalStackLayout>
     </ScrollView>

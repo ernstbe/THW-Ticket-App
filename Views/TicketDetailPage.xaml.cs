@@ -1,3 +1,4 @@
+
 using Microsoft.Maui.Controls;
 using THWTicketApp.Models;
 using THWTicketApp.ViewModels;
@@ -23,10 +24,7 @@ namespace THWTicketApp.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            await Task.WhenAll(
-                _viewModel.LoadUsersAsync(),
-                _viewModel.LoadStatusesAsync()
-            );
+            await _viewModel.LoadUsersAsync();
         }
     }
 }

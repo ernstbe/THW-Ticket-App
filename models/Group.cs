@@ -4,7 +4,6 @@ namespace THWTicketApp.Models;
 
 public class Group
 {
-    [JsonPropertyName("_id")]
     public string? Id { get; set; }
     public string? Name { get; set; }
     public List<Assignee> Members { get; set; } = [];

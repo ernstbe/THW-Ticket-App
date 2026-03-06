@@ -9,9 +9,13 @@ public partial class SettingsViewModel : ObservableObject
     private readonly TrueDeskApiService _apiService;
     private readonly AppSettings _appSettings;
     private readonly DatabaseService _databaseService;
+    private readonly NotificationService _notificationService;
 
     [ObservableProperty]
     private bool _isDarkMode;
+
+    [ObservableProperty]
+    private bool _isNotificationsEnabled;
 
     [ObservableProperty]
     private string _apiBaseUrl = string.Empty;
@@ -36,17 +40,19 @@ public partial class SettingsViewModel : ObservableObject
 
     public bool HasConnectionStatus => !string.IsNullOrEmpty(ConnectionStatus);
 
-    public SettingsViewModel(TrueDeskApiService apiService, AppSettings appSettings, DatabaseService databaseService)
+    public SettingsViewModel(TrueDeskApiService apiService, AppSettings appSettings, DatabaseService databaseService, NotificationService notificationService)
     {
         _apiService = apiService;
         _appSettings = appSettings;
         _databaseService = databaseService;
+        _notificationService = notificationService;
     }
 
     public async void LoadSettings()
     {
         // Load from preferences
         IsDarkMode = Preferences.Get("DarkMode", false);
+        IsNotificationsEnabled = _notificationService.IsEnabled;
         ApiBaseUrl = Preferences.Get("ApiBaseUrl", _appSettings.ApiBaseUrl);
         ConnectionTimeout = Preferences.Get("ConnectionTimeout", _appSettings.ConnectionTimeoutSeconds).ToString();
         IsOfflineCacheEnabled = Preferences.Get("OfflineCache", false);
@@ -83,6 +89,11 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnIsDarkModeChanged(bool value)
     {
         ApplyTheme();
+    }
+
+    partial void OnIsNotificationsEnabledChanged(bool value)
+    {
+        _notificationService.IsEnabled = value;
     }
 
     private void ApplyTheme()
@@ -175,6 +186,7 @@ public partial class SettingsViewModel : ObservableObject
         Preferences.Set("ApiBaseUrl", ApiBaseUrl);
         Preferences.Set("ConnectionTimeout", timeout);
         Preferences.Set("OfflineCache", IsOfflineCacheEnabled);
+        _notificationService.IsEnabled = IsNotificationsEnabled;
 
         // Update app settings
         _appSettings.ApiBaseUrl = ApiBaseUrl;

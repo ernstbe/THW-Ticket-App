@@ -1,129 +1,117 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
-             xmlns:converters="clr-namespace:THWTicketApp.Converters"
              x:Class="THWTicketApp.LoginPage"
-             x:DataType="viewmodels:LoginPageViewModel"
-             NavigationPage.HasNavigationBar="False"
-             BackgroundColor="{AppThemeBinding Light=White, Dark=#1f1f1f}">
+             Shell.NavBarIsVisible="False">
 
-    <ContentPage.Resources>
-        <converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
-    </ContentPage.Resources>
+    <!-- Full-page THW-Blue background -->
+    <Grid BackgroundColor="{AppThemeBinding Light=#003399, Dark=#001A4D}">
+        <ScrollView VerticalOptions="Center">
+            <VerticalStackLayout Spacing="0"
+                                 Padding="30"
+                                 VerticalOptions="Center">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="20" VerticalOptions="Center">
-
-            <!-- Logo und Header -->
-            <VerticalStackLayout Spacing="15" Margin="0,0,0,20">
-                <Image Source="thw_logo.png"
+                <!-- THW Logo -->
+                <Image Source="thw_logo.svg"
                        HeightRequest="100"
                        Aspect="AspectFit"
-                       HorizontalOptions="Center"/>
-                <Label Text="THW Ticket App"
-                       FontSize="28"
+                       Margin="0,0,0,15"
+                       SemanticProperties.Description="THW Logo"/>
+
+                <!-- App Title -->
+                <Label Text="THW Ticket System"
+                       FontSize="26"
                        FontAttributes="Bold"
-                       HorizontalOptions="Center"
-                       TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                <Label Text="Melden Sie sich an, um fortzufahren"
-                       FontSize="14"
-                       HorizontalOptions="Center"
-                       TextColor="{DynamicResource Gray500}"/>
-            </VerticalStackLayout>
+                       TextColor="White"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,0,0,5"/>
 
-            <!-- Login-Formular -->
-            <Frame Padding="20" CornerRadius="15"
-                   BorderColor="{AppThemeBinding Light=#C8C8C8, Dark=#404040}"
-                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}">
-                <VerticalStackLayout Spacing="20">
-
-                    <!-- Benutzername -->
-                    <VerticalStackLayout Spacing="8">
-                        <Label Text="Benutzername"
-                               FontSize="14"
-                               FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                        <Frame Padding="0" CornerRadius="8" BorderColor="Transparent"
-                               BackgroundColor="{AppThemeBinding Light=#E1E1E1, Dark=#2A2A2A}">
-                            <Entry Placeholder="Benutzername eingeben"
-                                   Text="{Binding Username}"
-                                   Keyboard="Text"
-                                   ReturnType="Next"
-                                   FontSize="16"
-                                   TextColor="{AppThemeBinding Light=Black, Dark=White}"
-                                   PlaceholderColor="{DynamicResource Gray400}"
-                                   BackgroundColor="Transparent"
-                                   Margin="15,5"/>
-                        </Frame>
-                    </VerticalStackLayout>
-
-                    <!-- Passwort -->
-                    <VerticalStackLayout Spacing="8">
-                        <Label Text="Passwort"
-                               FontSize="14"
-                               FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                        <Frame Padding="0" CornerRadius="8" BorderColor="Transparent"
-                               BackgroundColor="{AppThemeBinding Light=#E1E1E1, Dark=#2A2A2A}">
-                            <Entry Placeholder="Passwort eingeben"
-                                   Text="{Binding Password}"
-                                   IsPassword="True"
-                                   ReturnType="Done"
-                                   FontSize="16"
-                                   TextColor="{AppThemeBinding Light=Black, Dark=White}"
-                                   PlaceholderColor="{DynamicResource Gray400}"
-                                   BackgroundColor="Transparent"
-                                   Margin="15,5"/>
-                        </Frame>
-                    </VerticalStackLayout>
-
-                    <!-- Login-Button -->
-                    <Button Text="Anmelden"
-                            Command="{Binding LoginCommand}"
-                            BackgroundColor="{DynamicResource Primary}"
-                            TextColor="White"
-                            FontSize="16"
-                            FontAttributes="Bold"
-                            CornerRadius="8"
-                            HeightRequest="50"
-                            Margin="0,10,0,0"/>
-
-                    <!-- Ladeindikator -->
-                    <ActivityIndicator IsRunning="{Binding IsLoading}"
-                                       IsVisible="{Binding IsLoading}"
-                                       Color="{DynamicResource Primary}"
-                                       HeightRequest="30"/>
-
-                </VerticalStackLayout>
-            </Frame>
-
-            <!-- Status-Meldung -->
-            <Frame Padding="15" CornerRadius="10"
-                   BorderColor="{DynamicResource Danger}"
-                   BackgroundColor="{AppThemeBinding Light=White, Dark=#212121}"
-                   IsVisible="{Binding LoginStatus, Converter={StaticResource StringToBoolConverter}}">
-                <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                    <Label Text="⚠️" FontSize="16"/>
-                    <Label Text="{Binding LoginStatus}"
-                           TextColor="{DynamicResource Danger}"
-                           FontSize="14"
-                           VerticalOptions="Center"/>
-                </HorizontalStackLayout>
-            </Frame>
-
-            <!-- Footer -->
-            <VerticalStackLayout Spacing="5" Margin="0,20,0,0">
                 <Label Text="Technisches Hilfswerk"
-                       FontSize="12"
-                       HorizontalOptions="Center"
-                       TextColor="{DynamicResource Gray400}"/>
-                <Label Text="© 2024 THW Ticket System"
-                       FontSize="11"
-                       HorizontalOptions="Center"
-                       TextColor="{DynamicResource Gray400}"/>
-            </VerticalStackLayout>
+                       FontSize="14"
+                       TextColor="#B3CCFF"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,0,0,30"/>
 
-        </VerticalStackLayout>
-    </ScrollView>
+                <!-- White Login Card -->
+                <Border BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
+                        StrokeShape="RoundRectangle 12"
+                        Stroke="Transparent"
+                        StrokeThickness="0"
+                        Padding="25">
+                    <Border.Shadow>
+                        <Shadow Brush="Black"
+                                Offset="0,4"
+                                Radius="12"
+                                Opacity="0.15"/>
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="15">
+
+                        <Label Text="Anmelden"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#002266, Dark=#B3CCFF}"
+                               HorizontalTextAlignment="Center"
+                               Margin="0,0,0,10"/>
+
+                        <!-- auth.login / common.username -->
+                        <Label Text="Benutzername"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#404040, Dark=#C8C8C8}"
+                               Margin="0,5,0,2"/>
+                        <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 6"
+                                Padding="10,0"
+                                BackgroundColor="{AppThemeBinding Light=#F7F8FA, Dark=#2C2C2C}">
+                            <Entry Placeholder="Benutzername"
+                                   Text="{Binding Username}"
+                                   TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}"
+                                   PlaceholderColor="#919191"
+                                   BackgroundColor="Transparent"/>
+                        </Border>
+
+                        <!-- Password -->
+                        <Label Text="Passwort"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#404040, Dark=#C8C8C8}"
+                               Margin="0,5,0,2"/>
+                        <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 6"
+                                Padding="10,0"
+                                BackgroundColor="{AppThemeBinding Light=#F7F8FA, Dark=#2C2C2C}">
+                            <Entry Placeholder="Passwort"
+                                   IsPassword="True"
+                                   Text="{Binding Password}"
+                                   TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}"
+                                   PlaceholderColor="#919191"
+                                   BackgroundColor="Transparent"/>
+                        </Border>
+
+                        <!-- Login Button -->
+                        <Button Text="Anmelden"
+                                BackgroundColor="#003399"
+                                TextColor="White"
+                                CornerRadius="8"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                Padding="20,12"
+                                MinimumHeightRequest="48"
+                                Command="{Binding LoginCommand}"
+                                Margin="0,10,0,0"/>
+
+                        <!-- Status Text -->
+                        <Label Text="{Binding LoginStatus}"
+                               TextColor="#E74C3C"
+                               HorizontalTextAlignment="Center"
+                               FontSize="13"/>
+
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

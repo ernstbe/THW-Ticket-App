@@ -3,9 +3,12 @@
     "allow": [
       "Bash(git remote:*)",
       "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git -C \"C:/Users/b.ernst/Projects/THW-Ticket-App-main\" status)",
       "Bash(dotnet build:*)",
-      "Bash(\"C:/Program Files/dotnet/dotnet.exe\" build THWTicketApp.csproj -f net9.0-windows10.0.19041.0)",
-      "Bash(where:*)"
+      "Bash(dotnet add:*)",
+      "Bash(dotnet tool run ilspycmd -- /c/Users/b.ernst/.nuget/packages/socketioclient/4.0.1/lib/netstandard2.0/SocketIOClient.dll -l CSharp -p)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

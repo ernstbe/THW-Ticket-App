@@ -9,8 +9,10 @@ namespace THWTicketApp.ViewModels;
 public partial class AddTicketViewModel : ObservableObject
 {
     private readonly TrueDeskApiService _apiService;
+    private readonly SyncService _syncService;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanCreate))]
     private string _subject = string.Empty;
 
     [ObservableProperty]
@@ -41,12 +43,14 @@ public partial class AddTicketViewModel : ObservableObject
     private ObservableCollection<User> _users = [];
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasStatusMessage))]
     private string _statusMessage = string.Empty;
 
     [ObservableProperty]
     private Color _statusColor = Colors.Red;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanCreate))]
     private bool _isLoading;
 
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
@@ -56,9 +60,10 @@ public partial class AddTicketViewModel : ObservableObject
     partial void OnIsLoadingChanged(bool value) => OnPropertyChanged(nameof(CanCreate));
     partial void OnSelectedGroupChanged(Group? value) => OnPropertyChanged(nameof(CanCreate));
 
-    public AddTicketViewModel(TrueDeskApiService apiService)
+    public AddTicketViewModel(TrueDeskApiService apiService, SyncService syncService)
     {
         _apiService = apiService;
+        _syncService = syncService;
     }
 
     public async Task LoadDataAsync()
@@ -121,13 +126,14 @@ public partial class AddTicketViewModel : ObservableObject
                 foreach (var type in types)
                 {
                     TicketTypes.Add(type);
-                    // Add priorities from this type
+                    // Add priorities from this type (translate names)
                     if (type.Priorities != null)
                     {
                         foreach (var priority in type.Priorities)
                         {
                             if (!Priorities.Any(p => p.Id == priority.Id))
                             {
+                                priority.Name = TrudeskTranslationHelper.TranslatePriority(priority.Name);
                                 Priorities.Add(priority);
                             }
                         }
@@ -180,7 +186,7 @@ public partial class AddTicketViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(Subject))
         {
-            StatusMessage = "Bitte geben Sie einen Betreff ein.";
+            StatusMessage = "Bitte gib einen gültigen Betreff ein.";
             StatusColor = Colors.Red;
             OnPropertyChanged(nameof(HasStatusMessage));
             return;
@@ -204,7 +210,7 @@ public partial class AddTicketViewModel : ObservableObject
 
             if (success)
             {
-                StatusMessage = "Ticket erfolgreich erstellt!";
+                StatusMessage = "Erfolg! Ticket erstellt.";
                 StatusColor = Colors.Green;
                 OnPropertyChanged(nameof(HasStatusMessage));
 
@@ -225,9 +231,27 @@ public partial class AddTicketViewModel : ObservableObject
         }
         catch (Exception)
         {
-            StatusMessage = "Verbindungsfehler. Bitte versuchen Sie es erneut.";
-            StatusColor = Colors.Red;
-            OnPropertyChanged(nameof(HasStatusMessage));
+            if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+            {
+                await _syncService.EnqueueCreateTicketAsync(
+                    Subject, Issue,
+                    SelectedType?.Id, SelectedPriority?.Id,
+                    SelectedGroup?.Id, SelectedAssignee?.Id);
+                StatusMessage = "Offline: Ticket wird bei Verbindung erstellt.";
+                StatusColor = Colors.Orange;
+                OnPropertyChanged(nameof(HasStatusMessage));
+
+                await Task.Delay(1500);
+                var window = Application.Current?.Windows.FirstOrDefault();
+                if (window?.Page is NavigationPage nav)
+                    await nav.Navigation.PopAsync();
+            }
+            else
+            {
+                StatusMessage = "Netzwerkfehler. Bitte erneut versuchen.";
+                StatusColor = Colors.Red;
+                OnPropertyChanged(nameof(HasStatusMessage));
+            }
         }
         finally
         {

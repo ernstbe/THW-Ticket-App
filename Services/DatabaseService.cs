@@ -21,6 +21,7 @@ public class DatabaseService
 
         _database = new SQLiteAsyncConnection(_dbPath, SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.SharedCache);
         await _database.CreateTableAsync<CachedTicket>();
+        await _database.CreateTableAsync<PendingAction>();
     }
 
     public async Task<List<CachedTicket>> GetCachedTicketsAsync()
@@ -161,5 +162,51 @@ public class DatabaseService
     {
         await InitAsync();
         return await _database!.Table<CachedTicket>().CountAsync();
+    }
+
+    // --- Pending Actions Queue ---
+
+    public async Task EnqueueActionAsync(string actionType, string payloadJson)
+    {
+        await InitAsync();
+        var action = new PendingAction
+        {
+            ActionType = actionType,
+            PayloadJson = payloadJson,
+            CreatedAt = DateTime.UtcNow,
+            RetryCount = 0
+        };
+        await _database!.InsertAsync(action);
+    }
+
+    public async Task<List<PendingAction>> GetPendingActionsAsync()
+    {
+        await InitAsync();
+        return await _database!.Table<PendingAction>()
+            .OrderBy(a => a.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<int> GetPendingActionCountAsync()
+    {
+        await InitAsync();
+        return await _database!.Table<PendingAction>().CountAsync();
+    }
+
+    public async Task RemoveActionAsync(int id)
+    {
+        await InitAsync();
+        await _database!.DeleteAsync<PendingAction>(id);
+    }
+
+    public async Task IncrementRetryCountAsync(int id)
+    {
+        await InitAsync();
+        var action = await _database!.FindAsync<PendingAction>(id);
+        if (action != null)
+        {
+            action.RetryCount++;
+            await _database.UpdateAsync(action);
+        }
     }
 }

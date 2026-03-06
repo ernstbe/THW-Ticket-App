@@ -13,7 +13,7 @@ public class FilterColorConverter : IValueConverter
                 return Application.Current?.Resources["Primary"] ?? Colors.Blue;
             }
         }
-        return Application.Current?.Resources["Gray300"] ?? Colors.LightGray;
+        return Application.Current?.Resources["Gray600"] ?? Colors.Gray;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

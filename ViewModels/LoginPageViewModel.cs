@@ -1,13 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using THWTicketApp.Services;
 
 namespace THWTicketApp.ViewModels
 {
     public partial class LoginPageViewModel : ObservableObject
     {
-        private readonly TicketPage _ticketPage;
         private readonly TrueDeskApiService _apiService;
+        private readonly IServiceProvider _serviceProvider;
 
         [ObservableProperty]
         private string _username = string.Empty;
@@ -21,10 +22,10 @@ namespace THWTicketApp.ViewModels
         [ObservableProperty]
         private bool _isLoading;
 
-        public LoginPageViewModel(TrueDeskApiService apiService, TicketPage ticketPage)
+        public LoginPageViewModel(TrueDeskApiService apiService, IServiceProvider serviceProvider)
         {
             _apiService = apiService;
-            _ticketPage = ticketPage;
+            _serviceProvider = serviceProvider;
         }
 
         [RelayCommand]
@@ -32,12 +33,12 @@ namespace THWTicketApp.ViewModels
         {
             if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
             {
-                LoginStatus = "Please enter username and password.";
+                LoginStatus = "Bitte Benutzername und Passwort eingeben.";
                 return;
             }
 
             IsLoading = true;
-            LoginStatus = "Logging in...";
+            LoginStatus = "Anmelden...";
 
             try
             {
@@ -45,23 +46,24 @@ namespace THWTicketApp.ViewModels
 
                 if (success)
                 {
-                    LoginStatus = "Login successful!";
+                    LoginStatus = "Anmeldung erfolgreich!";
                     Password = string.Empty; // Clear password from memory
 
                     var window = Application.Current?.Windows.FirstOrDefault();
                     if (window?.Page is NavigationPage nav)
                     {
-                        await nav.PushAsync(_ticketPage);
+                        var mainPage = _serviceProvider.GetRequiredService<MainPage>();
+                        await nav.PushAsync(mainPage);
                     }
                 }
                 else
                 {
-                    LoginStatus = "Login failed. Please check your credentials.";
+                    LoginStatus = "Anmeldung fehlgeschlagen. Ungültige Anmeldedaten.";
                 }
             }
             catch (Exception)
             {
-                LoginStatus = "Connection error. Please check your network.";
+                LoginStatus = "Netzwerkfehler. Bitte Verbindung prüfen.";
             }
             finally
             {
@@ -77,7 +79,8 @@ namespace THWTicketApp.ViewModels
                 var window = Application.Current?.Windows.FirstOrDefault();
                 if (window?.Page is NavigationPage nav)
                 {
-                    await nav.PushAsync(_ticketPage);
+                    var mainPage = _serviceProvider.GetRequiredService<MainPage>();
+                    await nav.PushAsync(mainPage);
                 }
             }
         }

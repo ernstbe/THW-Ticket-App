@@ -2,7 +2,6 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using THWTicketApp.Models;
 using THWTicketApp.Models.Responses;
 
@@ -12,18 +11,18 @@ namespace THWTicketApp.Services
     {
         private readonly HttpClient _httpClient;
         private readonly AppSettings _settings;
-        private readonly ILogger<TrueDeskApiService> _logger;
         private string? _authToken;
 
-        public TrueDeskApiService(AppSettings settings, ILogger<TrueDeskApiService> logger)
+        public string? CurrentUsername { get; private set; }
+        public string? CurrentUserId { get; private set; }
+
+        public TrueDeskApiService(AppSettings settings)
         {
             _settings = settings;
-            _logger = logger;
             _httpClient = new HttpClient
             {
                 Timeout = TimeSpan.FromSeconds(_settings.ConnectionTimeoutSeconds)
             };
-            _logger.LogInformation("TrueDeskApiService initialized with base URL: {BaseUrl}", _settings.ApiBaseUrl);
         }
 
         public bool IsAuthenticated => !string.IsNullOrEmpty(_authToken);
@@ -32,105 +31,99 @@ namespace THWTicketApp.Services
         {
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
-                _logger.LogWarning("Authentication failed: username or password is empty");
                 return false;
             }
-
-            _logger.LogInformation("Attempting authentication for user: {Username}", username);
 
             try
             {
                 var payload = new { username, password };
                 var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/login", content);
-
-                _logger.LogDebug("Login response status: {StatusCode}", response.StatusCode);
-
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     var doc = JsonDocument.Parse(json);
-
-                    if (doc.RootElement.TryGetProperty("accessToken", out var tokenElement))
+                    _authToken = doc.RootElement.GetProperty("accessToken").GetString();
+                    if (_httpClient.DefaultRequestHeaders.Contains("accesstoken"))
                     {
-                        _authToken = tokenElement.GetString();
-
-                        // Remove existing header if present before adding
-                        if (_httpClient.DefaultRequestHeaders.Contains("accesstoken"))
-                        {
-                            _httpClient.DefaultRequestHeaders.Remove("accesstoken");
-                        }
-                        _httpClient.DefaultRequestHeaders.Add("accesstoken", _authToken);
-
-                        // Store token securely for session persistence
-                        await SecureStorage.SetAsync("auth_token", _authToken ?? string.Empty);
-
-                        _logger.LogInformation("Authentication successful for user: {Username}", username);
-                        return true;
+                        _httpClient.DefaultRequestHeaders.Remove("accesstoken");
                     }
+                    _httpClient.DefaultRequestHeaders.Add("accesstoken", _authToken);
+                    // Extract user ID from login response
+                    if (doc.RootElement.TryGetProperty("user", out var userEl) &&
+                        userEl.TryGetProperty("_id", out var idEl))
+                    {
+                        CurrentUserId = idEl.GetString();
+                    }
+
+                    // Store token and username securely for session persistence
+                    CurrentUsername = username;
+                    await SecureStorage.SetAsync("auth_token", _authToken ?? string.Empty);
+                    await SecureStorage.SetAsync("auth_username", username);
+                    await SecureStorage.SetAsync("auth_userid", CurrentUserId ?? string.Empty);
+                    return true;
                 }
-                _logger.LogWarning("Authentication failed for user: {Username} - Invalid response", username);
                 return false;
             }
-            catch (HttpRequestException ex)
+            catch (HttpRequestException)
             {
-                _logger.LogError(ex, "Authentication failed: Network error");
+                // Network or connection error
                 return false;
             }
-            catch (TaskCanceledException ex)
+            catch (TaskCanceledException)
             {
-                _logger.LogError(ex, "Authentication failed: Request timeout");
+                // Timeout
                 return false;
             }
-            catch (JsonException ex)
+            catch (JsonException)
             {
-                _logger.LogError(ex, "Authentication failed: Invalid JSON response");
+                // Invalid response format
                 return false;
             }
         }
 
         public async Task<bool> TryRestoreSessionAsync()
         {
-            _logger.LogDebug("Attempting to restore session from secure storage");
             try
             {
                 var storedToken = await SecureStorage.GetAsync("auth_token");
                 if (!string.IsNullOrEmpty(storedToken))
                 {
                     _authToken = storedToken;
+                    CurrentUsername = await SecureStorage.GetAsync("auth_username");
+                    CurrentUserId = await SecureStorage.GetAsync("auth_userid");
                     if (_httpClient.DefaultRequestHeaders.Contains("accesstoken"))
                     {
                         _httpClient.DefaultRequestHeaders.Remove("accesstoken");
                     }
                     _httpClient.DefaultRequestHeaders.Add("accesstoken", _authToken);
-                    _logger.LogInformation("Session restored successfully");
                     return true;
                 }
-                _logger.LogDebug("No stored session found");
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogWarning(ex, "Failed to restore session from secure storage");
+                // SecureStorage not available or error reading
             }
             return false;
         }
 
         public void Logout()
         {
-            _logger.LogInformation("User logged out");
             _authToken = null;
+            CurrentUsername = null;
+            CurrentUserId = null;
             if (_httpClient.DefaultRequestHeaders.Contains("accesstoken"))
             {
                 _httpClient.DefaultRequestHeaders.Remove("accesstoken");
             }
             SecureStorage.Remove("auth_token");
+            SecureStorage.Remove("auth_username");
+            SecureStorage.Remove("auth_userid");
         }
 
         public async Task<string> GetTicketsAsync()
         {
-            _logger.LogDebug("Fetching tickets from API");
             var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets");
-            _logger.LogDebug("GetTickets response: {StatusCode}", response.StatusCode);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
@@ -141,7 +134,6 @@ namespace THWTicketApp.Services
             {
                 throw new ArgumentException("Title is required", nameof(title));
             }
-
             var payload = new { title, description, assignedUserId };
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets", content);
@@ -151,42 +143,36 @@ namespace THWTicketApp.Services
 
         public async Task<bool> AssignTicketAsync(string ticketId, string userId)
         {
-            if (string.IsNullOrWhiteSpace(ticketId) || string.IsNullOrWhiteSpace(userId))
-            {
-                _logger.LogWarning("AssignTicket failed: ticketId or userId is empty");
-                return false;
-            }
-
-            _logger.LogInformation("Assigning ticket {TicketId} to user {UserId}", ticketId, userId);
+            // Use the dedicated assignee endpoint: PUT /tickets/{id}/assignee
             var payload = new { assignee = userId };
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}", content);
-            _logger.LogDebug("AssignTicket response: {StatusCode}", response.StatusCode);
+            var response = await _httpClient.PutAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}/assignee", content);
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> AddCommentAsync(string ticketId, string newComment)
+        public async Task<bool> ClearTicketAssigneeAsync(string ticketId)
         {
-            if (string.IsNullOrWhiteSpace(ticketId) || string.IsNullOrWhiteSpace(newComment))
+            var response = await _httpClient.DeleteAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}/assignee");
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> AddCommentAsync(string id, string ownerId, string newComment)
+        {
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(newComment))
             {
-                _logger.LogWarning("AddComment failed: ticketId or comment is empty");
                 return false;
             }
 
-            _logger.LogInformation("Adding comment to ticket {TicketId}", ticketId);
-            var payload = new { _id = ticketId, comment = newComment };
-            _logger.LogDebug("AddComment payload: {Payload}", JsonSerializer.Serialize(payload));
+            var payload = new { ticketId = id, owner = ownerId, comment = newComment };
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/addcomment", content);
-            _logger.LogDebug("AddComment response: {StatusCode}", response.StatusCode);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("AddComment failed: {StatusCode} - {Error}", response.StatusCode, errorContent);
-            }
-
             return response.IsSuccessStatusCode;
+        }
+
+        public async Task<string> GetTicketAsync(string ticketId)
+        {
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}");
+            return await response.Content.ReadAsStringAsync();
         }
 
         public async Task<bool> EditTicketAsync(Ticket ticket)
@@ -208,55 +194,102 @@ namespace THWTicketApp.Services
             return response.IsSuccessStatusCode;
         }
 
+        public async Task<bool> AddNoteAsync(string ticketId, string ownerId, string note)
+        {
+            if (string.IsNullOrWhiteSpace(ticketId) || string.IsNullOrWhiteSpace(note))
+                return false;
+
+            var payload = new { ticketid = ticketId, owner = ownerId, note };
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/addnote", content);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<string> GetStatusesAsync()
+        {
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets/statuses");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
         public async Task<string> GetUsersAsync()
         {
-            _logger.LogDebug("Fetching users from API");
             var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/users");
-            _logger.LogDebug("GetUsers response: {StatusCode}", response.StatusCode);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
 
         public async Task<string> GetTicketTypesAsync()
         {
-            _logger.LogDebug("Fetching ticket types from API");
             var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets/types");
-            _logger.LogDebug("GetTicketTypes response: {StatusCode}", response.StatusCode);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<string> GetTagsAsync()
+        {
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tags");
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
 
         public async Task<string> GetGroupsAsync()
         {
-            _logger.LogDebug("Fetching groups from API");
             var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/groups");
-            _logger.LogDebug("GetGroups response: {StatusCode}", response.StatusCode);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
 
-        public async Task<string> GetStatusesAsync()
+        public async Task<bool> UploadAttachmentAsync(string ticketId, Stream fileStream, string fileName)
         {
-            _logger.LogDebug("Fetching statuses from API");
-            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets/status");
-            _logger.LogDebug("GetStatuses response: {StatusCode}", response.StatusCode);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            using var content = new MultipartFormDataContent();
+            var streamContent = new StreamContent(fileStream);
+            streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
+                GetMimeType(fileName));
+            content.Add(streamContent, "file", fileName);
+            content.Add(new StringContent(ticketId), "ticketId");
+
+            var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/uploadattachment", content);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<Stream?> DownloadAttachmentAsync(string attachmentPath)
+        {
+            // Trudesk serves attachments relative to the API base
+            var baseUrl = _settings.ApiBaseUrl.Replace("/api/v1", "");
+            var response = await _httpClient.GetAsync($"{baseUrl}{attachmentPath}");
+            if (response.IsSuccessStatusCode)
+                return await response.Content.ReadAsStreamAsync();
+            return null;
+        }
+
+        private static string GetMimeType(string fileName)
+        {
+            var ext = System.IO.Path.GetExtension(fileName)?.ToLowerInvariant();
+            return ext switch
+            {
+                ".pdf" => "application/pdf",
+                ".png" => "image/png",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".gif" => "image/gif",
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".xls" => "application/vnd.ms-excel",
+                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                ".txt" => "text/plain",
+                ".zip" => "application/zip",
+                _ => "application/octet-stream"
+            };
         }
 
         public async Task<bool> UpdateTicketStatusAsync(string ticketId, string statusId)
         {
             if (string.IsNullOrWhiteSpace(ticketId) || string.IsNullOrWhiteSpace(statusId))
-            {
-                _logger.LogWarning("UpdateTicketStatus failed: ticketId or statusId is empty");
                 return false;
-            }
 
-            _logger.LogInformation("Updating ticket {TicketId} status to {StatusId}", ticketId, statusId);
             var payload = new { status = statusId };
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             var response = await _httpClient.PutAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}", content);
-            _logger.LogDebug("UpdateTicketStatus response: {StatusCode}", response.StatusCode);
             return response.IsSuccessStatusCode;
         }
 
@@ -270,16 +303,13 @@ namespace THWTicketApp.Services
         {
             if (string.IsNullOrWhiteSpace(subject))
             {
-                _logger.LogWarning("CreateTicket failed: subject is empty");
                 return false;
             }
-
-            _logger.LogInformation("Creating ticket with subject: {Subject}", subject);
 
             var payload = new Dictionary<string, object?>
             {
                 ["subject"] = subject,
-                ["issue"] = string.IsNullOrWhiteSpace(issue) ? subject : issue,
+                ["issue"] = issue ?? string.Empty,
             };
 
             if (!string.IsNullOrEmpty(typeId))
@@ -291,17 +321,8 @@ namespace THWTicketApp.Services
             if (!string.IsNullOrEmpty(assigneeId))
                 payload["assignee"] = assigneeId;
 
-            _logger.LogDebug("CreateTicket payload: {Payload}", JsonSerializer.Serialize(payload));
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/create", content);
-            _logger.LogDebug("CreateTicket response: {StatusCode}", response.StatusCode);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("CreateTicket failed: {StatusCode} - {Error}", response.StatusCode, errorContent);
-            }
-
             return response.IsSuccessStatusCode;
         }
     }
