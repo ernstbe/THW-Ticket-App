@@ -43,3 +43,9 @@ TestResults/
 # User-specific files
 *.vspscc
 *.vssscc
+# Claude Code
+CLAUDE.md
+.claude/
+# Auto-generated resource files
+Resources/Strings/AppResources.Designer.cs
+/.claude/settings.local.json
