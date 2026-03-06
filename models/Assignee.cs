@@ -2,8 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace THWTicketApp.Models;
 
-namespace THWTicketApp.Models;
-
 public class Assignee : BindableObject
 {
     [JsonPropertyName("_id")]
