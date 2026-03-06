@@ -14,7 +14,7 @@
         <Grid Grid.Row="0"
               BackgroundColor="{AppThemeBinding Light={StaticResource HeaderBackground}, Dark={StaticResource HeaderBackgroundDark}}"
               Padding="15,10"
-              ColumnDefinitions="*,Auto,Auto,Auto">
+              ColumnDefinitions="*,Auto,Auto,Auto,Auto">
             <!-- Search bar on white background -->
             <Border Grid.Column="0"
                     StrokeShape="RoundRectangle 8"
@@ -51,8 +51,16 @@
                            HorizontalTextAlignment="Center"/>
                 </Frame>
             </Grid>
+            <!-- Scanner button -->
+            <ImageButton Grid.Column="2"
+                         Source="scan.png"
+                         WidthRequest="36"
+                         HeightRequest="36"
+                         Command="{Binding ShowScannerCommand}"
+                         BackgroundColor="Transparent"
+                         Margin="4,0,0,0"/>
             <!-- Live indicator -->
-            <Border Grid.Column="2"
+            <Border Grid.Column="3"
                     IsVisible="{Binding IsRealtimeConnected}"
                     StrokeShape="RoundRectangle 4"
                     Stroke="Transparent"
@@ -61,7 +69,7 @@
                     HeightRequest="8"
                     VerticalOptions="Center"
                     Margin="8,0,0,0"/>
-            <ImageButton Grid.Column="3"
+            <ImageButton Grid.Column="4"
                          Source="settings.png"
                          WidthRequest="40"
                          HeightRequest="40"

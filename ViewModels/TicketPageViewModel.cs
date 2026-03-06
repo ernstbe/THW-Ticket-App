@@ -556,6 +556,17 @@ public partial class TicketPageViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task ShowScannerAsync()
+    {
+        var window = Application.Current?.Windows.FirstOrDefault();
+        if (window?.Page is NavigationPage nav)
+        {
+            var scannerPage = _serviceProvider.GetRequiredService<Views.ScannerPage>();
+            await nav.PushAsync(scannerPage);
+        }
+    }
+
+    [RelayCommand]
     private async Task ShowSettingsAsync()
     {
         var window = Application.Current?.Windows.FirstOrDefault();

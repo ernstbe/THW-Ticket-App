@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Plugin.Fingerprint;
 using Plugin.Fingerprint.Abstractions;
 using Plugin.LocalNotification;
+using ZXing.Net.Maui.Controls;
 using THWTicketApp.Services;
 using THWTicketApp.ViewModels;
 using THWTicketApp.Views;
@@ -24,6 +25,7 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .UseLocalNotification()
+            .UseBarcodeReader()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -67,6 +69,7 @@ public static class MauiProgram
         builder.Services.AddTransient<TicketDetailPage>();
         builder.Services.AddTransient<Views.AddTicketPage>();
         builder.Services.AddTransient<Views.SettingsPage>();
+        builder.Services.AddTransient<Views.ScannerPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

@@ -24,6 +24,7 @@ public class DatabaseService
         await _database.CreateTableAsync<PendingAction>();
         await _database.CreateTableAsync<FavoriteTicket>();
         await _database.CreateTableAsync<TimeEntry>();
+        await _database.CreateTableAsync<LinkedTicket>();
     }
 
     public async Task<List<CachedTicket>> GetCachedTicketsAsync()
@@ -300,5 +301,40 @@ public class DatabaseService
     {
         await InitAsync();
         await _database!.DeleteAsync<TimeEntry>(entryId);
+    }
+
+    // --- Linked Tickets ---
+
+    public async Task AddLinkedTicketAsync(string sourceId, string linkedId, string linkedSubject, int linkedUid, string linkType = "related")
+    {
+        await InitAsync();
+        var existing = await _database!.Table<LinkedTicket>()
+            .FirstOrDefaultAsync(l => l.SourceTicketId == sourceId && l.LinkedTicketId == linkedId);
+        if (existing != null) return;
+
+        await _database.InsertAsync(new LinkedTicket
+        {
+            SourceTicketId = sourceId,
+            LinkedTicketId = linkedId,
+            LinkedTicketSubject = linkedSubject,
+            LinkedTicketUid = linkedUid,
+            LinkType = linkType,
+            CreatedAt = DateTime.UtcNow
+        });
+    }
+
+    public async Task<List<LinkedTicket>> GetLinkedTicketsAsync(string ticketId)
+    {
+        await InitAsync();
+        return await _database!.Table<LinkedTicket>()
+            .Where(l => l.SourceTicketId == ticketId)
+            .OrderByDescending(l => l.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task RemoveLinkedTicketAsync(int linkId)
+    {
+        await InitAsync();
+        await _database!.DeleteAsync<LinkedTicket>(linkId);
     }
 }

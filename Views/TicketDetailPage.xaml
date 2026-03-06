@@ -32,12 +32,9 @@
                                    FontSize="11"
                                    FontAttributes="Bold"/>
                         </Frame>
-                        <Label Grid.Row="1" Grid.ColumnSpan="2"
-                               Text="{Binding Ticket.Issue}"
-                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
-                               FontSize="14"
-                               Margin="0,10,0,0"
-                               LineBreakMode="WordWrap"/>
+                        <mdv:MarkdownView Grid.Row="1" Grid.ColumnSpan="2"
+                                          MarkdownText="{Binding Ticket.Issue}"
+                                          Margin="0,10,0,0"/>
                     </Grid>
 
                     <!-- Tags -->
@@ -133,6 +130,105 @@
                                             BackgroundColor="{StaticResource Danger}"
                                             TextColor="White"
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TicketDetailViewModel}}, Path=DeleteTimeEntryCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Linked Tickets Card -->
+            <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent">
+                <VerticalStackLayout Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Verknüpfte Tickets"
+                               Style="{StaticResource SectionHeaderStyle}"
+                               Margin="0"/>
+                        <Button Grid.Column="1"
+                                Text="+ Verknüpfen"
+                                FontSize="12"
+                                Padding="10,4"
+                                CornerRadius="12"
+                                HeightRequest="30"
+                                MinimumHeightRequest="30"
+                                BackgroundColor="{StaticResource THWBlue}"
+                                TextColor="White"
+                                Command="{Binding ToggleLinkPickerCommand}"/>
+                    </Grid>
+
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                    <!-- Link Picker -->
+                    <VerticalStackLayout IsVisible="{Binding IsLinkPickerVisible}" Spacing="8">
+                        <Picker Title="Ticket auswählen..."
+                                ItemsSource="{Binding AvailableTicketsForLink}"
+                                ItemDisplayBinding="{Binding Subject}"
+                                SelectedItem="{Binding SelectedTicketToLink}"
+                                FontSize="13"/>
+                        <Picker Title="Verknüpfungstyp"
+                                SelectedItem="{Binding SelectedLinkType}"
+                                FontSize="13">
+                            <Picker.Items>
+                                <x:String>related</x:String>
+                                <x:String>blocks</x:String>
+                                <x:String>blocked_by</x:String>
+                                <x:String>duplicate</x:String>
+                            </Picker.Items>
+                        </Picker>
+                        <Button Text="Verknüpfen"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                FontSize="13"
+                                Padding="10,6"
+                                HeightRequest="36"
+                                MinimumHeightRequest="36"
+                                Command="{Binding AddLinkedTicketCommand}"/>
+                    </VerticalStackLayout>
+
+                    <!-- Linked Tickets List -->
+                    <CollectionView ItemsSource="{Binding LinkedTickets}">
+                        <CollectionView.EmptyView>
+                            <Label Text="Keine verknüpften Tickets"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                   HorizontalTextAlignment="Center"/>
+                        </CollectionView.EmptyView>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="data:LinkedTicket">
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Padding="4,4" ColumnSpacing="8">
+                                    <Frame Grid.Column="0"
+                                           Padding="4,2"
+                                           CornerRadius="6"
+                                           HasShadow="False"
+                                           BorderColor="{StaticResource THWBlueLight}"
+                                           BackgroundColor="{AppThemeBinding Light={StaticResource THWBlueSurface}, Dark={StaticResource THWBlueSurfaceDark}}">
+                                        <Label Text="{Binding LinkType}"
+                                               FontSize="9"
+                                               TextColor="{StaticResource THWBlue}"/>
+                                    </Frame>
+                                    <Label Grid.Column="1"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
+                                           LineBreakMode="TailTruncation"
+                                           VerticalOptions="Center">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding LinkedTicketUid, StringFormat='#{0} '}" FontAttributes="Bold"/>
+                                                <Span Text="{Binding LinkedTicketSubject}"/>
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                    <Button Grid.Column="3"
+                                            Text="&#x2716;"
+                                            FontSize="9"
+                                            WidthRequest="24"
+                                            HeightRequest="24"
+                                            Padding="0"
+                                            CornerRadius="12"
+                                            BackgroundColor="{StaticResource Danger}"
+                                            TextColor="White"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TicketDetailViewModel}}, Path=RemoveLinkedTicketCommand}"
                                             CommandParameter="{Binding .}"/>
                                 </Grid>
                             </DataTemplate>
@@ -417,11 +513,44 @@
                             StrokeShape="RoundRectangle 6"
                             Padding="10"
                             BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
-                        <Editor Placeholder="Neuen Kommentar eingeben..."
+                        <Editor Placeholder="Neuen Kommentar eingeben... (@ für Erwähnung)"
                                 Text="{Binding NewComment}"
                                 HeightRequest="80"
                                 BackgroundColor="Transparent"/>
                     </Border>
+
+                    <!-- @Mention Suggestions -->
+                    <Frame IsVisible="{Binding IsMentionPopupVisible}"
+                           Padding="8"
+                           CornerRadius="8"
+                           BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkSurface}}"
+                           BorderColor="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
+                           HasShadow="True">
+                        <CollectionView ItemsSource="{Binding MentionSuggestions}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:User">
+                                    <Grid Padding="6,4" ColumnDefinitions="*,Auto">
+                                        <Grid.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TicketDetailViewModel}}, Path=InsertMentionCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                        </Grid.GestureRecognizers>
+                                        <Label Grid.Column="0"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark=White}">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding Fullname}" FontAttributes="Bold"/>
+                                                    <Span Text="{Binding Username, StringFormat=' @{0}'}"
+                                                          TextColor="{StaticResource THWBlue}"/>
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Frame>
 
                     <Button Text="Kommentar posten"
                             Style="{StaticResource PrimaryButtonStyle}"

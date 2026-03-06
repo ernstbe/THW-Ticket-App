@@ -83,6 +83,29 @@ namespace THWTicketApp.ViewModels
         private int? _activeTimerEntryId;
         private IDispatcherTimer? _timerTick;
 
+        // Linked Tickets
+        [ObservableProperty]
+        private ObservableCollection<LinkedTicket> _linkedTickets = [];
+
+        [ObservableProperty]
+        private bool _isLinkPickerVisible;
+
+        [ObservableProperty]
+        private ObservableCollection<Models.Ticket> _availableTicketsForLink = [];
+
+        [ObservableProperty]
+        private Models.Ticket? _selectedTicketToLink;
+
+        [ObservableProperty]
+        private string _selectedLinkType = "related";
+
+        // @Mentions
+        [ObservableProperty]
+        private ObservableCollection<User> _mentionSuggestions = [];
+
+        [ObservableProperty]
+        private bool _isMentionPopupVisible;
+
         private readonly TrueDeskApiService _apiService;
         private readonly SyncService _syncService;
         private readonly DatabaseService _databaseService;
@@ -145,6 +168,61 @@ namespace THWTicketApp.ViewModels
             }
         }
 
+        partial void OnNewCommentChanged(string value)
+        {
+            CheckForMentions(value);
+        }
+
+        private void CheckForMentions(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                IsMentionPopupVisible = false;
+                return;
+            }
+
+            // Find the last @ in the text
+            var lastAtIndex = text.LastIndexOf('@');
+            if (lastAtIndex < 0 || lastAtIndex == text.Length - 1)
+            {
+                IsMentionPopupVisible = false;
+                return;
+            }
+
+            // Check if there's a space after the @, if so we're not in a mention anymore
+            var afterAt = text[(lastAtIndex + 1)..];
+            if (afterAt.Contains(' '))
+            {
+                IsMentionPopupVisible = false;
+                return;
+            }
+
+            // Filter users by the text after @
+            var query = afterAt.ToLowerInvariant();
+            var matches = Users.Where(u =>
+                (u.Fullname?.ToLowerInvariant().Contains(query) ?? false) ||
+                (u.Username?.ToLowerInvariant().Contains(query) ?? false))
+                .Take(5)
+                .ToList();
+
+            MentionSuggestions.Clear();
+            foreach (var m in matches) MentionSuggestions.Add(m);
+            IsMentionPopupVisible = matches.Count > 0;
+        }
+
+        [RelayCommand]
+        private void InsertMention(User user)
+        {
+            if (user == null || string.IsNullOrEmpty(NewComment)) return;
+
+            var lastAtIndex = NewComment.LastIndexOf('@');
+            if (lastAtIndex >= 0)
+            {
+                NewComment = NewComment[..(lastAtIndex)] + $"@{user.Username} ";
+            }
+            IsMentionPopupVisible = false;
+        }
+
         public void SetTicket(Ticket ticket)
         {
             TrudeskTranslationHelper.TranslateTicket(ticket);
@@ -152,6 +230,63 @@ namespace THWTicketApp.ViewModels
             EditSubject = ticket?.Subject ?? string.Empty;
             EditIssue = ticket?.Issue ?? string.Empty;
             _ = LoadTimeTrackingAsync();
+            _ = LoadLinkedTicketsAsync();
+        }
+
+        private async Task LoadLinkedTicketsAsync()
+        {
+            if (Ticket == null) return;
+            var links = await _databaseService.GetLinkedTicketsAsync(Ticket.Id);
+            LinkedTickets.Clear();
+            foreach (var l in links) LinkedTickets.Add(l);
+        }
+
+        [RelayCommand]
+        private async Task ToggleLinkPickerAsync()
+        {
+            IsLinkPickerVisible = !IsLinkPickerVisible;
+            if (IsLinkPickerVisible && AvailableTicketsForLink.Count == 0)
+            {
+                try
+                {
+                    var json = await _apiService.GetTicketsAsync();
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var tickets = System.Text.Json.JsonSerializer.Deserialize<Models.Ticket[]>(json, options);
+                    AvailableTicketsForLink.Clear();
+                    if (tickets != null)
+                    {
+                        foreach (var t in tickets.Where(t => t.Id != Ticket?.Id))
+                            AvailableTicketsForLink.Add(t);
+                    }
+                }
+                catch { StatusMessage = "Tickets konnten nicht geladen werden."; }
+            }
+        }
+
+        [RelayCommand]
+        private async Task AddLinkedTicketAsync()
+        {
+            if (Ticket == null || SelectedTicketToLink == null) return;
+
+            await _databaseService.AddLinkedTicketAsync(
+                Ticket.Id,
+                SelectedTicketToLink.Id,
+                SelectedTicketToLink.Subject ?? "",
+                SelectedTicketToLink.Uid,
+                SelectedLinkType);
+
+            SelectedTicketToLink = null;
+            IsLinkPickerVisible = false;
+            await LoadLinkedTicketsAsync();
+            StatusMessage = "Ticket verknüpft.";
+        }
+
+        [RelayCommand]
+        private async Task RemoveLinkedTicketAsync(LinkedTicket link)
+        {
+            if (link == null) return;
+            await _databaseService.RemoveLinkedTicketAsync(link.Id);
+            await LoadLinkedTicketsAsync();
         }
 
         private async Task LoadTimeTrackingAsync()
