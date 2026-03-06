@@ -54,12 +54,15 @@
     <Color x:Key="OffBlack">#1f1f1f</Color>
 
     <!-- Light Mode Grays -->
+    <Color x:Key="Gray50">#F9F9F9</Color>
     <Color x:Key="Gray100">#E1E1E1</Color>
     <Color x:Key="Gray200">#C8C8C8</Color>
     <Color x:Key="Gray300">#ACACAC</Color>
     <Color x:Key="Gray400">#919191</Color>
     <Color x:Key="Gray500">#6E6E6E</Color>
     <Color x:Key="Gray600">#404040</Color>
+    <Color x:Key="Gray700">#333333</Color>
+    <Color x:Key="Gray800">#2A2A2A</Color>
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
 

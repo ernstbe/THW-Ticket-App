@@ -54,7 +54,11 @@ public partial class AddTicketViewModel : ObservableObject
     private bool _isLoading;
 
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
-    public bool CanCreate => !string.IsNullOrWhiteSpace(Subject) && !IsLoading;
+    public bool CanCreate => !string.IsNullOrWhiteSpace(Subject) && SelectedGroup != null && !IsLoading;
+
+    partial void OnSubjectChanged(string value) => OnPropertyChanged(nameof(CanCreate));
+    partial void OnIsLoadingChanged(bool value) => OnPropertyChanged(nameof(CanCreate));
+    partial void OnSelectedGroupChanged(Group? value) => OnPropertyChanged(nameof(CanCreate));
 
     public AddTicketViewModel(TrueDeskApiService apiService, SyncService syncService)
     {
@@ -156,12 +160,12 @@ public partial class AddTicketViewModel : ObservableObject
             {
                 PropertyNameCaseInsensitive = true
             };
-            var groups = System.Text.Json.JsonSerializer.Deserialize<Group[]>(json, options);
+            var response = System.Text.Json.JsonSerializer.Deserialize<Models.Responses.GetGroupResponse>(json, options);
 
             Groups.Clear();
-            if (groups != null)
+            if (response?.Groups != null)
             {
-                foreach (var group in groups)
+                foreach (var group in response.Groups)
                 {
                     Groups.Add(group);
                 }
@@ -212,7 +216,11 @@ public partial class AddTicketViewModel : ObservableObject
 
                 // Navigate back after short delay
                 await Task.Delay(1000);
-                await Shell.Current.GoToAsync("..");
+                var window = Application.Current?.Windows.FirstOrDefault();
+                if (window?.Page is NavigationPage nav)
+                {
+                    await nav.Navigation.PopAsync();
+                }
             }
             else
             {

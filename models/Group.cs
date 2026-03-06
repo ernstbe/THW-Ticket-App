@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace THWTicketApp.Models;
 
-public class Group : BindableObject
+public class Group
 {
     public string? Id { get; set; }
     public string? Name { get; set; }
