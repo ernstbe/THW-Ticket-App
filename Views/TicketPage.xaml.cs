@@ -47,6 +47,13 @@ public partial class TicketPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.LoadTicketsAsync();
+        try
+        {
+            await _viewModel.LoadTicketsAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading tickets: {ex}");
+        }
     }
 }

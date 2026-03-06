@@ -282,6 +282,17 @@ namespace THWTicketApp.Services
             };
         }
 
+        public async Task<bool> UpdateTicketStatusAsync(string ticketId, string statusId)
+        {
+            if (string.IsNullOrWhiteSpace(ticketId) || string.IsNullOrWhiteSpace(statusId))
+                return false;
+
+            var payload = new { status = statusId };
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync($"{_settings.ApiBaseUrl}/tickets/{ticketId}", content);
+            return response.IsSuccessStatusCode;
+        }
+
         public async Task<bool> CreateTicketAsync(
             string subject,
             string? issue,

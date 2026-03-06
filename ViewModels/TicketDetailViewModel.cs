@@ -201,6 +201,41 @@ namespace THWTicketApp.ViewModels
         }
 
         [RelayCommand]
+        private async Task ChangeStatusAsync()
+        {
+            if (Ticket == null || SelectedStatus == null)
+            {
+                StatusMessage = "Bitte wählen Sie einen Status.";
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                var success = await _apiService.UpdateTicketStatusAsync(Ticket.Id, SelectedStatus.Id);
+                if (success)
+                {
+                    Ticket.Status = SelectedStatus;
+                    OnPropertyChanged(nameof(Ticket));
+                    StatusMessage = "Status aktualisiert.";
+                }
+                else
+                {
+                    StatusMessage = "Status-Änderung fehlgeschlagen.";
+                }
+            }
+            catch (Exception ex)
+            {
+                var (message, _) = Utils.ErrorHelper.Categorize(ex);
+                StatusMessage = $"Status: {message}";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
         private async Task AssignAsync()
         {
             if (Ticket == null || SelectedAssignee == null)

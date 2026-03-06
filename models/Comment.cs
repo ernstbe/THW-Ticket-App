@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace THWTicketApp.Models;
 
-public class Comment : BindableObject
+public class Comment
 {
     [JsonPropertyName("_id")]
     public string? Id { get; set; }
