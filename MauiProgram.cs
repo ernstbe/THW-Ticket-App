@@ -61,6 +61,8 @@ public static class MauiProgram
         builder.Services.AddTransient<TicketDetailViewModel>();
         builder.Services.AddTransient<AddTicketViewModel>();
         builder.Services.AddTransient<SettingsViewModel>();
+        builder.Services.AddTransient<KanbanBoardViewModel>();
+        builder.Services.AddTransient<TeamDashboardViewModel>();
 
         // Views
         builder.Services.AddSingleton<LoginPage>();
@@ -70,6 +72,8 @@ public static class MauiProgram
         builder.Services.AddTransient<Views.AddTicketPage>();
         builder.Services.AddTransient<Views.SettingsPage>();
         builder.Services.AddTransient<Views.ScannerPage>();
+        builder.Services.AddTransient<Views.KanbanBoardPage>();
+        builder.Services.AddTransient<Views.TeamDashboardPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

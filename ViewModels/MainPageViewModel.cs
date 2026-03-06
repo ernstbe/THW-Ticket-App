@@ -227,6 +227,28 @@ namespace THWTicketApp.ViewModels
         }
 
         [RelayCommand]
+        private async Task NavigateToTeamDashboardAsync()
+        {
+            var window = Application.Current?.Windows.FirstOrDefault();
+            if (window?.Page is NavigationPage nav)
+            {
+                var teamPage = _serviceProvider.GetRequiredService<Views.TeamDashboardPage>();
+                await nav.PushAsync(teamPage);
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToKanbanAsync()
+        {
+            var window = Application.Current?.Windows.FirstOrDefault();
+            if (window?.Page is NavigationPage nav)
+            {
+                var kanbanPage = _serviceProvider.GetRequiredService<Views.KanbanBoardPage>();
+                await nav.PushAsync(kanbanPage);
+            }
+        }
+
+        [RelayCommand]
         private async Task LogoutAsync()
         {
             _apiService.Logout();
