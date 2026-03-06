@@ -9,6 +9,7 @@ namespace THWTicketApp.ViewModels;
 public partial class AddTicketViewModel : ObservableObject
 {
     private readonly TrueDeskApiService _apiService;
+    private readonly SyncService _syncService;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCreate))]
@@ -55,9 +56,10 @@ public partial class AddTicketViewModel : ObservableObject
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
     public bool CanCreate => !string.IsNullOrWhiteSpace(Subject) && !IsLoading;
 
-    public AddTicketViewModel(TrueDeskApiService apiService)
+    public AddTicketViewModel(TrueDeskApiService apiService, SyncService syncService)
     {
         _apiService = apiService;
+        _syncService = syncService;
     }
 
     public async Task LoadDataAsync()
@@ -221,9 +223,27 @@ public partial class AddTicketViewModel : ObservableObject
         }
         catch (Exception)
         {
-            StatusMessage = "Netzwerkfehler. Bitte erneut versuchen.";
-            StatusColor = Colors.Red;
-            OnPropertyChanged(nameof(HasStatusMessage));
+            if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+            {
+                await _syncService.EnqueueCreateTicketAsync(
+                    Subject, Issue,
+                    SelectedType?.Id, SelectedPriority?.Id,
+                    SelectedGroup?.Id, SelectedAssignee?.Id);
+                StatusMessage = "Offline: Ticket wird bei Verbindung erstellt.";
+                StatusColor = Colors.Orange;
+                OnPropertyChanged(nameof(HasStatusMessage));
+
+                await Task.Delay(1500);
+                var window = Application.Current?.Windows.FirstOrDefault();
+                if (window?.Page is NavigationPage nav)
+                    await nav.Navigation.PopAsync();
+            }
+            else
+            {
+                StatusMessage = "Netzwerkfehler. Bitte erneut versuchen.";
+                StatusColor = Colors.Red;
+                OnPropertyChanged(nameof(HasStatusMessage));
+            }
         }
         finally
         {

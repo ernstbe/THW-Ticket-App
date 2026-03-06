@@ -13,6 +13,9 @@ namespace THWTicketApp.Services
         private readonly AppSettings _settings;
         private string? _authToken;
 
+        public string? CurrentUsername { get; private set; }
+        public string? CurrentUserId { get; private set; }
+
         public TrueDeskApiService(AppSettings settings)
         {
             _settings = settings;
@@ -46,8 +49,18 @@ namespace THWTicketApp.Services
                         _httpClient.DefaultRequestHeaders.Remove("accesstoken");
                     }
                     _httpClient.DefaultRequestHeaders.Add("accesstoken", _authToken);
-                    // Store token securely for session persistence
+                    // Extract user ID from login response
+                    if (doc.RootElement.TryGetProperty("user", out var userEl) &&
+                        userEl.TryGetProperty("_id", out var idEl))
+                    {
+                        CurrentUserId = idEl.GetString();
+                    }
+
+                    // Store token and username securely for session persistence
+                    CurrentUsername = username;
                     await SecureStorage.SetAsync("auth_token", _authToken ?? string.Empty);
+                    await SecureStorage.SetAsync("auth_username", username);
+                    await SecureStorage.SetAsync("auth_userid", CurrentUserId ?? string.Empty);
                     return true;
                 }
                 return false;
@@ -77,6 +90,8 @@ namespace THWTicketApp.Services
                 if (!string.IsNullOrEmpty(storedToken))
                 {
                     _authToken = storedToken;
+                    CurrentUsername = await SecureStorage.GetAsync("auth_username");
+                    CurrentUserId = await SecureStorage.GetAsync("auth_userid");
                     if (_httpClient.DefaultRequestHeaders.Contains("accesstoken"))
                     {
                         _httpClient.DefaultRequestHeaders.Remove("accesstoken");
@@ -95,11 +110,15 @@ namespace THWTicketApp.Services
         public void Logout()
         {
             _authToken = null;
+            CurrentUsername = null;
+            CurrentUserId = null;
             if (_httpClient.DefaultRequestHeaders.Contains("accesstoken"))
             {
                 _httpClient.DefaultRequestHeaders.Remove("accesstoken");
             }
             SecureStorage.Remove("auth_token");
+            SecureStorage.Remove("auth_username");
+            SecureStorage.Remove("auth_userid");
         }
 
         public async Task<string> GetTicketsAsync()
@@ -175,6 +194,24 @@ namespace THWTicketApp.Services
             return response.IsSuccessStatusCode;
         }
 
+        public async Task<bool> AddNoteAsync(string ticketId, string ownerId, string note)
+        {
+            if (string.IsNullOrWhiteSpace(ticketId) || string.IsNullOrWhiteSpace(note))
+                return false;
+
+            var payload = new { ticketid = ticketId, owner = ownerId, note };
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/addnote", content);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<string> GetStatusesAsync()
+        {
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets/statuses");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
         public async Task<string> GetUsersAsync()
         {
             var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/users");
@@ -189,11 +226,60 @@ namespace THWTicketApp.Services
             return await response.Content.ReadAsStringAsync();
         }
 
+        public async Task<string> GetTagsAsync()
+        {
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tags");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
         public async Task<string> GetGroupsAsync()
         {
             var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/groups");
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<bool> UploadAttachmentAsync(string ticketId, Stream fileStream, string fileName)
+        {
+            using var content = new MultipartFormDataContent();
+            var streamContent = new StreamContent(fileStream);
+            streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
+                GetMimeType(fileName));
+            content.Add(streamContent, "file", fileName);
+            content.Add(new StringContent(ticketId), "ticketId");
+
+            var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/uploadattachment", content);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<Stream?> DownloadAttachmentAsync(string attachmentPath)
+        {
+            // Trudesk serves attachments relative to the API base
+            var baseUrl = _settings.ApiBaseUrl.Replace("/api/v1", "");
+            var response = await _httpClient.GetAsync($"{baseUrl}{attachmentPath}");
+            if (response.IsSuccessStatusCode)
+                return await response.Content.ReadAsStreamAsync();
+            return null;
+        }
+
+        private static string GetMimeType(string fileName)
+        {
+            var ext = System.IO.Path.GetExtension(fileName)?.ToLowerInvariant();
+            return ext switch
+            {
+                ".pdf" => "application/pdf",
+                ".png" => "image/png",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".gif" => "image/gif",
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".xls" => "application/vnd.ms-excel",
+                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                ".txt" => "text/plain",
+                ".zip" => "application/zip",
+                _ => "application/octet-stream"
+            };
         }
 
         public async Task<bool> CreateTicketAsync(

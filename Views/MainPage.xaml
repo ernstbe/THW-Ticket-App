@@ -1,81 +1,254 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             xmlns:models="clr-namespace:THWTicketApp.Models"
              x:Class="THWTicketApp.MainPage"
-             Title="Home">
+             x:DataType="viewmodels:MainPageViewModel"
+             Title="Dashboard">
 
-    <ScrollView BackgroundColor="{StaticResource PageBackground}">
-        <VerticalStackLayout
-            Padding="30,40"
-            Spacing="20"
-            VerticalOptions="Center">
+    <Grid RowDefinitions="Auto,*" BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
 
-            <!-- THW Logo -->
-            <Image
-                Source="thw_logo.svg"
-                HeightRequest="120"
-                Aspect="AspectFit"
-                SemanticProperties.Description="THW Logo" />
+        <!-- Header -->
+        <Grid Grid.Row="0"
+              BackgroundColor="{AppThemeBinding Light={StaticResource HeaderBackground}, Dark={StaticResource HeaderBackgroundDark}}"
+              Padding="20,15">
+            <VerticalStackLayout>
+                <Label Text="THW Ticket System"
+                       FontSize="12"
+                       TextColor="#B3CCFF"/>
+                <Label Text="{Binding WelcomeMessage}"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource HeaderText}"/>
+            </VerticalStackLayout>
+        </Grid>
 
-            <!-- App Title -->
-            <Label
-                Text="THW Ticket System"
-                FontSize="28"
-                FontAttributes="Bold"
-                TextColor="{StaticResource THWBlueDark}"
-                HorizontalTextAlignment="Center"
-                SemanticProperties.HeadingLevel="Level1" />
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="15" Spacing="15">
 
-            <!-- Welcome message -->
-            <Frame Style="{StaticResource CardStyle}"
-                   BorderColor="Transparent"
-                   Margin="0,10">
-                <VerticalStackLayout Spacing="10"
-                                     HorizontalOptions="Center">
-                    <Label
-                        Text="{Binding WelcomeMessage}"
-                        FontSize="20"
-                        FontAttributes="Bold"
-                        TextColor="{StaticResource THWBlue}"
-                        HorizontalTextAlignment="Center" />
+                <!-- Loading Indicator -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   IsVisible="{Binding IsLoading}"
+                                   Color="{StaticResource THWBlue}"
+                                   HeightRequest="40"/>
 
-                    <Label
-                        Text="Support-Tickets verwalten"
-                        FontSize="14"
-                        HorizontalTextAlignment="Center"
-                        TextColor="{StaticResource Gray500}" />
-                </VerticalStackLayout>
-            </Frame>
+                <!-- Error Banner with Retry -->
+                <Frame Padding="10"
+                       IsVisible="{Binding HasError}"
+                       BackgroundColor="{StaticResource Warning}"
+                       CornerRadius="8"
+                       BorderColor="Transparent"
+                       HasShadow="False">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Label Grid.Column="0"
+                               Text="{Binding ErrorMessage}"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"/>
+                        <Button Grid.Column="1"
+                                Text="Erneut"
+                                Command="{Binding LoadDashboardCommand}"
+                                BackgroundColor="{StaticResource THWBlue}"
+                                TextColor="White"
+                                FontSize="11"
+                                Padding="10,5"
+                                CornerRadius="12"
+                                HeightRequest="30"
+                                MinimumHeightRequest="30"/>
+                    </Grid>
+                </Frame>
 
-            <!-- Quick Access Card -->
-            <Frame Style="{StaticResource CardStyle}"
-                   BorderColor="Transparent">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="Schnellübersicht"
-                           Style="{StaticResource SectionHeaderStyle}"
-                           HorizontalTextAlignment="Center"
-                           Margin="0"/>
+                <!-- Statistics Cards -->
+                <Grid ColumnDefinitions="*,*"
+                      RowDefinitions="Auto,Auto"
+                      ColumnSpacing="10"
+                      RowSpacing="10">
 
-                    <BoxView HeightRequest="1"
-                             BackgroundColor="{StaticResource Divider}"/>
+                    <!-- Total Tickets -->
+                    <Frame Grid.Row="0" Grid.Column="0"
+                           Style="{StaticResource CardStyle}"
+                           BorderColor="Transparent"
+                           Padding="15">
+                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
+                            <Label Text="{Binding TotalTickets}"
+                                   FontSize="32"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource THWBlue}"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Text="Gesamt"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Frame>
 
-                    <Label Text="Nutzen Sie die Navigation, um Tickets zu verwalten, neue Tickets zu erstellen oder die Einstellungen anzupassen."
-                           FontSize="13"
-                           TextColor="{StaticResource Gray500}"
-                           HorizontalTextAlignment="Center"
-                           Margin="0,5"/>
-                </VerticalStackLayout>
-            </Frame>
+                    <!-- Open Tickets -->
+                    <Frame Grid.Row="0" Grid.Column="1"
+                           Style="{StaticResource CardStyle}"
+                           BorderColor="Transparent"
+                           Padding="15">
+                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
+                            <Label Text="{Binding OpenTickets}"
+                                   FontSize="32"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource StatusNew}"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Text="Offen"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Frame>
 
-            <!-- Logout -->
-            <Button
-                Text="Abmelden"
-                Command="{Binding LogoutCommand}"
-                IsVisible="{Binding IsAuthenticated}"
-                Style="{StaticResource SecondaryButtonStyle}"
-                HorizontalOptions="Center"
-                Margin="0,10,0,0" />
+                    <!-- Pending Tickets -->
+                    <Frame Grid.Row="1" Grid.Column="0"
+                           Style="{StaticResource CardStyle}"
+                           BorderColor="Transparent"
+                           Padding="15">
+                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
+                            <Label Text="{Binding PendingTickets}"
+                                   FontSize="32"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource StatusPending}"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Text="Ausstehend"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Frame>
 
-        </VerticalStackLayout>
-    </ScrollView>
+                    <!-- My Tickets -->
+                    <Frame Grid.Row="1" Grid.Column="1"
+                           Style="{StaticResource CardStyle}"
+                           BorderColor="Transparent"
+                           Padding="15">
+                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
+                            <Label Text="{Binding MyTickets}"
+                                   FontSize="32"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource THWBlueDark}, Dark={StaticResource THWBlueLight}}"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Text="Mir zugewiesen"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                </Grid>
+
+                <!-- Quick Actions -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Grid.Column="0"
+                            Text="Alle Tickets"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding NavigateToTicketsCommand}"/>
+                    <Button Grid.Column="1"
+                            Text="Neues Ticket"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding NavigateToAddTicketCommand}"/>
+                </Grid>
+
+                <!-- Recent Tickets -->
+                <Frame Style="{StaticResource CardStyle}"
+                       BorderColor="Transparent"
+                       Padding="15">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Zuletzt bearbeitet"
+                               Style="{StaticResource SectionHeaderStyle}"
+                               Margin="0"/>
+
+                        <BoxView HeightRequest="1"
+                                 BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                        <CollectionView ItemsSource="{Binding RecentTickets}"
+                                        SelectionMode="Single"
+                                        SelectionChanged="OnRecentTicketSelected">
+                            <CollectionView.EmptyView>
+                                <Label Text="Keine Tickets vorhanden."
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                       HorizontalTextAlignment="Center"
+                                       Margin="0,10"/>
+                            </CollectionView.EmptyView>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:Ticket">
+                                    <Grid Padding="5,8" ColumnDefinitions="5,*,Auto">
+                                        <!-- Priority Color Bar -->
+                                        <BoxView Grid.Column="0"
+                                                 BackgroundColor="{Binding Priority.HtmlColor}"
+                                                 WidthRequest="5"
+                                                 CornerRadius="2"/>
+
+                                        <!-- Ticket Info -->
+                                        <VerticalStackLayout Grid.Column="1" Padding="10,0" Spacing="2">
+                                            <Label Text="{Binding Subject}"
+                                                   FontAttributes="Bold"
+                                                   FontSize="14"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                                   LineBreakMode="TailTruncation"/>
+                                            <Label FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="{Binding Updated, StringFormat='{0:dd.MM.yyyy HH:mm}'}"/>
+                                                        <Span Text=" - "/>
+                                                        <Span Text="{Binding Assignee.Fullname, TargetNullValue='Nicht zugewiesen'}"/>
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                        </VerticalStackLayout>
+
+                                        <!-- Status Badge -->
+                                        <Frame Grid.Column="2"
+                                               BackgroundColor="{Binding Status.HtmlColor}"
+                                               Padding="8,3"
+                                               CornerRadius="10"
+                                               HasShadow="False"
+                                               BorderColor="Transparent"
+                                               VerticalOptions="Center">
+                                            <Label Text="{Binding Status.Name}"
+                                                   TextColor="White"
+                                                   FontSize="10"
+                                                   FontAttributes="Bold"/>
+                                        </Frame>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Pending Sync Banner -->
+                <Frame Padding="10"
+                       IsVisible="{Binding HasPendingActions}"
+                       BackgroundColor="#FFF3E0"
+                       CornerRadius="8"
+                       BorderColor="Transparent"
+                       HasShadow="False">
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="8">
+                        <Label Text="&#x1F504;" FontSize="14" VerticalOptions="Center"/>
+                        <Label TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                               FontAttributes="Bold"
+                               FontSize="13"
+                               VerticalOptions="Center">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding PendingActionsCount}"/>
+                                    <Span Text=" ausstehende Aktion(en) warten auf Synchronisation"/>
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </HorizontalStackLayout>
+                </Frame>
+
+                <!-- Logout -->
+                <Button Text="Abmelden"
+                        Command="{Binding LogoutCommand}"
+                        Style="{StaticResource DangerButtonStyle}"
+                        HorizontalOptions="Center"
+                        Margin="0,5,0,20"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

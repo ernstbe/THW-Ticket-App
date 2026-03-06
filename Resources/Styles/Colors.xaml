@@ -21,11 +21,14 @@
 
     <!-- Trudesk-inspired Backgrounds -->
     <Color x:Key="PageBackground">#F7F8FA</Color>
+    <Color x:Key="PageBackgroundDark">#121212</Color>
     <Color x:Key="CardBackground">#FFFFFF</Color>
+    <Color x:Key="CardBackgroundDark">#1E1E1E</Color>
     <Color x:Key="SidebarBackground">#E6E7E8</Color>
 
     <!-- Header -->
     <Color x:Key="HeaderBackground">#003399</Color>
+    <Color x:Key="HeaderBackgroundDark">#001A4D</Color>
     <Color x:Key="HeaderText">#F6F7F8</Color>
 
     <!-- Status Colors (Trudesk-inspired) -->
@@ -39,7 +42,9 @@
 
     <!-- Card/Divider -->
     <Color x:Key="CardBorder">#E0E0E0</Color>
+    <Color x:Key="CardBorderDark">#333333</Color>
     <Color x:Key="Divider">#E0E0E0</Color>
+    <Color x:Key="DividerDark">#333333</Color>
 
     <!-- Base Colors -->
     <Color x:Key="White">White</Color>
@@ -57,6 +62,11 @@
     <Color x:Key="Gray600">#404040</Color>
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
+
+    <!-- Dark Mode Surface Colors -->
+    <Color x:Key="DarkSurface">#1E1E1E</Color>
+    <Color x:Key="DarkSurfaceLight">#2C2C2C</Color>
+    <Color x:Key="THWBlueSurfaceDark">#1A2744</Color>
 
     <!-- Legacy Status Colors (kept for backward compat) -->
     <Color x:Key="Success">#28A745</Color>

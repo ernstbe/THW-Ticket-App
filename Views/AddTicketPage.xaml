@@ -6,14 +6,14 @@
              x:DataType="viewmodels:AddTicketViewModel"
              Title="Ticket erstellen">
 
-    <ScrollView BackgroundColor="{StaticResource PageBackground}">
+    <ScrollView BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
         <VerticalStackLayout Padding="15" Spacing="15">
 
             <!-- Page Header -->
             <Label Text="Ticket erstellen"
                    FontSize="24"
                    FontAttributes="Bold"
-                   TextColor="{StaticResource THWBlueDark}"
+                   TextColor="{AppThemeBinding Light={StaticResource THWBlueDark}, Dark={StaticResource THWBlueLight}}"
                    HorizontalOptions="Center"
                    Margin="0,10,0,5"/>
 
@@ -22,11 +22,11 @@
                 <VerticalStackLayout Spacing="8">
                     <Label Text="Betreff"
                            Style="{StaticResource FormLabelStyle}"/>
-                    <Border Stroke="{StaticResource CardBorder}"
+                    <Border Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 6"
                             Padding="10,0"
-                            BackgroundColor="{StaticResource PageBackground}">
+                            BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
                         <Entry Placeholder="Betreff"
                                Text="{Binding Subject}"
                                MaxLength="200"
@@ -35,11 +35,11 @@
 
                     <Label Text="Beschreibung"
                            Style="{StaticResource FormLabelStyle}"/>
-                    <Border Stroke="{StaticResource CardBorder}"
+                    <Border Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 6"
                             Padding="10"
-                            BackgroundColor="{StaticResource PageBackground}">
+                            BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
                         <Editor Placeholder="Bitte sei so spezifisch wie möglich. Füge alle Details hinzu, die relevant sein könnten."
                                 Text="{Binding Issue}"
                                 HeightRequest="120"
@@ -57,7 +57,7 @@
                            Margin="0"/>
 
                     <BoxView HeightRequest="1"
-                             BackgroundColor="{StaticResource Divider}"/>
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
 
                     <Label Text="Typ"
                            Style="{StaticResource FormLabelStyle}"/>
@@ -90,7 +90,7 @@
                            Margin="0"/>
 
                     <BoxView HeightRequest="1"
-                             BackgroundColor="{StaticResource Divider}"/>
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
 
                     <Label Text="Zuständig"
                            Style="{StaticResource FormLabelStyle}"/>

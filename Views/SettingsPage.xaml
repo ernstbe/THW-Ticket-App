@@ -6,14 +6,14 @@
              x:DataType="viewmodels:SettingsViewModel"
              Title="Einstellungen">
 
-    <ScrollView BackgroundColor="{StaticResource PageBackground}">
+    <ScrollView BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
         <VerticalStackLayout Padding="15" Spacing="15">
 
             <!-- Page Header -->
             <Label Text="Einstellungen"
                    FontSize="24"
                    FontAttributes="Bold"
-                   TextColor="{StaticResource THWBlueDark}"
+                   TextColor="{AppThemeBinding Light={StaticResource THWBlueDark}, Dark={StaticResource THWBlueLight}}"
                    HorizontalOptions="Center"
                    Margin="0,10,0,5"/>
 
@@ -26,14 +26,26 @@
                            Margin="0"/>
 
                     <BoxView HeightRequest="1"
-                             BackgroundColor="{StaticResource Divider}"/>
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
 
                     <Grid ColumnDefinitions="*,Auto">
                         <Label Text="Dark Mode"
                                VerticalOptions="Center"
-                               TextColor="{StaticResource Gray600}"/>
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"/>
                         <Switch Grid.Column="1"
                                 IsToggled="{Binding IsDarkMode}"/>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout VerticalOptions="Center">
+                            <Label Text="Benachrichtigungen"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"/>
+                            <Label Text="Über neue Tickets und Änderungen informieren"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding IsNotificationsEnabled}"/>
                     </Grid>
                 </VerticalStackLayout>
             </Frame>
@@ -46,15 +58,15 @@
                            Margin="0"/>
 
                     <BoxView HeightRequest="1"
-                             BackgroundColor="{StaticResource Divider}"/>
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
 
                     <Label Text="Server-URL"
                            Style="{StaticResource FormLabelStyle}"/>
-                    <Border Stroke="{StaticResource CardBorder}"
+                    <Border Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 6"
                             Padding="10,0"
-                            BackgroundColor="{StaticResource PageBackground}">
+                            BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
                         <Entry Placeholder="http://localhost:8118/api/v1"
                                Text="{Binding ApiBaseUrl}"
                                Keyboard="Url"
@@ -63,11 +75,11 @@
 
                     <Label Text="Verbindungs-Timeout (Sekunden)"
                            Style="{StaticResource FormLabelStyle}"/>
-                    <Border Stroke="{StaticResource CardBorder}"
+                    <Border Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 6"
                             Padding="10,0"
-                            BackgroundColor="{StaticResource PageBackground}">
+                            BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
                         <Entry Placeholder="30"
                                Text="{Binding ConnectionTimeout}"
                                Keyboard="Numeric"
@@ -94,27 +106,27 @@
                            Margin="0"/>
 
                     <BoxView HeightRequest="1"
-                             BackgroundColor="{StaticResource Divider}"/>
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
 
                     <Grid ColumnDefinitions="*,Auto">
                         <Label Text="Offline-Caching aktivieren"
                                VerticalOptions="Center"
-                               TextColor="{StaticResource Gray600}"/>
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"/>
                         <Switch Grid.Column="1"
                                 IsToggled="{Binding IsOfflineCacheEnabled}"/>
                     </Grid>
 
                     <Label Text="Wenn aktiviert, werden Tickets lokal gespeichert und bei Verbindungsproblemen angezeigt."
                            FontSize="12"
-                           TextColor="{StaticResource Gray400}"/>
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
 
                     <Label Text="{Binding CacheInfo}"
                            FontSize="14"
-                           TextColor="{StaticResource Gray500}"/>
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
 
                     <Button Text="Löschen"
-                            BackgroundColor="{StaticResource Gray300}"
-                            TextColor="{StaticResource Gray600}"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                            TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
                             CornerRadius="8"
                             Command="{Binding ClearCacheCommand}"/>
                 </VerticalStackLayout>
@@ -135,18 +147,18 @@
                             <Label Text="THW Ticket App"
                                    FontSize="18"
                                    FontAttributes="Bold"
-                                   TextColor="{StaticResource THWBlueDark}"/>
+                                   TextColor="{AppThemeBinding Light={StaticResource THWBlueDark}, Dark={StaticResource THWBlueLight}}"/>
                             <Label Text="Technisches Hilfswerk"
                                    FontSize="13"
-                                   TextColor="{StaticResource Gray500}"/>
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                         </VerticalStackLayout>
                     </Grid>
 
                     <BoxView HeightRequest="1"
-                             BackgroundColor="{StaticResource Divider}"/>
+                             BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
 
                     <Label Text="{Binding AppVersion, StringFormat='Version: {0}'}"
-                           TextColor="{StaticResource Gray500}"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
                            FontSize="13"/>
                 </VerticalStackLayout>
             </Frame>

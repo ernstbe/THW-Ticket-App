@@ -5,7 +5,7 @@
              Shell.NavBarIsVisible="False">
 
     <!-- Full-page THW-Blue background -->
-    <Grid BackgroundColor="#003399">
+    <Grid BackgroundColor="{AppThemeBinding Light=#003399, Dark=#001A4D}">
         <ScrollView VerticalOptions="Center">
             <VerticalStackLayout Spacing="0"
                                  Padding="30"
@@ -33,7 +33,7 @@
                        Margin="0,0,0,30"/>
 
                 <!-- White Login Card -->
-                <Border BackgroundColor="White"
+                <Border BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
                         StrokeShape="RoundRectangle 12"
                         Stroke="Transparent"
                         StrokeThickness="0"
@@ -49,7 +49,7 @@
                         <Label Text="Anmelden"
                                FontSize="20"
                                FontAttributes="Bold"
-                               TextColor="#002266"
+                               TextColor="{AppThemeBinding Light=#002266, Dark=#B3CCFF}"
                                HorizontalTextAlignment="Center"
                                Margin="0,0,0,10"/>
 
@@ -57,16 +57,16 @@
                         <Label Text="Benutzername"
                                FontSize="13"
                                FontAttributes="Bold"
-                               TextColor="#404040"
+                               TextColor="{AppThemeBinding Light=#404040, Dark=#C8C8C8}"
                                Margin="0,5,0,2"/>
-                        <Border Stroke="#E0E0E0"
+                        <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
                                 StrokeThickness="1"
                                 StrokeShape="RoundRectangle 6"
                                 Padding="10,0"
-                                BackgroundColor="#F7F8FA">
+                                BackgroundColor="{AppThemeBinding Light=#F7F8FA, Dark=#2C2C2C}">
                             <Entry Placeholder="Benutzername"
                                    Text="{Binding Username}"
-                                   TextColor="#212121"
+                                   TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}"
                                    PlaceholderColor="#919191"
                                    BackgroundColor="Transparent"/>
                         </Border>
@@ -75,17 +75,17 @@
                         <Label Text="Passwort"
                                FontSize="13"
                                FontAttributes="Bold"
-                               TextColor="#404040"
+                               TextColor="{AppThemeBinding Light=#404040, Dark=#C8C8C8}"
                                Margin="0,5,0,2"/>
-                        <Border Stroke="#E0E0E0"
+                        <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
                                 StrokeThickness="1"
                                 StrokeShape="RoundRectangle 6"
                                 Padding="10,0"
-                                BackgroundColor="#F7F8FA">
+                                BackgroundColor="{AppThemeBinding Light=#F7F8FA, Dark=#2C2C2C}">
                             <Entry Placeholder="Passwort"
                                    IsPassword="True"
                                    Text="{Binding Password}"
-                                   TextColor="#212121"
+                                   TextColor="{AppThemeBinding Light=#212121, Dark=#FFFFFF}"
                                    PlaceholderColor="#919191"
                                    BackgroundColor="Transparent"/>
                         </Border>

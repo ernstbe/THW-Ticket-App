@@ -12,6 +12,8 @@ public partial class TicketPageViewModel : ObservableObject
     private readonly TrueDeskApiService _apiService;
     private readonly IServiceProvider _serviceProvider;
     private readonly DatabaseService _databaseService;
+    private readonly SyncService _syncService;
+    private readonly RealtimeService _realtimeService;
     private List<Ticket> _allTickets = [];
     private bool _isOfflineCacheEnabled;
 
@@ -70,6 +72,13 @@ public partial class TicketPageViewModel : ObservableObject
         set => SetProperty(ref _activeFilter, value);
     }
 
+    private string _activeSort = "date_desc";
+    public string ActiveSort
+    {
+        get => _activeSort;
+        set => SetProperty(ref _activeSort, value);
+    }
+
     private bool _isOfflineMode;
     public bool IsOfflineMode
     {
@@ -79,12 +88,56 @@ public partial class TicketPageViewModel : ObservableObject
 
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
 
-    public TicketPageViewModel(TrueDeskApiService apiService, IServiceProvider serviceProvider, DatabaseService databaseService)
+    private bool _canRetry;
+    public bool CanRetry
+    {
+        get => _canRetry;
+        set => SetProperty(ref _canRetry, value);
+    }
+
+    private int _pendingActionsCount;
+    public int PendingActionsCount
+    {
+        get => _pendingActionsCount;
+        set
+        {
+            if (SetProperty(ref _pendingActionsCount, value))
+                OnPropertyChanged(nameof(HasPendingActions));
+        }
+    }
+
+    public bool HasPendingActions => PendingActionsCount > 0;
+
+    private bool _isRealtimeConnected;
+    public bool IsRealtimeConnected
+    {
+        get => _isRealtimeConnected;
+        set => SetProperty(ref _isRealtimeConnected, value);
+    }
+
+    public TicketPageViewModel(TrueDeskApiService apiService, IServiceProvider serviceProvider, DatabaseService databaseService, SyncService syncService, RealtimeService realtimeService)
     {
         _apiService = apiService;
         _serviceProvider = serviceProvider;
         _databaseService = databaseService;
+        _syncService = syncService;
+        _realtimeService = realtimeService;
         _isOfflineCacheEnabled = Preferences.Get("OfflineCache", false);
+
+        _syncService.PendingCountChanged += count =>
+            MainThread.BeginInvokeOnMainThread(() => PendingActionsCount = count);
+
+        _realtimeService.TicketUpdated += _ => OnRealtimeUpdate();
+        _realtimeService.TicketCreated += _ => OnRealtimeUpdate();
+        _realtimeService.CommentAdded += _ => OnRealtimeUpdate();
+    }
+
+    private async void OnRealtimeUpdate()
+    {
+        if (!IsLoading && !IsRefreshing)
+        {
+            await LoadTicketsAsync();
+        }
     }
 
     [RelayCommand]
@@ -97,6 +150,13 @@ public partial class TicketPageViewModel : ObservableObject
     private void Filter(string filterType)
     {
         ActiveFilter = filterType;
+        ApplyFilters();
+    }
+
+    [RelayCommand]
+    private void Sort(string sortType)
+    {
+        ActiveSort = sortType;
         ApplyFilters();
     }
 
@@ -126,8 +186,20 @@ public partial class TicketPageViewModel : ObservableObject
             _ => filtered
         };
 
+        // Apply sorting
+        var sorted = ActiveSort switch
+        {
+            "date_asc" => filtered.OrderBy(t => t.Date),
+            "date_desc" => filtered.OrderByDescending(t => t.Date),
+            "updated" => filtered.OrderByDescending(t => t.Updated),
+            "priority" => filtered.OrderByDescending(t => t.Priority?.OverdueIn ?? 0),
+            "subject" => filtered.OrderBy(t => t.Subject, StringComparer.OrdinalIgnoreCase),
+            "duedate" => filtered.OrderBy(t => t.DueDate == DateTime.MinValue ? DateTime.MaxValue : t.DueDate),
+            _ => filtered.OrderByDescending(t => t.Date)
+        };
+
         FilteredTickets.Clear();
-        foreach (var ticket in filtered.OrderByDescending(t => t.Date))
+        foreach (var ticket in sorted)
         {
             FilteredTickets.Add(ticket);
         }
@@ -144,6 +216,13 @@ public partial class TicketPageViewModel : ObservableObject
         IsOfflineMode = false;
         StatusMessage = "Lade Tickets...";
         OnPropertyChanged(nameof(HasStatusMessage));
+
+        // Sync any queued offline actions first
+        await _syncService.SyncPendingActionsAsync();
+        PendingActionsCount = await _syncService.GetPendingCountAsync();
+
+        // Connect to real-time updates
+        _ = ConnectRealtimeAsync();
 
         try
         {
@@ -181,19 +260,11 @@ public partial class TicketPageViewModel : ObservableObject
 
             ApplyFilters();
         }
-        catch (HttpRequestException)
+        catch (Exception ex)
         {
-            // Try to load from cache
-            await LoadFromCacheAsync("Verbindungsfehler. Zeige gecachte Daten.");
-        }
-        catch (JsonException)
-        {
-            StatusMessage = "Fehler beim Verarbeiten der Daten.";
-        }
-        catch (Exception)
-        {
-            // Try to load from cache
-            await LoadFromCacheAsync("Fehler beim Laden. Zeige gecachte Daten.");
+            var (message, canRetry) = Utils.ErrorHelper.Categorize(ex);
+            CanRetry = canRetry;
+            await LoadFromCacheAsync(message);
         }
         finally
         {
@@ -271,6 +342,113 @@ public partial class TicketPageViewModel : ObservableObject
         {
             var settingsPage = _serviceProvider.GetRequiredService<Views.SettingsPage>();
             await nav.PushAsync(settingsPage);
+        }
+    }
+
+    [RelayCommand]
+    private async Task AssignToMeAsync(Ticket ticket)
+    {
+        if (ticket == null) return;
+
+        var userId = _apiService.CurrentUserId;
+        if (string.IsNullOrEmpty(userId))
+        {
+            StatusMessage = "Benutzer-ID nicht verfügbar.";
+            OnPropertyChanged(nameof(HasStatusMessage));
+            return;
+        }
+
+        try
+        {
+            var success = await _apiService.AssignTicketAsync(ticket.Id, userId);
+            if (success)
+            {
+                StatusMessage = "Ticket dir zugewiesen.";
+                CanRetry = false;
+                await LoadTicketsAsync();
+            }
+            else
+            {
+                StatusMessage = "Zuweisung fehlgeschlagen.";
+            }
+        }
+        catch (Exception ex)
+        {
+            if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+            {
+                await _syncService.EnqueueAssignAsync(ticket.Id, userId);
+                StatusMessage = "Offline: Zuweisung wird bei Verbindung gesendet.";
+            }
+            else
+            {
+                var (message, _) = Utils.ErrorHelper.Categorize(ex);
+                StatusMessage = $"Zuweisung: {message}";
+            }
+        }
+        OnPropertyChanged(nameof(HasStatusMessage));
+    }
+
+    [RelayCommand]
+    private async Task CloseTicketAsync(Ticket ticket)
+    {
+        if (ticket == null) return;
+
+        try
+        {
+            // Find the "closed/resolved" status - try to use the ticket's existing statuses
+            // Set status to resolved by updating the ticket
+            var editTicket = new Ticket
+            {
+                Id = ticket.Id,
+                Subject = ticket.Subject,
+                Issue = ticket.Issue,
+                Priority = ticket.Priority,
+                Status = new Status { Id = ticket.Status?.Id, Name = "Closed", IsResolved = true }
+            };
+
+            // First try to get proper closed status from API
+            try
+            {
+                var statusJson = await _apiService.GetStatusesAsync();
+                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var statuses = System.Text.Json.JsonSerializer.Deserialize<Status[]>(statusJson, options);
+                var closedStatus = statuses?.FirstOrDefault(s => s.IsResolved);
+                if (closedStatus != null)
+                {
+                    editTicket.Status = closedStatus;
+                }
+            }
+            catch { }
+
+            var success = await _apiService.EditTicketAsync(editTicket);
+            if (success)
+            {
+                StatusMessage = "Ticket geschlossen.";
+                await LoadTicketsAsync();
+            }
+            else
+            {
+                StatusMessage = "Schließen fehlgeschlagen.";
+            }
+        }
+        catch (Exception ex)
+        {
+            var (message, _) = Utils.ErrorHelper.Categorize(ex);
+            StatusMessage = $"Schließen: {message}";
+        }
+        OnPropertyChanged(nameof(HasStatusMessage));
+    }
+
+    private async Task ConnectRealtimeAsync()
+    {
+        try
+        {
+            await _realtimeService.ConnectAsync();
+            IsRealtimeConnected = _realtimeService.IsConnected;
+        }
+        catch
+        {
+            IsRealtimeConnected = false;
         }
     }
 

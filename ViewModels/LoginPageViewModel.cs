@@ -52,8 +52,8 @@ namespace THWTicketApp.ViewModels
                     var window = Application.Current?.Windows.FirstOrDefault();
                     if (window?.Page is NavigationPage nav)
                     {
-                        var ticketPage = _serviceProvider.GetRequiredService<TicketPage>();
-                        await nav.PushAsync(ticketPage);
+                        var mainPage = _serviceProvider.GetRequiredService<MainPage>();
+                        await nav.PushAsync(mainPage);
                     }
                 }
                 else
@@ -79,8 +79,8 @@ namespace THWTicketApp.ViewModels
                 var window = Application.Current?.Windows.FirstOrDefault();
                 if (window?.Page is NavigationPage nav)
                 {
-                    var ticketPage = _serviceProvider.GetRequiredService<TicketPage>();
-                    await nav.PushAsync(ticketPage);
+                    var mainPage = _serviceProvider.GetRequiredService<MainPage>();
+                    await nav.PushAsync(mainPage);
                 }
             }
         }

@@ -13,6 +13,8 @@
 
             <!-- Converters -->
             <converters:FilterColorConverter x:Key="FilterColorConverter"/>
+            <converters:DueDateColorConverter x:Key="DueDateColorConverter"/>
+            <converters:DueDateVisibilityConverter x:Key="DueDateVisibilityConverter"/>
 
             <!-- Filter Chip Style -->
             <Style x:Key="FilterChipStyle" TargetType="Button">
@@ -26,8 +28,8 @@
 
             <!-- Card Style (Material Design) -->
             <Style x:Key="CardStyle" TargetType="Frame">
-                <Setter Property="BackgroundColor" Value="{StaticResource CardBackground}"/>
-                <Setter Property="BorderColor" Value="{StaticResource CardBorder}"/>
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"/>
+                <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"/>
                 <Setter Property="CornerRadius" Value="10"/>
                 <Setter Property="Padding" Value="15"/>
                 <Setter Property="HasShadow" Value="True"/>
@@ -51,7 +53,7 @@
 
             <!-- Section Header Style -->
             <Style x:Key="SectionHeaderStyle" TargetType="Label">
-                <Setter Property="TextColor" Value="{StaticResource THWBlueDark}"/>
+                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource THWBlueDark}, Dark={StaticResource THWBlueLight}}"/>
                 <Setter Property="FontSize" Value="18"/>
                 <Setter Property="FontAttributes" Value="Bold"/>
                 <Setter Property="FontFamily" Value="OpenSansRegular"/>
@@ -72,8 +74,8 @@
 
             <!-- Secondary Button Style -->
             <Style x:Key="SecondaryButtonStyle" TargetType="Button">
-                <Setter Property="BackgroundColor" Value="{StaticResource THWBlueSurface}"/>
-                <Setter Property="TextColor" Value="{StaticResource THWBlue}"/>
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource THWBlueSurface}, Dark={StaticResource THWBlueSurfaceDark}}"/>
+                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource THWBlue}, Dark={StaticResource THWBlueLight}}"/>
                 <Setter Property="CornerRadius" Value="8"/>
                 <Setter Property="FontFamily" Value="OpenSansRegular"/>
                 <Setter Property="FontSize" Value="14"/>
@@ -96,7 +98,7 @@
             <Style x:Key="FormLabelStyle" TargetType="Label">
                 <Setter Property="FontSize" Value="13"/>
                 <Setter Property="FontAttributes" Value="Bold"/>
-                <Setter Property="TextColor" Value="{StaticResource Gray600}"/>
+                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"/>
                 <Setter Property="Margin" Value="0,5,0,2"/>
             </Style>
 

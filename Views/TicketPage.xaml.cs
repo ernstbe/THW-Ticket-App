@@ -10,6 +10,8 @@ public partial class TicketPage : ContentPage
     private readonly TicketPageViewModel _viewModel;
     private readonly IServiceProvider _serviceProvider;
 
+    private static readonly string[] SortValues = ["date_desc", "date_asc", "updated", "priority", "duedate", "subject"];
+
     public TicketPage(TicketPageViewModel viewModel, IServiceProvider serviceProvider)
     {
         InitializeComponent();
@@ -17,6 +19,15 @@ public partial class TicketPage : ContentPage
         _serviceProvider = serviceProvider;
         BindingContext = _viewModel;
         TicketsCollectionView.SelectionChanged += TicketsCollectionView_SelectionChanged;
+        SortPicker.SelectedIndex = 0;
+    }
+
+    private void OnSortChanged(object? sender, EventArgs e)
+    {
+        if (SortPicker.SelectedIndex >= 0 && SortPicker.SelectedIndex < SortValues.Length)
+        {
+            _viewModel.SortCommand.Execute(SortValues[SortPicker.SelectedIndex]);
+        }
     }
 
     private async void TicketsCollectionView_SelectionChanged(object? sender, SelectionChangedEventArgs e)

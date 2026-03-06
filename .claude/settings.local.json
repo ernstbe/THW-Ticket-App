@@ -5,7 +5,10 @@
       "Bash(git push:*)",
       "Bash(git pull:*)",
       "Bash(git -C \"C:/Users/b.ernst/Projects/THW-Ticket-App-main\" status)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet tool run ilspycmd -- /c/Users/b.ernst/.nuget/packages/socketioclient/4.0.1/lib/netstandard2.0/SocketIOClient.dll -l CSharp -p)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Plugin.LocalNotification;
 using THWTicketApp.Services;
 using THWTicketApp.ViewModels;
 using THWTicketApp.Views;
@@ -20,6 +21,7 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .UseLocalNotification()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -38,6 +40,9 @@ public static class MauiProgram
         // Services
         builder.Services.AddSingleton<TrueDeskApiService>();
         builder.Services.AddSingleton<DatabaseService>();
+        builder.Services.AddSingleton<SyncService>();
+        builder.Services.AddSingleton<RealtimeService>();
+        builder.Services.AddSingleton<NotificationService>();
 
         // ViewModels
         builder.Services.AddSingleton<LoginPageViewModel>();
