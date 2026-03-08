@@ -330,11 +330,14 @@ public class TrueDeskApiServiceTests : IDisposable
     // ===============================================================
 
     [Fact]
-    public async Task TryRestoreSessionAsync_WithStoredToken_ReturnsTrue()
+    public async Task TryRestoreSessionAsync_WithStoredToken_ValidatesOnServer()
     {
         await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_token", "stored-token");
         await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_username", "storeduser");
         await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_userid", "storedid");
+
+        // Server confirms token is valid
+        _handler.EnqueueResponse(HttpStatusCode.OK, "{\"success\":true,\"user\":{}}");
 
         var result = await _sut.TryRestoreSessionAsync();
 
@@ -342,6 +345,25 @@ public class TrueDeskApiServiceTests : IDisposable
         _sut.IsAuthenticated.Should().BeTrue();
         _sut.CurrentUsername.Should().Be("storeduser");
         _sut.CurrentUserId.Should().Be("storedid");
+    }
+
+    [Fact]
+    public async Task TryRestoreSessionAsync_ExpiredToken_ReturnsFalseAndClearsState()
+    {
+        await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_token", "expired-token");
+        await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_username", "user");
+        await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_userid", "id");
+
+        // Server rejects expired token
+        _handler.EnqueueResponse(HttpStatusCode.Unauthorized, "{\"success\":false}");
+
+        var result = await _sut.TryRestoreSessionAsync();
+
+        result.Should().BeFalse();
+        _sut.IsAuthenticated.Should().BeFalse();
+        _sut.CurrentUsername.Should().BeNull();
+        var token = await Microsoft.Maui.Storage.SecureStorage.GetAsync("auth_token");
+        token.Should().BeNull();
     }
 
     [Fact]
@@ -368,6 +390,8 @@ public class TrueDeskApiServiceTests : IDisposable
     {
         await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_token", "restored-token");
 
+        // Server validates token
+        _handler.EnqueueResponse(HttpStatusCode.OK, "{\"success\":true,\"user\":{}}");
         await _sut.TryRestoreSessionAsync();
 
         // Verify header is set on subsequent request
@@ -387,7 +411,8 @@ public class TrueDeskApiServiceTests : IDisposable
         _handler.EnqueueResponse(HttpStatusCode.OK, LoginResponseJson());
         await _sut.AuthenticateAsync("admin", "password");
 
-        _sut.Logout();
+        _handler.EnqueueResponse(HttpStatusCode.OK, "{}");
+        await _sut.LogoutAsync();
 
         _sut.IsAuthenticated.Should().BeFalse();
         _sut.CurrentUsername.Should().BeNull();
@@ -400,7 +425,8 @@ public class TrueDeskApiServiceTests : IDisposable
         _handler.EnqueueResponse(HttpStatusCode.OK, LoginResponseJson());
         await _sut.AuthenticateAsync("admin", "password");
 
-        _sut.Logout();
+        _handler.EnqueueResponse(HttpStatusCode.OK, "{}");
+        await _sut.LogoutAsync();
 
         var token = await Microsoft.Maui.Storage.SecureStorage.GetAsync("auth_token");
         token.Should().BeNull();
@@ -409,10 +435,10 @@ public class TrueDeskApiServiceTests : IDisposable
     }
 
     [Fact]
-    public void Logout_WhenNotAuthenticated_DoesNotThrow()
+    public async Task Logout_WhenNotAuthenticated_DoesNotThrow()
     {
-        var act = () => _sut.Logout();
-        act.Should().NotThrow();
+        var act = () => _sut.LogoutAsync();
+        await act.Should().NotThrowAsync();
     }
 
     // ===============================================================
@@ -1154,7 +1180,7 @@ public class TrueDeskApiServiceTests : IDisposable
     {
         _handler.EnqueueResponse(HttpStatusCode.OK, "{\"ticket\":{}}");
 
-        await _sut.AddTicketAsync("My Title", "Description", 42);
+        await _sut.AddTicketAsync("My Title", "Description", "507f1f77bcf86cd799439011");
 
         var req = _handler.SentRequests[0];
         req.Method.Should().Be(HttpMethod.Post);
@@ -1162,13 +1188,13 @@ public class TrueDeskApiServiceTests : IDisposable
         var body = await req.Content!.ReadAsStringAsync();
         body.Should().Contain("\"subject\":\"My Title\"");
         body.Should().Contain("\"issue\":\"Description\"");
-        body.Should().Contain("\"assignee\":\"42\"");
+        body.Should().Contain("\"assignee\":\"507f1f77bcf86cd799439011\"");
     }
 
     [Fact]
     public async Task AddTicketAsync_EmptyTitle_ThrowsArgumentException()
     {
-        var act = () => _sut.AddTicketAsync("", "desc", 1);
+        var act = () => _sut.AddTicketAsync("", "desc", "someId");
 
         await act.Should().ThrowAsync<ArgumentException>();
     }
@@ -1176,7 +1202,7 @@ public class TrueDeskApiServiceTests : IDisposable
     [Fact]
     public async Task AddTicketAsync_WhitespaceTitle_ThrowsArgumentException()
     {
-        var act = () => _sut.AddTicketAsync("   ", "desc", 1);
+        var act = () => _sut.AddTicketAsync("   ", "desc", "someId");
 
         await act.Should().ThrowAsync<ArgumentException>();
     }
@@ -1186,7 +1212,7 @@ public class TrueDeskApiServiceTests : IDisposable
     {
         _handler.EnqueueResponse(HttpStatusCode.BadRequest, "");
 
-        var act = () => _sut.AddTicketAsync("Title", "desc", 1);
+        var act = () => _sut.AddTicketAsync("Title", "desc", "someId");
 
         await act.Should().ThrowAsync<HttpRequestException>();
     }
@@ -1390,7 +1416,8 @@ public class TrueDeskApiServiceTests : IDisposable
         _handler.EnqueueResponse(HttpStatusCode.OK, LoginResponseJson());
         await _sut.AuthenticateAsync("admin", "pass");
 
-        _sut.Logout();
+        _handler.EnqueueResponse(HttpStatusCode.OK, "{}");
+        await _sut.LogoutAsync();
 
         _sut.IsAuthenticated.Should().BeFalse();
     }

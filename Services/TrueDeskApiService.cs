@@ -95,6 +95,29 @@ namespace THWTicketApp.Services
                         _httpClient.DefaultRequestHeaders.Remove("accesstoken");
                     }
                     _httpClient.DefaultRequestHeaders.Add("accesstoken", _authToken);
+
+                    // Verify the token is still valid on the server
+                    try
+                    {
+                        var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/login");
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            // Token expired or revoked - clear local state
+                            _authToken = null;
+                            CurrentUsername = null;
+                            CurrentUserId = null;
+                            _httpClient.DefaultRequestHeaders.Remove("accesstoken");
+                            SecureStorage.Remove("auth_token");
+                            SecureStorage.Remove("auth_username");
+                            SecureStorage.Remove("auth_userid");
+                            return false;
+                        }
+                    }
+                    catch
+                    {
+                        // Network error - assume token is valid, let it fail on next call
+                    }
+
                     return true;
                 }
             }
@@ -105,8 +128,21 @@ namespace THWTicketApp.Services
             return false;
         }
 
-        public void Logout()
+        public async Task LogoutAsync()
         {
+            // Invalidate token on the server
+            try
+            {
+                if (IsAuthenticated)
+                {
+                    await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/logout");
+                }
+            }
+            catch
+            {
+                // Best-effort: clear local state even if server call fails
+            }
+
             _authToken = null;
             CurrentUsername = null;
             CurrentUserId = null;
@@ -166,7 +202,7 @@ namespace THWTicketApp.Services
             return await response.Content.ReadAsStringAsync();
         }
 
-        public async Task<string> AddTicketAsync(string title, string description, int assignedUserId)
+        public async Task<string> AddTicketAsync(string title, string description, string? assigneeId)
         {
             if (string.IsNullOrWhiteSpace(title))
             {
@@ -179,8 +215,8 @@ namespace THWTicketApp.Services
                 ["issue"] = description,
                 ["owner"] = CurrentUserId
             };
-            if (assignedUserId > 0)
-                payload["assignee"] = assignedUserId.ToString();
+            if (!string.IsNullOrEmpty(assigneeId))
+                payload["assignee"] = assigneeId;
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/create", content);
             response.EnsureSuccessStatusCode();

@@ -11,7 +11,7 @@ public interface ITrueDeskApiService
 
     Task<bool> AuthenticateAsync(string username, string password);
     Task<bool> TryRestoreSessionAsync();
-    void Logout();
+    Task LogoutAsync();
 
     // Tickets
     Task<string> GetTicketsAsync();
@@ -19,7 +19,7 @@ public interface ITrueDeskApiService
     Task<string> GetTicketsFilteredAsync(string? status = null, bool? assignedSelf = null, int limit = 1000);
     Task<string> SearchTicketsAsync(string query);
     Task<string> GetTicketAsync(string ticketUid);
-    Task<string> AddTicketAsync(string title, string description, int assignedUserId);
+    Task<string> AddTicketAsync(string title, string description, string? assigneeId);
     Task<bool> CreateTicketAsync(string subject, string? issue, string? typeId, string? priorityId, string? groupId, string? assigneeId);
     Task<bool> EditTicketAsync(Ticket ticket);
     Task<bool> DeleteTicketAsync(string ticketId);
