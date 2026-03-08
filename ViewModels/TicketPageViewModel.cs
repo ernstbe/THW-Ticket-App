@@ -862,4 +862,59 @@ public partial class TicketPageViewModel : ObservableObject
             OnPropertyChanged(nameof(HasStatusMessage));
         }
     }
+
+    [RelayCommand]
+    private async Task ExportTicketsAsync()
+    {
+        if (FilteredTickets.Count == 0)
+        {
+            StatusMessage = "Keine Tickets zum Exportieren.";
+            OnPropertyChanged(nameof(HasStatusMessage));
+            return;
+        }
+
+        try
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Nr;Betreff;Status;Priorität;Gruppe;Zugewiesen;Erstellt;Aktualisiert;Fällig");
+
+            foreach (var t in FilteredTickets)
+            {
+                var uid = t.Uid.ToString();
+                var subject = EscapeCsvField(t.Subject);
+                var status = t.Status?.Name ?? "";
+                var priority = t.Priority?.Name ?? "";
+                var group = t.Group?.Name ?? "";
+                var assignee = t.Assignee?.Fullname ?? "Nicht zugewiesen";
+                var created = t.Date != DateTime.MinValue ? t.Date.ToString("dd.MM.yyyy HH:mm") : "";
+                var updated = t.Updated != DateTime.MinValue ? t.Updated.ToString("dd.MM.yyyy HH:mm") : "";
+                var dueDate = t.DueDate != DateTime.MinValue ? t.DueDate.ToString("dd.MM.yyyy HH:mm") : "";
+
+                sb.AppendLine($"{uid};{subject};{status};{priority};{group};{assignee};{created};{updated};{dueDate}");
+            }
+
+            var fileName = $"Tickets_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            var filePath = Path.Combine(FileSystem.CacheDirectory, fileName);
+            await File.WriteAllTextAsync(filePath, sb.ToString(), System.Text.Encoding.UTF8);
+
+            await Share.RequestAsync(new ShareFileRequest
+            {
+                Title = "Tickets exportieren",
+                File = new ShareFile(filePath)
+            });
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Export fehlgeschlagen: {ex.Message}";
+            OnPropertyChanged(nameof(HasStatusMessage));
+        }
+    }
+
+    private static string EscapeCsvField(string? field)
+    {
+        if (string.IsNullOrEmpty(field)) return "";
+        if (field.Contains(';') || field.Contains('"') || field.Contains('\n'))
+            return $"\"{field.Replace("\"", "\"\"")}\"";
+        return field;
+    }
 }
