@@ -60,7 +60,7 @@
                 </Frame>
 
                 <!-- Statistics Cards -->
-                <Grid ColumnDefinitions="*,*"
+                <Grid ColumnDefinitions="*,*,*"
                       RowDefinitions="Auto,Auto"
                       ColumnSpacing="10"
                       RowSpacing="10">
@@ -69,15 +69,15 @@
                     <Frame Grid.Row="0" Grid.Column="0"
                            Style="{StaticResource CardStyle}"
                            BorderColor="Transparent"
-                           Padding="15">
-                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
+                           Padding="12">
+                        <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
                             <Label Text="{Binding TotalTickets}"
-                                   FontSize="32"
+                                   FontSize="28"
                                    FontAttributes="Bold"
                                    TextColor="{StaticResource THWBlue}"
                                    HorizontalTextAlignment="Center"/>
                             <Label Text="Gesamt"
-                                   FontSize="13"
+                                   FontSize="12"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
@@ -87,56 +87,143 @@
                     <Frame Grid.Row="0" Grid.Column="1"
                            Style="{StaticResource CardStyle}"
                            BorderColor="Transparent"
-                           Padding="15">
-                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
+                           Padding="12">
+                        <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
                             <Label Text="{Binding OpenTickets}"
-                                   FontSize="32"
+                                   FontSize="28"
                                    FontAttributes="Bold"
                                    TextColor="{StaticResource StatusNew}"
                                    HorizontalTextAlignment="Center"/>
                             <Label Text="Offen"
-                                   FontSize="13"
+                                   FontSize="12"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
                     </Frame>
 
                     <!-- Pending Tickets -->
-                    <Frame Grid.Row="1" Grid.Column="0"
+                    <Frame Grid.Row="0" Grid.Column="2"
                            Style="{StaticResource CardStyle}"
                            BorderColor="Transparent"
-                           Padding="15">
-                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
+                           Padding="12">
+                        <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
                             <Label Text="{Binding PendingTickets}"
-                                   FontSize="32"
+                                   FontSize="28"
                                    FontAttributes="Bold"
                                    TextColor="{StaticResource StatusPending}"
                                    HorizontalTextAlignment="Center"/>
                             <Label Text="Ausstehend"
-                                   FontSize="13"
+                                   FontSize="12"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
                     </Frame>
 
                     <!-- My Tickets -->
-                    <Frame Grid.Row="1" Grid.Column="1"
+                    <Frame Grid.Row="1" Grid.Column="0"
                            Style="{StaticResource CardStyle}"
                            BorderColor="Transparent"
-                           Padding="15">
-                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
+                           Padding="12">
+                        <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
                             <Label Text="{Binding MyTickets}"
-                                   FontSize="32"
+                                   FontSize="28"
                                    FontAttributes="Bold"
                                    TextColor="{AppThemeBinding Light={StaticResource THWBlueDark}, Dark={StaticResource THWBlueLight}}"
                                    HorizontalTextAlignment="Center"/>
-                            <Label Text="Mir zugewiesen"
-                                   FontSize="13"
+                            <Label Text="Meine"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Overdue Tickets -->
+                    <Frame Grid.Row="1" Grid.Column="1"
+                           Style="{StaticResource CardStyle}"
+                           BorderColor="Transparent"
+                           Padding="12">
+                        <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+                            <Label Text="{Binding OverdueTickets}"
+                                   FontSize="28"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Danger}"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Text="Überfällig"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Closed Tickets -->
+                    <Frame Grid.Row="1" Grid.Column="2"
+                           Style="{StaticResource CardStyle}"
+                           BorderColor="Transparent"
+                           Padding="12">
+                        <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+                            <Label Text="{Binding ClosedTickets}"
+                                   FontSize="28"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource StatusClosed}"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Text="Geschlossen"
+                                   FontSize="12"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
                     </Frame>
                 </Grid>
+
+                <!-- Tickets per Group -->
+                <Frame Style="{StaticResource CardStyle}"
+                       BorderColor="Transparent"
+                       Padding="15">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Tickets pro Gruppe"
+                               Style="{StaticResource SectionHeaderStyle}"
+                               Margin="0"/>
+
+                        <BoxView HeightRequest="1"
+                                 BackgroundColor="{AppThemeBinding Light={StaticResource Divider}, Dark={StaticResource DividerDark}}"/>
+
+                        <CollectionView ItemsSource="{Binding TicketsPerGroup}">
+                            <CollectionView.EmptyView>
+                                <Label Text="Keine Gruppen vorhanden."
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                       HorizontalTextAlignment="Center"
+                                       Margin="0,10"/>
+                            </CollectionView.EmptyView>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="viewmodels:GroupTicketCount">
+                                    <Grid Padding="5,6" ColumnDefinitions="*,Auto,Auto">
+                                        <Label Grid.Column="0"
+                                               Text="{Binding GroupName}"
+                                               FontSize="14"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                               VerticalOptions="Center"/>
+                                        <Frame Grid.Column="1"
+                                               BackgroundColor="{StaticResource StatusNew}"
+                                               Padding="8,3"
+                                               CornerRadius="10"
+                                               HasShadow="False"
+                                               BorderColor="Transparent"
+                                               Margin="5,0">
+                                            <Label Text="{Binding Open, StringFormat='{0} offen'}"
+                                                   TextColor="White"
+                                                   FontSize="11"
+                                                   FontAttributes="Bold"/>
+                                        </Frame>
+                                        <Label Grid.Column="2"
+                                               Text="{Binding Total, StringFormat='{0} gesamt'}"
+                                               FontSize="12"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                               VerticalOptions="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Frame>
 
                 <!-- Quick Actions Row 1 -->
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10">

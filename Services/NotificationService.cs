@@ -5,6 +5,7 @@ namespace THWTicketApp.Services;
 public class NotificationService
 {
     private readonly RealtimeService _realtimeService;
+    private readonly TrueDeskApiService _apiService;
     private int _notificationId;
 
     public bool IsEnabled
@@ -13,9 +14,40 @@ public class NotificationService
         set => Preferences.Set("NotificationsEnabled", value);
     }
 
-    public NotificationService(RealtimeService realtimeService)
+    public bool NotifyOnlyMyTickets
+    {
+        get => Preferences.Get("NotifyOnlyMyTickets", false);
+        set => Preferences.Set("NotifyOnlyMyTickets", value);
+    }
+
+    public bool NotifyOnlyHighPriority
+    {
+        get => Preferences.Get("NotifyOnlyHighPriority", false);
+        set => Preferences.Set("NotifyOnlyHighPriority", value);
+    }
+
+    public bool NotifyOnNewTickets
+    {
+        get => Preferences.Get("NotifyOnNewTickets", true);
+        set => Preferences.Set("NotifyOnNewTickets", value);
+    }
+
+    public bool NotifyOnComments
+    {
+        get => Preferences.Get("NotifyOnComments", true);
+        set => Preferences.Set("NotifyOnComments", value);
+    }
+
+    public bool NotifyOnStatusChanges
+    {
+        get => Preferences.Get("NotifyOnStatusChanges", true);
+        set => Preferences.Set("NotifyOnStatusChanges", value);
+    }
+
+    public NotificationService(RealtimeService realtimeService, TrueDeskApiService apiService)
     {
         _realtimeService = realtimeService;
+        _apiService = apiService;
 
         _realtimeService.TicketCreated += OnTicketCreated;
         _realtimeService.TicketUpdated += OnTicketUpdated;
@@ -24,16 +56,19 @@ public class NotificationService
 
     private void OnTicketCreated(string ticketId)
     {
+        if (!NotifyOnNewTickets) return;
         ShowNotification("Neues Ticket", "Ein neues Ticket wurde erstellt.", ticketId);
     }
 
     private void OnTicketUpdated(string ticketId)
     {
+        if (!NotifyOnStatusChanges) return;
         ShowNotification("Ticket aktualisiert", "Ein Ticket wurde geändert.", ticketId);
     }
 
     private void OnCommentAdded(string ticketId)
     {
+        if (!NotifyOnComments) return;
         ShowNotification("Neuer Kommentar", "Ein Kommentar wurde hinzugefügt.", ticketId);
     }
 

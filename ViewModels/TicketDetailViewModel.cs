@@ -538,6 +538,12 @@ namespace THWTicketApp.ViewModels
                 return;
             }
 
+            if (string.IsNullOrEmpty(SelectedStatus.Id))
+            {
+                StatusMessage = "Ungültiger Status.";
+                return;
+            }
+
             IsLoading = true;
             try
             {

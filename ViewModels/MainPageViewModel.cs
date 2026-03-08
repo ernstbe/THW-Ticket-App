@@ -41,6 +41,12 @@ namespace THWTicketApp.ViewModels
         private int _myTickets;
 
         [ObservableProperty]
+        private int _overdueTickets;
+
+        [ObservableProperty]
+        private ObservableCollection<GroupTicketCount> _ticketsPerGroup = new();
+
+        [ObservableProperty]
         private ObservableCollection<Ticket> _recentTickets = new();
 
         [ObservableProperty]
@@ -176,6 +182,23 @@ namespace THWTicketApp.ViewModels
                 MyTickets = _allTickets.Count(t =>
                     t.Assignee?.Username?.Equals(username, StringComparison.OrdinalIgnoreCase) == true);
             }
+
+            OverdueTickets = _allTickets.Count(t =>
+                t.DueDate != DateTime.MinValue &&
+                t.DueDate < DateTime.Now &&
+                t.Status?.IsResolved != true);
+
+            // Tickets per group
+            TicketsPerGroup.Clear();
+            var groups = _allTickets
+                .Where(t => t.Group != null && !string.IsNullOrEmpty(t.Group.Name))
+                .GroupBy(t => t.Group!.Name)
+                .OrderByDescending(g => g.Count());
+            foreach (var g in groups)
+            {
+                var openCount = g.Count(t => t.Status?.IsResolved != true);
+                TicketsPerGroup.Add(new GroupTicketCount(g.Key!, g.Count(), openCount));
+            }
         }
 
         private void LoadRecentTickets()
@@ -261,4 +284,6 @@ namespace THWTicketApp.ViewModels
             }
         }
     }
+
+    public record GroupTicketCount(string GroupName, int Total, int Open);
 }

@@ -1,4 +1,5 @@
-
+using CommunityToolkit.Mvvm.Messaging;
+using THWTicketApp.Messages;
 using THWTicketApp.Services;
 using THWTicketApp.Views;
 using THWTicketApp.ViewModels;
@@ -20,6 +21,14 @@ public partial class TicketPage : ContentPage
         BindingContext = _viewModel;
         TicketsCollectionView.SelectionChanged += TicketsCollectionView_SelectionChanged;
         SortPicker.SelectedIndex = 0;
+
+        WeakReferenceMessenger.Default.Register<SearchTicketMessage>(this, (_, msg) =>
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                _viewModel.SearchText = msg.Value;
+            });
+        });
     }
 
     private void OnSortChanged(object? sender, EventArgs e)
@@ -34,6 +43,13 @@ public partial class TicketPage : ContentPage
     {
         if (e.CurrentSelection.FirstOrDefault() is Models.Ticket selectedTicket)
         {
+            if (_viewModel.IsBulkSelectMode)
+            {
+                _viewModel.ToggleTicketSelectionCommand.Execute(selectedTicket);
+                TicketsCollectionView.SelectedItem = null;
+                return;
+            }
+
             // Use DI to get a new TicketDetailPage instance
             var detailPage = _serviceProvider.GetRequiredService<TicketDetailPage>();
             detailPage.SetTicket(selectedTicket);
