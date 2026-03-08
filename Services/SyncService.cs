@@ -3,16 +3,16 @@ using THWTicketApp.Models;
 
 namespace THWTicketApp.Services;
 
-public class SyncService
+public class SyncService : ISyncService
 {
-    private readonly DatabaseService _databaseService;
-    private readonly TrueDeskApiService _apiService;
+    private readonly IDatabaseService _databaseService;
+    private readonly ITrueDeskApiService _apiService;
     private bool _isSyncing;
 
     public event Action<int>? PendingCountChanged;
     public event Action<Data.PendingAction>? ConflictDetected;
 
-    public SyncService(DatabaseService databaseService, TrueDeskApiService apiService)
+    public SyncService(IDatabaseService databaseService, ITrueDeskApiService apiService)
     {
         _databaseService = databaseService;
         _apiService = apiService;

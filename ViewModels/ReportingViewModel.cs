@@ -9,7 +9,7 @@ namespace THWTicketApp.ViewModels;
 
 public partial class ReportingViewModel : ObservableObject
 {
-    private readonly TrueDeskApiService _apiService;
+    private readonly ITrueDeskApiService _apiService;
 
     [ObservableProperty]
     private bool _isLoading;
@@ -58,7 +58,7 @@ public partial class ReportingViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<AssigneeStats> _topAssignees = new();
 
-    public ReportingViewModel(TrueDeskApiService apiService)
+    public ReportingViewModel(ITrueDeskApiService apiService)
     {
         _apiService = apiService;
     }

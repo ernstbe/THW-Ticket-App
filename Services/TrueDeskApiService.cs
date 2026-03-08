@@ -7,7 +7,7 @@ using THWTicketApp.Models.Responses;
 
 namespace THWTicketApp.Services
 {
-    public class TrueDeskApiService
+    public class TrueDeskApiService : ITrueDeskApiService
     {
         private readonly HttpClient _httpClient;
         private readonly AppSettings _settings;

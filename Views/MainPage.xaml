@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
              xmlns:models="clr-namespace:THWTicketApp.Models"
+             xmlns:controls="clr-namespace:THWTicketApp.Controls"
              x:Class="THWTicketApp.MainPage"
              x:DataType="viewmodels:MainPageViewModel"
              Title="Dashboard">
@@ -17,7 +18,7 @@
             <VerticalStackLayout Grid.Column="0">
                 <Label Text="THW Ticket System"
                        FontSize="12"
-                       TextColor="#B3CCFF"/>
+                       TextColor="{AppThemeBinding Light={StaticResource HeaderSubtext}, Dark={StaticResource HeaderSubtextDark}}"/>
                 <Label Text="{Binding WelcomeMessage}"
                        FontSize="22"
                        FontAttributes="Bold"
@@ -59,14 +60,16 @@
             </Grid>
         </Grid>
 
-        <ScrollView Grid.Row="1">
+        <RefreshView Grid.Row="1"
+                     IsRefreshing="{Binding IsRefreshing}"
+                     Command="{Binding RefreshDashboardCommand}"
+                     RefreshColor="{StaticResource THWBlue}">
+        <ScrollView>
             <VerticalStackLayout Padding="15" Spacing="15">
 
                 <!-- Loading Indicator -->
-                <ActivityIndicator IsRunning="{Binding IsLoading}"
-                                   IsVisible="{Binding IsLoading}"
-                                   Color="{StaticResource THWBlue}"
-                                   HeightRequest="40"/>
+                <controls:SkeletonView IsVisible="{Binding IsLoading}"
+                                       SkeletonType="dashboard"/>
 
                 <!-- Error Banner with Retry -->
                 <Frame Padding="10"
@@ -311,6 +314,23 @@
                             </CollectionView.EmptyView>
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="models:Ticket">
+                                    <SwipeView>
+                                        <SwipeView.LeftItems>
+                                            <SwipeItems Mode="Reveal">
+                                                <SwipeItem Text="Mir zuweisen"
+                                                           BackgroundColor="{StaticResource THWBlue}"
+                                                           Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainPageViewModel}}, Path=QuickAssignCommand}"
+                                                           CommandParameter="{Binding .}"/>
+                                            </SwipeItems>
+                                        </SwipeView.LeftItems>
+                                        <SwipeView.RightItems>
+                                            <SwipeItems Mode="Execute">
+                                                <SwipeItem Text="Schließen"
+                                                           BackgroundColor="{StaticResource StatusClosed}"
+                                                           Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MainPageViewModel}}, Path=QuickCloseCommand}"
+                                                           CommandParameter="{Binding .}"/>
+                                            </SwipeItems>
+                                        </SwipeView.RightItems>
                                     <Grid Padding="5,8" ColumnDefinitions="5,*,Auto">
                                         <!-- Priority Color Bar -->
                                         <BoxView Grid.Column="0"
@@ -350,6 +370,7 @@
                                                    FontAttributes="Bold"/>
                                         </Frame>
                                     </Grid>
+                                    </SwipeView>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>
@@ -359,7 +380,7 @@
                 <!-- Pending Sync Banner -->
                 <Frame Padding="10"
                        IsVisible="{Binding HasPendingActions}"
-                       BackgroundColor="#FFF3E0"
+                       BackgroundColor="{AppThemeBinding Light={StaticResource WarningBannerBg}, Dark={StaticResource WarningBannerBgDark}}"
                        CornerRadius="8"
                        BorderColor="Transparent"
                        HasShadow="False">
@@ -382,7 +403,7 @@
                 <!-- Sync Conflicts Banner -->
                 <Frame Padding="10"
                        IsVisible="{Binding HasConflicts}"
-                       BackgroundColor="#FFEBEE"
+                       BackgroundColor="{AppThemeBinding Light={StaticResource DangerBannerBg}, Dark={StaticResource DangerBannerBgDark}}"
                        CornerRadius="8"
                        BorderColor="{StaticResource Danger}"
                        HasShadow="False">
@@ -391,7 +412,7 @@
                     </Frame.GestureRecognizers>
                     <HorizontalStackLayout HorizontalOptions="Center" Spacing="8">
                         <Label Text="&#x26A0;" FontSize="16" VerticalOptions="Center"/>
-                        <Label TextColor="#C62828"
+                        <Label TextColor="{AppThemeBinding Light={StaticResource DangerBannerText}, Dark={StaticResource DangerBannerTextDark}}"
                                FontAttributes="Bold"
                                FontSize="13"
                                VerticalOptions="Center">
@@ -414,5 +435,6 @@
 
             </VerticalStackLayout>
         </ScrollView>
+        </RefreshView>
     </Grid>
 </ContentPage>

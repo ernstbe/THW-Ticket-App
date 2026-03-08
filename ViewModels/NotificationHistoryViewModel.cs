@@ -8,7 +8,7 @@ namespace THWTicketApp.ViewModels;
 
 public partial class NotificationHistoryViewModel : ObservableObject
 {
-    private readonly DatabaseService _databaseService;
+    private readonly IDatabaseService _databaseService;
     private readonly IServiceProvider _serviceProvider;
 
     [ObservableProperty]
@@ -20,7 +20,7 @@ public partial class NotificationHistoryViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasNotifications;
 
-    public NotificationHistoryViewModel(DatabaseService databaseService, IServiceProvider serviceProvider)
+    public NotificationHistoryViewModel(IDatabaseService databaseService, IServiceProvider serviceProvider)
     {
         _databaseService = databaseService;
         _serviceProvider = serviceProvider;

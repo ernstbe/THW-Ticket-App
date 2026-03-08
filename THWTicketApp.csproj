@@ -41,6 +41,13 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
+	<!-- Exclude test project subdirectory from compilation -->
+	<ItemGroup>
+		<Compile Remove="THWTicketApp.Tests\**" />
+		<None Remove="THWTicketApp.Tests\**" />
+		<Content Remove="THWTicketApp.Tests\**" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />

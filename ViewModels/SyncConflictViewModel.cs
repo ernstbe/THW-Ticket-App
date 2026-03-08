@@ -8,7 +8,7 @@ namespace THWTicketApp.ViewModels;
 
 public partial class SyncConflictViewModel : ObservableObject
 {
-    private readonly SyncService _syncService;
+    private readonly ISyncService _syncService;
 
     [ObservableProperty]
     private ObservableCollection<PendingAction> _conflicts = new();
@@ -27,7 +27,7 @@ public partial class SyncConflictViewModel : ObservableObject
         ["CreateTicket"] = "Neues Ticket"
     };
 
-    public SyncConflictViewModel(SyncService syncService)
+    public SyncConflictViewModel(ISyncService syncService)
     {
         _syncService = syncService;
     }

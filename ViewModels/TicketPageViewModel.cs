@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using THWTicketApp.Data;
 using THWTicketApp.Models;
 using THWTicketApp.Services;
 
@@ -9,10 +10,10 @@ namespace THWTicketApp.ViewModels;
 
 public partial class TicketPageViewModel : ObservableObject
 {
-    private readonly TrueDeskApiService _apiService;
+    private readonly ITrueDeskApiService _apiService;
     private readonly IServiceProvider _serviceProvider;
-    private readonly DatabaseService _databaseService;
-    private readonly SyncService _syncService;
+    private readonly IDatabaseService _databaseService;
+    private readonly ISyncService _syncService;
     private readonly RealtimeService _realtimeService;
     private List<Ticket> _allTickets = [];
     private bool _isOfflineCacheEnabled;
@@ -217,6 +218,13 @@ public partial class TicketPageViewModel : ObservableObject
 
     private HashSet<string> _favoriteIds = new();
 
+    private ObservableCollection<SavedFilter> _savedFilters = new();
+    public ObservableCollection<SavedFilter> SavedFilters
+    {
+        get => _savedFilters;
+        set => SetProperty(ref _savedFilters, value);
+    }
+
     // Bulk selection
     private bool _isBulkSelectMode;
     public bool IsBulkSelectMode
@@ -237,7 +245,7 @@ public partial class TicketPageViewModel : ObservableObject
     public int SelectedCount => SelectedTicketIds.Count;
     public bool HasSelectedTickets => SelectedTicketIds.Count > 0;
 
-    public TicketPageViewModel(TrueDeskApiService apiService, IServiceProvider serviceProvider, DatabaseService databaseService, SyncService syncService, RealtimeService realtimeService)
+    public TicketPageViewModel(ITrueDeskApiService apiService, IServiceProvider serviceProvider, IDatabaseService databaseService, ISyncService syncService, RealtimeService realtimeService)
     {
         _apiService = apiService;
         _serviceProvider = serviceProvider;
@@ -410,6 +418,88 @@ public partial class TicketPageViewModel : ObservableObject
         ApplyFilters();
     }
 
+    [RelayCommand]
+    private async Task SaveCurrentFilterAsync()
+    {
+        var page = Application.Current?.Windows.FirstOrDefault()?.Page;
+        if (page == null) return;
+
+        var name = await page.DisplayPromptAsync("Filter speichern", "Name für den Filter:", "Speichern", "Abbrechen", placeholder: "z.B. Meine offenen Tickets");
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        var filterState = new
+        {
+            ActiveFilter,
+            PriorityId = SelectedPriorityFilter?.Id,
+            TypeId = SelectedTypeFilter?.Id,
+            GroupId = SelectedGroupFilter?.Id,
+            ShowOnlyMyTickets,
+            ShowOnlyFavorites,
+            ShowOnlyOverdue,
+            DateFrom,
+            DateTo,
+            ActiveSort
+        };
+
+        var json = System.Text.Json.JsonSerializer.Serialize(filterState);
+        var filter = new SavedFilter
+        {
+            Name = name,
+            FilterJson = json,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _databaseService.SaveFilterAsync(filter);
+        await LoadSavedFiltersAsync();
+        StatusMessage = $"Filter \"{name}\" gespeichert.";
+        OnPropertyChanged(nameof(HasStatusMessage));
+    }
+
+    [RelayCommand]
+    private async Task ApplySavedFilterAsync(SavedFilter filter)
+    {
+        if (filter == null) return;
+
+        try
+        {
+            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var doc = System.Text.Json.JsonDocument.Parse(filter.FilterJson);
+            var root = doc.RootElement;
+
+            if (root.TryGetProperty("ActiveFilter", out var af))
+                ActiveFilter = af.GetString() ?? "all";
+            if (root.TryGetProperty("ShowOnlyMyTickets", out var my))
+                ShowOnlyMyTickets = my.GetBoolean();
+            if (root.TryGetProperty("ShowOnlyFavorites", out var fav))
+                ShowOnlyFavorites = fav.GetBoolean();
+            if (root.TryGetProperty("ShowOnlyOverdue", out var od))
+                ShowOnlyOverdue = od.GetBoolean();
+            if (root.TryGetProperty("ActiveSort", out var sort))
+                ActiveSort = sort.GetString() ?? "date_desc";
+
+            // Re-apply filters
+            ApplyFilters();
+            StatusMessage = $"Filter \"{filter.Name}\" angewendet.";
+            OnPropertyChanged(nameof(HasStatusMessage));
+        }
+        catch { }
+    }
+
+    [RelayCommand]
+    private async Task DeleteSavedFilterAsync(SavedFilter filter)
+    {
+        if (filter == null) return;
+        await _databaseService.DeleteSavedFilterAsync(filter.Id);
+        await LoadSavedFiltersAsync();
+    }
+
+    private async Task LoadSavedFiltersAsync()
+    {
+        var filters = await _databaseService.GetSavedFiltersAsync();
+        SavedFilters.Clear();
+        foreach (var f in filters) SavedFilters.Add(f);
+    }
+
     private async Task LoadFilterOptionsAsync()
     {
         try
@@ -562,6 +652,7 @@ public partial class TicketPageViewModel : ObservableObject
 
         // Load favorites
         _favoriteIds = await _databaseService.GetFavoriteIdsAsync();
+        await LoadSavedFiltersAsync();
 
         // Sync any queued offline actions first
         await _syncService.SyncPendingActionsAsync();

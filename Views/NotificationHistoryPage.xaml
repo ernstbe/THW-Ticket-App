@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:data="clr-namespace:THWTicketApp.Data"
              xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             xmlns:controls="clr-namespace:THWTicketApp.Controls"
              x:Class="THWTicketApp.Views.NotificationHistoryPage"
              x:DataType="viewmodels:NotificationHistoryViewModel"
              Title="Benachrichtigungen">
@@ -30,18 +31,16 @@
                     <TapGestureRecognizer Command="{Binding ClearHistoryCommand}"/>
                 </Border.GestureRecognizers>
                 <Label Text="Löschen"
-                       TextColor="#FF6B6B"
+                       TextColor="{AppThemeBinding Light={StaticResource DeleteRed}, Dark={StaticResource DeleteRedDark}}"
                        FontSize="13"
                        VerticalTextAlignment="Center"/>
             </Border>
         </Grid>
 
         <!-- Loading -->
-        <ActivityIndicator Grid.Row="1"
-                           IsRunning="{Binding IsLoading}"
-                           IsVisible="{Binding IsLoading}"
-                           Color="{StaticResource THWBlue}"
-                           VerticalOptions="Center"/>
+        <controls:SkeletonView Grid.Row="1"
+                                IsVisible="{Binding IsLoading}"
+                                SkeletonType="list"/>
 
         <!-- Notification List -->
         <CollectionView Grid.Row="1"

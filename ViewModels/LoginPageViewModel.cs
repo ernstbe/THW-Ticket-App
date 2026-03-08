@@ -8,7 +8,7 @@ namespace THWTicketApp.ViewModels
 {
     public partial class LoginPageViewModel : ObservableObject
     {
-        private readonly TrueDeskApiService _apiService;
+        private readonly ITrueDeskApiService _apiService;
         private readonly IServiceProvider _serviceProvider;
         private readonly IFingerprint _fingerprint;
 
@@ -27,7 +27,7 @@ namespace THWTicketApp.ViewModels
         [ObservableProperty]
         private bool _isBiometricAvailable;
 
-        public LoginPageViewModel(TrueDeskApiService apiService, IServiceProvider serviceProvider, IFingerprint fingerprint)
+        public LoginPageViewModel(ITrueDeskApiService apiService, IServiceProvider serviceProvider, IFingerprint fingerprint)
         {
             _apiService = apiService;
             _serviceProvider = serviceProvider;

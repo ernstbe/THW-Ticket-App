@@ -106,9 +106,9 @@ namespace THWTicketApp.ViewModels
         [ObservableProperty]
         private bool _isMentionPopupVisible;
 
-        private readonly TrueDeskApiService _apiService;
-        private readonly SyncService _syncService;
-        private readonly DatabaseService _databaseService;
+        private readonly ITrueDeskApiService _apiService;
+        private readonly ISyncService _syncService;
+        private readonly IDatabaseService _databaseService;
 
         private static readonly string[] DefaultTemplates =
         [
@@ -119,7 +119,7 @@ namespace THWTicketApp.ViewModels
             "Wir benötigen Ihre Rückmeldung, um fortzufahren."
         ];
 
-        public TicketDetailViewModel(TrueDeskApiService apiService, SyncService syncService, DatabaseService databaseService)
+        public TicketDetailViewModel(ITrueDeskApiService apiService, ISyncService syncService, IDatabaseService databaseService)
         {
             _apiService = apiService;
             _syncService = syncService;
@@ -826,6 +826,55 @@ namespace THWTicketApp.ViewModels
             {
                 var (message, _) = Utils.ErrorHelper.Categorize(ex);
                 StatusMessage = $"Upload: {message}";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task TakePhotoAndAttachAsync()
+        {
+            if (Ticket == null)
+            {
+                StatusMessage = "Kein Ticket ausgewählt.";
+                return;
+            }
+
+            try
+            {
+                var photo = await MediaPicker.Default.CapturePhotoAsync();
+                if (photo == null) return;
+
+                IsLoading = true;
+                StatusMessage = "Foto wird hochgeladen...";
+
+                using var stream = await photo.OpenReadAsync();
+                var success = await _apiService.UploadAttachmentAsync(Ticket.Id, stream, photo.FileName);
+
+                if (success)
+                {
+                    StatusMessage = "Foto hochgeladen.";
+                    await ReloadTicketAsync();
+                }
+                else
+                {
+                    StatusMessage = "Upload fehlgeschlagen.";
+                }
+            }
+            catch (FeatureNotSupportedException)
+            {
+                StatusMessage = "Kamera nicht verfügbar auf diesem Gerät.";
+            }
+            catch (PermissionException)
+            {
+                StatusMessage = "Kamera-Berechtigung wurde verweigert.";
+            }
+            catch (Exception ex)
+            {
+                var (message, _) = Utils.ErrorHelper.Categorize(ex);
+                StatusMessage = $"Foto: {message}";
             }
             finally
             {

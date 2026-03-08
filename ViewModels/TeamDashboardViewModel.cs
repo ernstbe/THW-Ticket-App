@@ -31,7 +31,7 @@ public class TeamMemberStats
 
 public partial class TeamDashboardViewModel : ObservableObject
 {
-    private readonly TrueDeskApiService _apiService;
+    private readonly ITrueDeskApiService _apiService;
 
     [ObservableProperty]
     private bool _isLoading;
@@ -51,7 +51,7 @@ public partial class TeamDashboardViewModel : ObservableObject
     [ObservableProperty]
     private double _averageWorkload;
 
-    public TeamDashboardViewModel(TrueDeskApiService apiService)
+    public TeamDashboardViewModel(ITrueDeskApiService apiService)
     {
         _apiService = apiService;
     }

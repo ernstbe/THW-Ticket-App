@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             xmlns:controls="clr-namespace:THWTicketApp.Controls"
              x:Class="THWTicketApp.Views.ReportingPage"
              x:DataType="viewmodels:ReportingViewModel"
              Title="Berichte">
@@ -20,11 +21,9 @@
         </Grid>
 
         <!-- Loading -->
-        <ActivityIndicator Grid.Row="1"
-                           IsRunning="{Binding IsLoading}"
-                           IsVisible="{Binding IsLoading}"
-                           Color="{StaticResource THWBlue}"
-                           VerticalOptions="Center"/>
+        <controls:SkeletonView Grid.Row="1"
+                                IsVisible="{Binding IsLoading}"
+                                SkeletonType="list"/>
 
         <ScrollView Grid.Row="1"
                     IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">

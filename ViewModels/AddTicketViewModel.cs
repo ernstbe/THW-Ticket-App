@@ -8,8 +8,8 @@ namespace THWTicketApp.ViewModels;
 
 public partial class AddTicketViewModel : ObservableObject
 {
-    private readonly TrueDeskApiService _apiService;
-    private readonly SyncService _syncService;
+    private readonly ITrueDeskApiService _apiService;
+    private readonly ISyncService _syncService;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanCreate))]
@@ -60,7 +60,7 @@ public partial class AddTicketViewModel : ObservableObject
     partial void OnIsLoadingChanged(bool value) => OnPropertyChanged(nameof(CanCreate));
     partial void OnSelectedGroupChanged(Group? value) => OnPropertyChanged(nameof(CanCreate));
 
-    public AddTicketViewModel(TrueDeskApiService apiService, SyncService syncService)
+    public AddTicketViewModel(ITrueDeskApiService apiService, ISyncService syncService)
     {
         _apiService = apiService;
         _syncService = syncService;
