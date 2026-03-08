@@ -43,11 +43,8 @@ jobs:
       - name: Install MAUI workloads
         run: dotnet workload install maui-windows
 
-      - name: Restore dependencies
-        run: dotnet restore THWTicketApp.csproj /p:TargetFrameworks=net10.0-windows10.0.19041.0
-
       - name: Build Windows
-        run: dotnet build THWTicketApp.csproj -f net10.0-windows10.0.19041.0 -c Release --no-restore
+        run: dotnet build THWTicketApp.csproj -f net10.0-windows10.0.19041.0 -c Release /p:TargetFrameworks=net10.0-windows10.0.19041.0
 
   security:
     name: Security Audit
