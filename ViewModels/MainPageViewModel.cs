@@ -59,9 +59,15 @@ namespace THWTicketApp.ViewModels
         [NotifyPropertyChangedFor(nameof(HasPendingActions))]
         private int _pendingActionsCount;
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasUnreadNotifications))]
+        private int _unreadNotificationCount;
+
+        public bool HasUnreadNotifications => UnreadNotificationCount > 0;
+
         public bool HasPendingActions => PendingActionsCount > 0;
 
-        public MainPageViewModel(TrueDeskApiService apiService, DatabaseService databaseService, IServiceProvider serviceProvider, SyncService syncService, RealtimeService realtimeService)
+        public MainPageViewModel(TrueDeskApiService apiService, DatabaseService databaseService, IServiceProvider serviceProvider, SyncService syncService, RealtimeService realtimeService, NotificationService notificationService)
         {
             _apiService = apiService;
             _databaseService = databaseService;
@@ -76,6 +82,10 @@ namespace THWTicketApp.ViewModels
 
             _realtimeService.TicketUpdated += _ => OnRealtimeUpdate();
             _realtimeService.TicketCreated += _ => OnRealtimeUpdate();
+
+            notificationService.NotificationReceived += () =>
+                MainThread.BeginInvokeOnMainThread(async () =>
+                    UnreadNotificationCount = await _databaseService.GetUnreadNotificationCountAsync());
         }
 
         private async void OnRealtimeUpdate()
@@ -106,6 +116,7 @@ namespace THWTicketApp.ViewModels
             // Sync any queued offline actions
             await _syncService.SyncPendingActionsAsync();
             PendingActionsCount = await _syncService.GetPendingCountAsync();
+            UnreadNotificationCount = await _databaseService.GetUnreadNotificationCountAsync();
 
             // Connect to real-time updates
             _ = _realtimeService.ConnectAsync();
@@ -268,6 +279,17 @@ namespace THWTicketApp.ViewModels
             {
                 var kanbanPage = _serviceProvider.GetRequiredService<Views.KanbanBoardPage>();
                 await nav.PushAsync(kanbanPage);
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToNotificationsAsync()
+        {
+            var window = Application.Current?.Windows.FirstOrDefault();
+            if (window?.Page is NavigationPage nav)
+            {
+                var page = _serviceProvider.GetRequiredService<Views.NotificationHistoryPage>();
+                await nav.PushAsync(page);
             }
         }
 

@@ -25,6 +25,7 @@ public class DatabaseService
         await _database.CreateTableAsync<FavoriteTicket>();
         await _database.CreateTableAsync<TimeEntry>();
         await _database.CreateTableAsync<LinkedTicket>();
+        await _database.CreateTableAsync<NotificationEntry>();
     }
 
     public async Task<List<CachedTicket>> GetCachedTicketsAsync()
@@ -336,5 +337,68 @@ public class DatabaseService
     {
         await InitAsync();
         await _database!.DeleteAsync<LinkedTicket>(linkId);
+    }
+
+    // --- Notification History ---
+
+    public async Task AddNotificationAsync(string title, string description, string eventType, string ticketId)
+    {
+        await InitAsync();
+        await _database!.InsertAsync(new NotificationEntry
+        {
+            Title = title,
+            Description = description,
+            EventType = eventType,
+            TicketId = ticketId,
+            CreatedAt = DateTime.UtcNow,
+            IsRead = false
+        });
+    }
+
+    public async Task<List<NotificationEntry>> GetNotificationsAsync(int limit = 50)
+    {
+        await InitAsync();
+        return await _database!.Table<NotificationEntry>()
+            .OrderByDescending(n => n.CreatedAt)
+            .Take(limit)
+            .ToListAsync();
+    }
+
+    public async Task<int> GetUnreadNotificationCountAsync()
+    {
+        await InitAsync();
+        return await _database!.Table<NotificationEntry>()
+            .Where(n => !n.IsRead)
+            .CountAsync();
+    }
+
+    public async Task MarkNotificationReadAsync(int id)
+    {
+        await InitAsync();
+        var entry = await _database!.FindAsync<NotificationEntry>(id);
+        if (entry != null)
+        {
+            entry.IsRead = true;
+            await _database.UpdateAsync(entry);
+        }
+    }
+
+    public async Task MarkAllNotificationsReadAsync()
+    {
+        await InitAsync();
+        var unread = await _database!.Table<NotificationEntry>()
+            .Where(n => !n.IsRead)
+            .ToListAsync();
+        foreach (var entry in unread)
+        {
+            entry.IsRead = true;
+            await _database.UpdateAsync(entry);
+        }
+    }
+
+    public async Task ClearNotificationHistoryAsync()
+    {
+        await InitAsync();
+        await _database!.DeleteAllAsync<NotificationEntry>();
     }
 }
