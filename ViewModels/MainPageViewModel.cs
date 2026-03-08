@@ -136,12 +136,14 @@ namespace THWTicketApp.ViewModels
                 {
                     await _syncService.SyncPendingActionsAsync();
                     var count = await _syncService.GetPendingCountAsync();
-                    var unread = await _databaseService.GetUnreadNotificationCountAsync();
+                    // Use server-side notification count
+                    var serverNotifCount = await _apiService.GetNotificationCountAsync();
+                    var localUnread = await _databaseService.GetUnreadNotificationCountAsync();
                     var conf = await _syncService.GetConflictedActionsAsync();
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
                         PendingActionsCount = count;
-                        UnreadNotificationCount = unread;
+                        UnreadNotificationCount = Math.Max(serverNotifCount, localUnread);
                         ConflictCount = conf.Count;
                     });
                 }
@@ -166,6 +168,9 @@ namespace THWTicketApp.ViewModels
 
                     ComputeStatistics();
                     LoadRecentTickets();
+
+                    // Load overdue count from server (more accurate than client-side date comparison)
+                    _ = LoadOverdueCountAsync();
                 }
             }
             catch (Exception ex)
@@ -246,6 +251,22 @@ namespace THWTicketApp.ViewModels
                 var openCount = g.Count(t => t.Status?.IsResolved != true);
                 TicketsPerGroup.Add(new GroupTicketCount(g.Key!, g.Count(), openCount));
             }
+        }
+
+        private async Task LoadOverdueCountAsync()
+        {
+            try
+            {
+                var json = await _apiService.GetOverdueTicketsAsync();
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                int count = 0;
+                if (doc.RootElement.TryGetProperty("tickets", out var ticketsEl) && ticketsEl.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    count = ticketsEl.GetArrayLength();
+                else if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    count = doc.RootElement.GetArrayLength();
+                OverdueTickets = count;
+            }
+            catch { /* Keep client-side calculated value */ }
         }
 
         private void LoadRecentTickets()
@@ -377,8 +398,8 @@ namespace THWTicketApp.ViewModels
                 // Get closed status
                 var statusJson = await _apiService.GetStatusesAsync();
                 var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var statuses = System.Text.Json.JsonSerializer.Deserialize<Status[]>(statusJson, options);
-                var closedStatus = statuses?.FirstOrDefault(s => s.IsResolved);
+                var statuses = Utils.JsonHelper.DeserializeWrappedArray<Status>(statusJson, "status", options);
+                var closedStatus = statuses.FirstOrDefault(s => s.IsResolved);
 
                 if (closedStatus != null)
                 {

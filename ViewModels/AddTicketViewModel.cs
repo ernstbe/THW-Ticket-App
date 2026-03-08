@@ -87,7 +87,8 @@ public partial class AddTicketViewModel : ObservableObject
     {
         try
         {
-            var json = await _apiService.GetUsersAsync();
+            // Use dedicated assignees endpoint (only agents/admins)
+            var json = await _apiService.GetAssigneesAsync();
             var options = new System.Text.Json.JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true

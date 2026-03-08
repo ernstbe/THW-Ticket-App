@@ -22,7 +22,7 @@
                                IsVisible="{Binding IsLoading}"
                                Color="{StaticResource THWBlue}"/>
 
-            <!-- Team Stats Overview -->
+            <!-- Team Stats Overview Row 1 -->
             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
                 <!-- Total Members -->
                 <Frame Grid.Column="0" Style="{StaticResource CardStyle}" BorderColor="Transparent" Padding="10">
@@ -54,21 +54,87 @@
                     </VerticalStackLayout>
                 </Frame>
 
-                <!-- Unassigned -->
+                <!-- Total Tickets (from server stats) -->
                 <Frame Grid.Column="2" Style="{StaticResource CardStyle}" BorderColor="Transparent" Padding="10">
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="4">
-                        <Label Text="{Binding UnassignedTickets}"
+                        <Label Text="{Binding TotalTickets}"
                                FontSize="28"
                                FontAttributes="Bold"
-                               TextColor="#E74C3C"
+                               TextColor="{StaticResource THWBlue}"
                                HorizontalTextAlignment="Center"/>
-                        <Label Text="Nicht zugewiesen"
+                        <Label Text="Tickets (30T)"
                                FontSize="11"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
                                HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
                 </Frame>
             </Grid>
+
+            <!-- Team Stats Overview Row 2 -->
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                <!-- Closed Tickets -->
+                <Frame Grid.Column="0" Style="{StaticResource CardStyle}" BorderColor="Transparent" Padding="10">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <Label Text="{Binding ClosedTickets}"
+                               FontSize="28"
+                               FontAttributes="Bold"
+                               TextColor="#4CAF50"
+                               HorizontalTextAlignment="Center"/>
+                        <Label Text="Geschlossen"
+                               FontSize="11"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Avg Response Time -->
+                <Frame Grid.Column="1" Style="{StaticResource CardStyle}" BorderColor="Transparent" Padding="10">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <Label Text="{Binding AvgResponseDisplay}"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="#FF9800"
+                               HorizontalTextAlignment="Center"/>
+                        <Label Text="Antwortzeit"
+                               FontSize="11"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Overdue -->
+                <Frame Grid.Column="2" Style="{StaticResource CardStyle}" BorderColor="Transparent" Padding="10">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="4">
+                        <Label Text="{Binding OverdueCount}"
+                               FontSize="28"
+                               FontAttributes="Bold"
+                               TextColor="#E74C3C"
+                               HorizontalTextAlignment="Center"/>
+                        <Label Text="Überfällig"
+                               FontSize="11"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+            </Grid>
+
+            <!-- Top Stats -->
+            <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent" Padding="12">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                    <VerticalStackLayout Grid.Column="0" Spacing="4">
+                        <Label Text="Meiste Anfragen" FontSize="11" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        <Label Text="{Binding TopRequester}" FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark=White}"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                        <Label Text="Meiste Zuweisungen" FontSize="11" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        <Label Text="{Binding TopAssignee}" FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark=White}"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </Frame>
 
             <!-- Team Members List -->
             <Frame Style="{StaticResource CardStyle}" BorderColor="Transparent">
@@ -102,7 +168,7 @@
                                                    FontSize="14"
                                                    FontAttributes="Bold"
                                                    TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark=White}"/>
-                                            <HorizontalStackLayout Spacing="15">
+                                            <HorizontalStackLayout Spacing="12">
                                                 <Label FontSize="11"
                                                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}">
                                                     <Label.FormattedText>
@@ -116,8 +182,17 @@
                                                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}">
                                                     <Label.FormattedText>
                                                         <FormattedString>
-                                                            <Span Text="Geschlossen: " FontAttributes="Bold"/>
+                                                            <Span Text="Geschl.: " FontAttributes="Bold"/>
                                                             <Span Text="{Binding ClosedTickets}"/>
+                                                        </FormattedString>
+                                                    </Label.FormattedText>
+                                                </Label>
+                                                <Label FontSize="11"
+                                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}">
+                                                    <Label.FormattedText>
+                                                        <FormattedString>
+                                                            <Span Text="Antwort: " FontAttributes="Bold"/>
+                                                            <Span Text="{Binding AvgResponseDisplay}"/>
                                                         </FormattedString>
                                                     </Label.FormattedText>
                                                 </Label>

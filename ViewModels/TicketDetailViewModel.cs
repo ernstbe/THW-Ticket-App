@@ -106,6 +106,10 @@ namespace THWTicketApp.ViewModels
         [ObservableProperty]
         private bool _isMentionPopupVisible;
 
+        // Subscription
+        [ObservableProperty]
+        private bool _isSubscribed;
+
         private readonly ITrueDeskApiService _apiService;
         private readonly ISyncService _syncService;
         private readonly IDatabaseService _databaseService;
@@ -229,6 +233,9 @@ namespace THWTicketApp.ViewModels
             Ticket = ticket;
             EditSubject = ticket?.Subject ?? string.Empty;
             EditIssue = ticket?.Issue ?? string.Empty;
+            // Check if current user is subscribed
+            var userId = _apiService.CurrentUserId;
+            IsSubscribed = ticket?.Subscribers?.Contains(userId ?? "") == true;
             _ = LoadTimeTrackingAsync();
             _ = LoadLinkedTicketsAsync();
         }
@@ -399,7 +406,8 @@ namespace THWTicketApp.ViewModels
         {
             try
             {
-                var json = await _apiService.GetUsersAsync();
+                // Use dedicated assignees endpoint (only agents/admins, more efficient)
+                var json = await _apiService.GetAssigneesAsync();
                 Users.Clear();
 
                 var options = new System.Text.Json.JsonSerializerOptions
@@ -438,10 +446,10 @@ namespace THWTicketApp.ViewModels
                 {
                     PropertyNameCaseInsensitive = true
                 };
-                var statusList = System.Text.Json.JsonSerializer.Deserialize<Status[]>(json, options);
+                var statusList = Utils.JsonHelper.DeserializeWrappedArray<Status>(json, "status", options);
 
                 Statuses.Clear();
-                if (statusList != null)
+                if (statusList.Length > 0)
                 {
                     foreach (var status in statusList)
                     {
@@ -466,29 +474,28 @@ namespace THWTicketApp.ViewModels
         {
             try
             {
-                var json = await _apiService.GetTicketTypesAsync();
+                // Use dedicated priorities endpoint instead of extracting from ticket types
+                var json = await _apiService.GetPrioritiesAsync();
                 var options = new System.Text.Json.JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 };
-                var types = System.Text.Json.JsonSerializer.Deserialize<TicketType[]>(json, options);
 
                 Priorities.Clear();
-                if (types != null)
+                // Response may be wrapped: {"success":true,"priorities":[...]} or just array
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                Priority[]? priorityList = null;
+                if (doc.RootElement.TryGetProperty("priorities", out var prioEl))
+                    priorityList = System.Text.Json.JsonSerializer.Deserialize<Priority[]>(prioEl.GetRawText(), options);
+                else
+                    priorityList = System.Text.Json.JsonSerializer.Deserialize<Priority[]>(json, options);
+
+                if (priorityList != null)
                 {
-                    foreach (var type in types)
+                    foreach (var priority in priorityList)
                     {
-                        if (type.Priorities != null)
-                        {
-                            foreach (var priority in type.Priorities)
-                            {
-                                if (!Priorities.Any(p => p.Id == priority.Id))
-                                {
-                                    priority.Name = TrudeskTranslationHelper.TranslatePriority(priority.Name);
-                                    Priorities.Add(priority);
-                                }
-                            }
-                        }
+                        priority.Name = TrudeskTranslationHelper.TranslatePriority(priority.Name);
+                        Priorities.Add(priority);
                     }
                 }
 
@@ -671,7 +678,7 @@ namespace THWTicketApp.ViewModels
                 if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
                 {
                     var ownerId = Ticket.Owner?.Id ?? string.Empty;
-                    await _syncService.EnqueueCommentAsync(Ticket.Id, ownerId, NewComment, Ticket.Updated);
+                    await _syncService.EnqueueCommentAsync(Ticket.Id, Ticket.Uid, ownerId, NewComment, Ticket.Updated);
                     StatusMessage = "Offline: Kommentar wird bei Verbindung gesendet.";
                     NewComment = string.Empty;
                 }
@@ -772,7 +779,7 @@ namespace THWTicketApp.ViewModels
                 if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
                 {
                     var ownerId = Ticket.Owner?.Id ?? string.Empty;
-                    await _syncService.EnqueueNoteAsync(Ticket.Id, ownerId, NewNote, Ticket.Updated);
+                    await _syncService.EnqueueNoteAsync(Ticket.Id, Ticket.Uid, ownerId, NewNote, Ticket.Updated);
                     StatusMessage = "Offline: Notiz wird bei Verbindung gesendet.";
                     NewNote = string.Empty;
                 }
@@ -1015,14 +1022,90 @@ namespace THWTicketApp.ViewModels
             PreviewImageSource = null;
         }
 
+        [RelayCommand]
+        private async Task ToggleSubscriptionAsync()
+        {
+            if (Ticket == null) return;
+
+            IsLoading = true;
+            try
+            {
+                var newState = !IsSubscribed;
+                var success = await _apiService.SubscribeToTicketAsync(Ticket.Id, newState);
+                if (success)
+                {
+                    IsSubscribed = newState;
+                    StatusMessage = newState ? "Ticket abonniert." : "Abo beendet.";
+                    await ReloadTicketAsync();
+                }
+                else
+                {
+                    StatusMessage = "Abo-Änderung fehlgeschlagen.";
+                }
+            }
+            catch (Exception ex)
+            {
+                var (message, _) = Utils.ErrorHelper.Categorize(ex);
+                StatusMessage = $"Abo: {message}";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteTicketAsync()
+        {
+            if (Ticket == null) return;
+
+            IsLoading = true;
+            try
+            {
+                var success = await _apiService.DeleteTicketAsync(Ticket.Id);
+                if (success)
+                {
+                    StatusMessage = "Ticket gelöscht.";
+                    // Navigate back
+                    await Task.Delay(500);
+                    var window = Application.Current?.Windows.FirstOrDefault();
+                    if (window?.Page is NavigationPage nav)
+                    {
+                        await nav.Navigation.PopAsync();
+                    }
+                }
+                else
+                {
+                    StatusMessage = "Löschen fehlgeschlagen.";
+                }
+            }
+            catch (Exception ex)
+            {
+                var (message, _) = Utils.ErrorHelper.Categorize(ex);
+                StatusMessage = $"Löschen: {message}";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
         private async Task ReloadTicketAsync()
         {
             if (Ticket == null) return;
             try
             {
-                var json = await _apiService.GetTicketAsync(Ticket.Id);
+                var json = await _apiService.GetTicketAsync(Ticket.Uid.ToString());
                 var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
+                // Single ticket response is wrapped: {"success":true,"ticket":{...}}
+                Ticket? updated = null;
+                using (var doc = System.Text.Json.JsonDocument.Parse(json))
+                {
+                    if (doc.RootElement.TryGetProperty("ticket", out var ticketEl))
+                        updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(ticketEl.GetRawText(), options);
+                    else
+                        updated = System.Text.Json.JsonSerializer.Deserialize<Ticket>(json, options);
+                }
                 if (updated != null)
                 {
                     TrudeskTranslationHelper.TranslateTicket(updated);
@@ -1031,6 +1114,8 @@ namespace THWTicketApp.ViewModels
                     EditIssue = updated.Issue ?? string.Empty;
                     SelectedStatus = Statuses.FirstOrDefault(s => s.Id == updated.Status?.Id);
                     SelectedPriority = Priorities.FirstOrDefault(p => p.Id == updated.Priority?.Id);
+                    var userId = _apiService.CurrentUserId;
+                    IsSubscribed = updated.Subscribers?.Contains(userId ?? "") == true;
                     THWTicketApp.Utils.NotificationCenter.RaiseTicketUpdated(Ticket.Id);
                 }
             }

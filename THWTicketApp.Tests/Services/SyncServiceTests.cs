@@ -49,12 +49,13 @@ public class SyncServiceTests : IDisposable
         _db.EnqueueActionAsync(Arg.Any<string>(), Arg.Do<string>(s => capturedPayload = s), Arg.Any<DateTime?>())
             .Returns(Task.CompletedTask);
 
-        await _sut.EnqueueCommentAsync("ticket-1", "owner-1", "Hello!", updatedAt);
+        await _sut.EnqueueCommentAsync("ticket-1", 100, "owner-1", "Hello!", updatedAt);
 
         await _db.Received(1).EnqueueActionAsync("AddComment", Arg.Any<string>(), updatedAt);
         capturedPayload.Should().NotBeNull();
         var doc = JsonDocument.Parse(capturedPayload!);
         doc.RootElement.GetProperty("ticketId").GetString().Should().Be("ticket-1");
+        doc.RootElement.GetProperty("ticketUid").GetInt32().Should().Be(100);
         doc.RootElement.GetProperty("ownerId").GetString().Should().Be("owner-1");
         doc.RootElement.GetProperty("comment").GetString().Should().Be("Hello!");
     }
@@ -62,7 +63,7 @@ public class SyncServiceTests : IDisposable
     [Fact]
     public async Task EnqueueCommentAsync_WithoutUpdatedAt_PassesNull()
     {
-        await _sut.EnqueueCommentAsync("t1", "o1", "text");
+        await _sut.EnqueueCommentAsync("t1", 1, "o1", "text");
 
         await _db.Received(1).EnqueueActionAsync(
             "AddComment",
@@ -78,12 +79,13 @@ public class SyncServiceTests : IDisposable
         _db.EnqueueActionAsync(Arg.Any<string>(), Arg.Do<string>(s => capturedPayload = s), Arg.Any<DateTime?>())
             .Returns(Task.CompletedTask);
 
-        await _sut.EnqueueNoteAsync("ticket-2", "owner-2", "A note", updatedAt);
+        await _sut.EnqueueNoteAsync("ticket-2", 200, "owner-2", "A note", updatedAt);
 
         await _db.Received(1).EnqueueActionAsync("AddNote", Arg.Any<string>(), updatedAt);
         capturedPayload.Should().NotBeNull();
         var doc = JsonDocument.Parse(capturedPayload!);
         doc.RootElement.GetProperty("ticketId").GetString().Should().Be("ticket-2");
+        doc.RootElement.GetProperty("ticketUid").GetInt32().Should().Be(200);
         doc.RootElement.GetProperty("ownerId").GetString().Should().Be("owner-2");
         doc.RootElement.GetProperty("note").GetString().Should().Be("A note");
     }
@@ -131,12 +133,13 @@ public class SyncServiceTests : IDisposable
         _db.EnqueueActionAsync(Arg.Any<string>(), Arg.Do<string>(s => capturedPayload = s), Arg.Any<DateTime?>())
             .Returns(Task.CompletedTask);
 
-        await _sut.EnqueueAssignAsync("ticket-3", "user-5", updatedAt);
+        await _sut.EnqueueAssignAsync("ticket-3", 300, "user-5", updatedAt);
 
         await _db.Received(1).EnqueueActionAsync("AssignTicket", Arg.Any<string>(), updatedAt);
         capturedPayload.Should().NotBeNull();
         var doc = JsonDocument.Parse(capturedPayload!);
         doc.RootElement.GetProperty("ticketId").GetString().Should().Be("ticket-3");
+        doc.RootElement.GetProperty("ticketUid").GetInt32().Should().Be(300);
         doc.RootElement.GetProperty("userId").GetString().Should().Be("user-5");
     }
 
@@ -147,7 +150,7 @@ public class SyncServiceTests : IDisposable
         int? notifiedCount = null;
         _sut.PendingCountChanged += count => notifiedCount = count;
 
-        await _sut.EnqueueCommentAsync("t1", "o1", "text");
+        await _sut.EnqueueCommentAsync("t1", 1, "o1", "text");
 
         notifiedCount.Should().Be(3);
     }
@@ -159,7 +162,7 @@ public class SyncServiceTests : IDisposable
         int? notifiedCount = null;
         _sut.PendingCountChanged += count => notifiedCount = count;
 
-        await _sut.EnqueueNoteAsync("t1", "o1", "note text");
+        await _sut.EnqueueNoteAsync("t1", 1, "o1", "note text");
 
         notifiedCount.Should().Be(1);
     }
@@ -183,7 +186,7 @@ public class SyncServiceTests : IDisposable
         int? notifiedCount = null;
         _sut.PendingCountChanged += count => notifiedCount = count;
 
-        await _sut.EnqueueAssignAsync("t1", "u1");
+        await _sut.EnqueueAssignAsync("t1", 1, "u1");
 
         notifiedCount.Should().Be(2);
     }
@@ -567,7 +570,7 @@ public class SyncServiceTests : IDisposable
         {
             Id = 20,
             ActionType = "AddComment",
-            PayloadJson = JsonSerializer.Serialize(new { ticketId = "t1", ownerId = "o1", comment = "text" }),
+            PayloadJson = JsonSerializer.Serialize(new { ticketId = "t1", ticketUid = 100, ownerId = "o1", comment = "text" }),
             TicketUpdatedAt = queuedAt,
         };
         _db.GetPendingActionsAsync().Returns(new List<PendingAction> { action });
@@ -578,8 +581,8 @@ public class SyncServiceTests : IDisposable
             Updated = queuedAt.AddHours(2),
             Assignee = new Assignee { Fullname = "Max Mustermann" },
         };
-        var ticketJson = JsonSerializer.Serialize(serverTicket);
-        _api.GetTicketAsync("t1").Returns(ticketJson);
+        var wrappedJson = JsonSerializer.Serialize(new { success = true, ticket = serverTicket });
+        _api.GetTicketAsync("100").Returns(wrappedJson);
 
         PendingAction? detectedConflict = null;
         _sut.ConflictDetected += a => detectedConflict = a;
@@ -601,15 +604,15 @@ public class SyncServiceTests : IDisposable
         {
             Id = 21,
             ActionType = "AddComment",
-            PayloadJson = JsonSerializer.Serialize(new { ticketId = "t1", ownerId = "o1", comment = "text" }),
+            PayloadJson = JsonSerializer.Serialize(new { ticketId = "t1", ticketUid = 101, ownerId = "o1", comment = "text" }),
             TicketUpdatedAt = queuedAt,
         };
         _db.GetPendingActionsAsync().Returns(new List<PendingAction> { action });
 
         // Ticket Updated is same as queued time (within 1 second tolerance)
         var serverTicket = new Ticket { Updated = queuedAt };
-        var ticketJson = JsonSerializer.Serialize(serverTicket);
-        _api.GetTicketAsync("t1").Returns(ticketJson);
+        var wrappedJson = JsonSerializer.Serialize(new { success = true, ticket = serverTicket });
+        _api.GetTicketAsync("101").Returns(wrappedJson);
         _api.AddCommentAsync("t1", "o1", "text").Returns(true);
 
         var result = await _sut.SyncPendingActionsAsync();

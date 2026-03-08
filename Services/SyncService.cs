@@ -33,16 +33,16 @@ public class SyncService : ISyncService
         return await _databaseService.GetPendingActionCountAsync();
     }
 
-    public async Task EnqueueCommentAsync(string ticketId, string ownerId, string comment, DateTime? ticketUpdatedAt = null)
+    public async Task EnqueueCommentAsync(string ticketId, int ticketUid, string ownerId, string comment, DateTime? ticketUpdatedAt = null)
     {
-        var payload = JsonSerializer.Serialize(new { ticketId, ownerId, comment });
+        var payload = JsonSerializer.Serialize(new { ticketId, ticketUid, ownerId, comment });
         await _databaseService.EnqueueActionAsync("AddComment", payload, ticketUpdatedAt);
         await NotifyCountChanged();
     }
 
-    public async Task EnqueueNoteAsync(string ticketId, string ownerId, string note, DateTime? ticketUpdatedAt = null)
+    public async Task EnqueueNoteAsync(string ticketId, int ticketUid, string ownerId, string note, DateTime? ticketUpdatedAt = null)
     {
-        var payload = JsonSerializer.Serialize(new { ticketId, ownerId, note });
+        var payload = JsonSerializer.Serialize(new { ticketId, ticketUid, ownerId, note });
         await _databaseService.EnqueueActionAsync("AddNote", payload, ticketUpdatedAt);
         await NotifyCountChanged();
     }
@@ -54,9 +54,9 @@ public class SyncService : ISyncService
         await NotifyCountChanged();
     }
 
-    public async Task EnqueueAssignAsync(string ticketId, string userId, DateTime? ticketUpdatedAt = null)
+    public async Task EnqueueAssignAsync(string ticketId, int ticketUid, string userId, DateTime? ticketUpdatedAt = null)
     {
-        var payload = JsonSerializer.Serialize(new { ticketId, userId });
+        var payload = JsonSerializer.Serialize(new { ticketId, ticketUid, userId });
         await _databaseService.EnqueueActionAsync("AssignTicket", payload, ticketUpdatedAt);
         await NotifyCountChanged();
     }
@@ -124,15 +124,22 @@ public class SyncService : ISyncService
         try
         {
             var doc = JsonDocument.Parse(action.PayloadJson);
-            if (!doc.RootElement.TryGetProperty("ticketId", out var ticketIdEl))
+            // Use ticketUid for the GET /tickets/:uid endpoint
+            if (!doc.RootElement.TryGetProperty("ticketUid", out var ticketUidEl))
                 return null;
 
-            var ticketId = ticketIdEl.GetString();
-            if (string.IsNullOrEmpty(ticketId)) return null;
+            var ticketUid = ticketUidEl.GetInt32().ToString();
+            if (string.IsNullOrEmpty(ticketUid)) return null;
 
-            var json = await _apiService.GetTicketAsync(ticketId);
+            var json = await _apiService.GetTicketAsync(ticketUid);
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var ticket = JsonSerializer.Deserialize<Ticket>(json, options);
+            // Single ticket response is wrapped: {"success":true,"ticket":{...}}
+            var wrapper = JsonDocument.Parse(json);
+            Ticket? ticket = null;
+            if (wrapper.RootElement.TryGetProperty("ticket", out var ticketEl))
+                ticket = JsonSerializer.Deserialize<Ticket>(ticketEl.GetRawText(), options);
+            else
+                ticket = JsonSerializer.Deserialize<Ticket>(json, options);
 
             if (ticket == null) return "Ticket nicht mehr vorhanden.";
 

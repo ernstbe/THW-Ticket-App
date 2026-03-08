@@ -429,7 +429,7 @@ public class TrueDeskApiServiceTests : IDisposable
         _handler.SentRequests.Should().ContainSingle();
         var req = _handler.SentRequests[0];
         req.Method.Should().Be(HttpMethod.Get);
-        req.RequestUri!.ToString().Should().Be("http://localhost:8118/api/v1/tickets");
+        req.RequestUri!.ToString().Should().Be("http://localhost:8118/api/v1/tickets?limit=1000");
     }
 
     [Fact]
@@ -606,7 +606,7 @@ public class TrueDeskApiServiceTests : IDisposable
         await _sut.GetStatusesAsync();
 
         _handler.SentRequests[0].RequestUri!.ToString()
-            .Should().Be("http://localhost:8118/api/v1/tickets/statuses");
+            .Should().Be("http://localhost:8118/api/v1/tickets/status");
     }
 
     [Fact]
@@ -681,7 +681,7 @@ public class TrueDeskApiServiceTests : IDisposable
         await _sut.GetTagsAsync();
 
         _handler.SentRequests[0].RequestUri!.ToString()
-            .Should().Be("http://localhost:8118/api/v1/tags");
+            .Should().Be("http://localhost:8118/api/v1/tags/limit");
     }
 
     [Fact]
@@ -944,7 +944,7 @@ public class TrueDeskApiServiceTests : IDisposable
 
         var req = _handler.SentRequests[0];
         req.Method.Should().Be(HttpMethod.Put);
-        req.RequestUri!.ToString().Should().Be("http://localhost:8118/api/v1/tickets/t1/assignee");
+        req.RequestUri!.ToString().Should().Be("http://localhost:8118/api/v1/tickets/t1");
         var body = await req.Content!.ReadAsStringAsync();
         body.Should().Contain("\"assignee\":\"u1\"");
     }
@@ -981,8 +981,10 @@ public class TrueDeskApiServiceTests : IDisposable
         await _sut.ClearTicketAssigneeAsync("t1");
 
         var req = _handler.SentRequests[0];
-        req.Method.Should().Be(HttpMethod.Delete);
-        req.RequestUri!.ToString().Should().Be("http://localhost:8118/api/v1/tickets/t1/assignee");
+        req.Method.Should().Be(HttpMethod.Put);
+        req.RequestUri!.ToString().Should().Be("http://localhost:8118/api/v1/tickets/t1");
+        var body = await req.Content!.ReadAsStringAsync();
+        body.Should().Contain("\"assignee\":null");
     }
 
     [Fact]
@@ -1156,11 +1158,11 @@ public class TrueDeskApiServiceTests : IDisposable
 
         var req = _handler.SentRequests[0];
         req.Method.Should().Be(HttpMethod.Post);
-        req.RequestUri!.ToString().Should().Be("http://localhost:8118/api/v1/tickets");
+        req.RequestUri!.ToString().Should().Be("http://localhost:8118/api/v1/tickets/create");
         var body = await req.Content!.ReadAsStringAsync();
-        body.Should().Contain("\"title\":\"My Title\"");
-        body.Should().Contain("\"description\":\"Description\"");
-        body.Should().Contain("\"assignedUserId\":42");
+        body.Should().Contain("\"subject\":\"My Title\"");
+        body.Should().Contain("\"issue\":\"Description\"");
+        body.Should().Contain("\"assignee\":\"42\"");
     }
 
     [Fact]
@@ -1214,7 +1216,7 @@ public class TrueDeskApiServiceTests : IDisposable
 
         var req = _handler.SentRequests[0];
         req.Method.Should().Be(HttpMethod.Post);
-        req.RequestUri!.ToString().Should().Be("http://localhost:8118/api/v1/tickets/uploadattachment");
+        req.RequestUri!.ToString().Should().Be("http://localhost:8118/tickets/uploadattachment");
         // Verify multipart content was captured with file and ticketId parts
         var parts = _handler.CapturedContentParts[0];
         parts.Should().Contain(p => p.FileName == "document.pdf");
@@ -1329,7 +1331,7 @@ public class TrueDeskApiServiceTests : IDisposable
 
         var req = _handler.SentRequests[0];
         req.Method.Should().Be(HttpMethod.Delete);
-        req.RequestUri!.ToString().Should().Be("http://localhost:8118/api/v1/tickets/t1/attachments/att1");
+        req.RequestUri!.ToString().Should().Be("http://localhost:8118/api/v1/tickets/t1/attachments/remove/att1");
     }
 
     [Fact]
