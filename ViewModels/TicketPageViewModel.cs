@@ -369,9 +369,49 @@ public partial class TicketPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ToggleOverdueFilter()
+    private async Task ToggleOverdueFilterAsync()
     {
         ShowOnlyOverdue = !ShowOnlyOverdue;
+        if (ShowOnlyOverdue)
+        {
+            // Load overdue tickets from server
+            await LoadOverdueTicketsFromServerAsync();
+        }
+        else
+        {
+            ApplyFilters();
+        }
+    }
+
+    private async Task LoadOverdueTicketsFromServerAsync()
+    {
+        try
+        {
+            var json = await _apiService.GetOverdueTicketsAsync();
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            using var doc = JsonDocument.Parse(json);
+            Ticket[]? overdueTickets = null;
+            if (doc.RootElement.TryGetProperty("tickets", out var ticketsEl))
+                overdueTickets = JsonSerializer.Deserialize<Ticket[]>(ticketsEl.GetRawText(), options);
+            else
+                overdueTickets = JsonSerializer.Deserialize<Ticket[]>(json, options);
+
+            if (overdueTickets != null && overdueTickets.Length > 0)
+            {
+                foreach (var t in overdueTickets)
+                    TrudeskTranslationHelper.TranslateTicket(t);
+
+                FilteredTickets.Clear();
+                var sorted = ApplySorting(overdueTickets);
+                foreach (var ticket in sorted)
+                    FilteredTickets.Add(ticket);
+                UpdateActiveFilterCount();
+                return;
+            }
+        }
+        catch { }
+        // Fallback to client-side filtering
+        ApplyFilters();
     }
 
     [RelayCommand]
@@ -504,32 +544,38 @@ public partial class TicketPageViewModel : ObservableObject
     {
         try
         {
-            // Load types
-            var typesJson = await _apiService.GetTicketTypesAsync();
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var types = JsonSerializer.Deserialize<TicketType[]>(typesJson, options);
+
+            // Load types, priorities, and groups in parallel
+            var typesTask = _apiService.GetTicketTypesAsync();
+            var prioritiesTask = _apiService.GetPrioritiesAsync();
+            var groupsTask = _apiService.GetGroupsAsync();
+            await Task.WhenAll(typesTask, prioritiesTask, groupsTask);
+
+            // Types
+            var types = JsonSerializer.Deserialize<TicketType[]>(typesTask.Result, options);
             AvailableTypes.Clear();
             if (types != null)
-            {
                 foreach (var t in types)
                     AvailableTypes.Add(t);
 
-                // Extract all unique priorities from types
-                AvailablePriorities.Clear();
-                var seenPriorities = new HashSet<string>();
-                foreach (var type in types)
-                {
-                    foreach (var p in type.Priorities)
-                    {
-                        if (p.Id != null && seenPriorities.Add(p.Id))
-                            AvailablePriorities.Add(p);
-                    }
-                }
+            // Priorities from dedicated endpoint
+            AvailablePriorities.Clear();
+            using (var prioDoc = JsonDocument.Parse(prioritiesTask.Result))
+            {
+                Priority[]? priorities = null;
+                if (prioDoc.RootElement.TryGetProperty("priorities", out var prioEl))
+                    priorities = JsonSerializer.Deserialize<Priority[]>(prioEl.GetRawText(), options);
+                else
+                    priorities = JsonSerializer.Deserialize<Priority[]>(prioritiesTask.Result, options);
+
+                if (priorities != null)
+                    foreach (var p in priorities)
+                        AvailablePriorities.Add(p);
             }
 
-            // Load groups
-            var groupsJson = await _apiService.GetGroupsAsync();
-            var groups = JsonSerializer.Deserialize<Group[]>(groupsJson, options);
+            // Groups
+            var groups = JsonSerializer.Deserialize<Group[]>(groupsTask.Result, options);
             AvailableGroups.Clear();
             if (groups != null)
                 foreach (var g in groups)
@@ -824,7 +870,7 @@ public partial class TicketPageViewModel : ObservableObject
         {
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
             {
-                await _syncService.EnqueueAssignAsync(ticket.Id, userId, ticket.Updated);
+                await _syncService.EnqueueAssignAsync(ticket.Id, ticket.Uid, userId, ticket.Updated);
                 StatusMessage = "Offline: Zuweisung wird bei Verbindung gesendet.";
             }
             else
@@ -958,7 +1004,7 @@ public partial class TicketPageViewModel : ObservableObject
                 if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
                 {
                     var t = _allTickets.FirstOrDefault(x => x.Id == ticketId);
-                    await _syncService.EnqueueAssignAsync(ticketId, userId, t?.Updated);
+                    await _syncService.EnqueueAssignAsync(ticketId, t?.Uid ?? 0, userId, t?.Updated);
                 }
             }
         }
