@@ -71,6 +71,22 @@
     <Color x:Key="DarkSurfaceLight">#2C2C2C</Color>
     <Color x:Key="THWBlueSurfaceDark">#1A2744</Color>
 
+    <!-- Dark mode specific -->
+    <Color x:Key="HeaderSubtext">#B3CCFF</Color>
+    <Color x:Key="HeaderSubtextDark">#8899BB</Color>
+    <Color x:Key="WarningBannerBg">#FFF3E0</Color>
+    <Color x:Key="WarningBannerBgDark">#3D2A00</Color>
+    <Color x:Key="WarningBannerText">#E65100</Color>
+    <Color x:Key="WarningBannerTextDark">#FFB74D</Color>
+    <Color x:Key="DangerBannerBg">#FFEBEE</Color>
+    <Color x:Key="DangerBannerBgDark">#3D0000</Color>
+    <Color x:Key="DangerBannerText">#C62828</Color>
+    <Color x:Key="DangerBannerTextDark">#FF8A8A</Color>
+    <Color x:Key="SuccessGreen">#4CAF50</Color>
+    <Color x:Key="WarningOrange">#FF9800</Color>
+    <Color x:Key="DeleteRed">#FF6B6B</Color>
+    <Color x:Key="DeleteRedDark">#FF8A8A</Color>
+
     <!-- Legacy Status Colors (kept for backward compat) -->
     <Color x:Key="Success">#28A745</Color>
     <Color x:Key="Warning">#FFC107</Color>

@@ -31,8 +31,8 @@ public class Attachment
         get
         {
             if (Size < 1024) return $"{Size} B";
-            if (Size < 1024 * 1024) return $"{Size / 1024.0:F1} KB";
-            return $"{Size / (1024.0 * 1024.0):F1} MB";
+            if (Size < 1024 * 1024) return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:F1} KB", Size / 1024.0);
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:F1} MB", Size / (1024.0 * 1024.0));
         }
     }
 }

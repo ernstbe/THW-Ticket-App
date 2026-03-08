@@ -4,7 +4,7 @@ using THWTicketApp.Models;
 
 namespace THWTicketApp.Services;
 
-public class DatabaseService
+public class DatabaseService : IDatabaseService
 {
     private SQLiteAsyncConnection? _database;
     private readonly string _dbPath;
@@ -26,6 +26,7 @@ public class DatabaseService
         await _database.CreateTableAsync<TimeEntry>();
         await _database.CreateTableAsync<LinkedTicket>();
         await _database.CreateTableAsync<NotificationEntry>();
+        await _database.CreateTableAsync<SavedFilter>();
     }
 
     public async Task<List<CachedTicket>> GetCachedTicketsAsync()
@@ -413,5 +414,27 @@ public class DatabaseService
     {
         await InitAsync();
         await _database!.DeleteAllAsync<NotificationEntry>();
+    }
+
+    // --- Saved Filters ---
+
+    public async Task<int> SaveFilterAsync(SavedFilter filter)
+    {
+        await InitAsync();
+        return await _database!.InsertAsync(filter);
+    }
+
+    public async Task<List<SavedFilter>> GetSavedFiltersAsync()
+    {
+        await InitAsync();
+        return await _database!.Table<SavedFilter>()
+            .OrderByDescending(f => f.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task DeleteSavedFilterAsync(int id)
+    {
+        await InitAsync();
+        await _database!.DeleteAsync<SavedFilter>(id);
     }
 }

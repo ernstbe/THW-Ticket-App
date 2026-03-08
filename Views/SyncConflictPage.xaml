@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:data="clr-namespace:THWTicketApp.Data"
              xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             xmlns:controls="clr-namespace:THWTicketApp.Controls"
              x:Class="THWTicketApp.Views.SyncConflictPage"
              x:DataType="viewmodels:SyncConflictViewModel"
              Title="Sync-Konflikte">
@@ -20,17 +21,15 @@
                        FontSize="20"
                        FontAttributes="Bold"/>
                 <Label Text="Diese Aktionen konnten nicht automatisch synchronisiert werden."
-                       TextColor="#B3CCFF"
+                       TextColor="{AppThemeBinding Light={StaticResource HeaderSubtext}, Dark={StaticResource HeaderSubtextDark}}"
                        FontSize="12"/>
             </VerticalStackLayout>
         </Grid>
 
         <!-- Loading -->
-        <ActivityIndicator Grid.Row="1"
-                           IsRunning="{Binding IsLoading}"
-                           IsVisible="{Binding IsLoading}"
-                           Color="{StaticResource THWBlue}"
-                           VerticalOptions="Center"/>
+        <controls:SkeletonView Grid.Row="1"
+                                IsVisible="{Binding IsLoading}"
+                                SkeletonType="list"/>
 
         <!-- Conflict List -->
         <CollectionView Grid.Row="1"
@@ -72,14 +71,14 @@
                             </Grid>
 
                             <!-- Conflict reason -->
-                            <Frame BackgroundColor="#FFF3E0"
+                            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource WarningBannerBg}, Dark={StaticResource WarningBannerBgDark}}"
                                    Padding="10,8"
                                    CornerRadius="6"
                                    HasShadow="False"
                                    BorderColor="Transparent">
                                 <Label Text="{Binding ConflictReason}"
                                        FontSize="13"
-                                       TextColor="#E65100"
+                                       TextColor="{AppThemeBinding Light={StaticResource WarningBannerText}, Dark={StaticResource WarningBannerTextDark}}"
                                        LineBreakMode="WordWrap"/>
                             </Frame>
 

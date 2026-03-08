@@ -9,10 +9,10 @@ namespace THWTicketApp.ViewModels
 {
     public partial class MainPageViewModel : ObservableObject
     {
-        private readonly TrueDeskApiService _apiService;
-        private readonly DatabaseService _databaseService;
+        private readonly ITrueDeskApiService _apiService;
+        private readonly IDatabaseService _databaseService;
         private readonly IServiceProvider _serviceProvider;
-        private readonly SyncService _syncService;
+        private readonly ISyncService _syncService;
         private readonly RealtimeService _realtimeService;
         private List<Ticket> _allTickets = [];
 
@@ -56,6 +56,9 @@ namespace THWTicketApp.ViewModels
         private string _errorMessage = string.Empty;
 
         [ObservableProperty]
+        private bool _isRefreshing;
+
+        [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(HasPendingActions))]
         private int _pendingActionsCount;
 
@@ -73,7 +76,7 @@ namespace THWTicketApp.ViewModels
 
         public bool HasConflicts => ConflictCount > 0;
 
-        public MainPageViewModel(TrueDeskApiService apiService, DatabaseService databaseService, IServiceProvider serviceProvider, SyncService syncService, RealtimeService realtimeService, NotificationService notificationService)
+        public MainPageViewModel(ITrueDeskApiService apiService, IDatabaseService databaseService, IServiceProvider serviceProvider, ISyncService syncService, RealtimeService realtimeService, NotificationService notificationService)
         {
             _apiService = apiService;
             _databaseService = databaseService;
@@ -186,6 +189,14 @@ namespace THWTicketApp.ViewModels
             {
                 IsLoading = false;
             }
+        }
+
+        [RelayCommand]
+        private async Task RefreshDashboardAsync()
+        {
+            IsRefreshing = true;
+            await LoadDashboardAsync();
+            IsRefreshing = false;
         }
 
         private void ComputeStatistics()
@@ -328,6 +339,45 @@ namespace THWTicketApp.ViewModels
                 var page = _serviceProvider.GetRequiredService<Views.NotificationHistoryPage>();
                 await nav.PushAsync(page);
             }
+        }
+
+        [RelayCommand]
+        private async Task QuickAssignAsync(Ticket ticket)
+        {
+            if (ticket == null) return;
+            var userId = _apiService.CurrentUserId;
+            if (string.IsNullOrEmpty(userId)) return;
+
+            try
+            {
+                var success = await _apiService.AssignTicketAsync(ticket.Id, userId);
+                if (success)
+                    await LoadDashboardAsync();
+            }
+            catch { }
+        }
+
+        [RelayCommand]
+        private async Task QuickCloseAsync(Ticket ticket)
+        {
+            if (ticket == null) return;
+
+            try
+            {
+                // Get closed status
+                var statusJson = await _apiService.GetStatusesAsync();
+                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var statuses = System.Text.Json.JsonSerializer.Deserialize<Status[]>(statusJson, options);
+                var closedStatus = statuses?.FirstOrDefault(s => s.IsResolved);
+
+                if (closedStatus != null)
+                {
+                    var success = await _apiService.UpdateTicketStatusAsync(ticket.Id, closedStatus.Id!);
+                    if (success)
+                        await LoadDashboardAsync();
+                }
+            }
+            catch { }
         }
 
         [RelayCommand]

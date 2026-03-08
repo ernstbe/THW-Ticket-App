@@ -7,9 +7,9 @@ namespace THWTicketApp.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
-    private readonly TrueDeskApiService _apiService;
+    private readonly ITrueDeskApiService _apiService;
     private readonly AppSettings _appSettings;
-    private readonly DatabaseService _databaseService;
+    private readonly IDatabaseService _databaseService;
     private readonly NotificationService _notificationService;
     private readonly IFingerprint _fingerprint;
 
@@ -66,7 +66,7 @@ public partial class SettingsViewModel : ObservableObject
 
     public bool HasConnectionStatus => !string.IsNullOrEmpty(ConnectionStatus);
 
-    public SettingsViewModel(TrueDeskApiService apiService, AppSettings appSettings, DatabaseService databaseService, NotificationService notificationService, IFingerprint fingerprint)
+    public SettingsViewModel(ITrueDeskApiService apiService, AppSettings appSettings, IDatabaseService databaseService, NotificationService notificationService, IFingerprint fingerprint)
     {
         _apiService = apiService;
         _appSettings = appSettings;

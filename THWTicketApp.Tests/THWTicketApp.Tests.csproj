@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
+    <PackageReference Include="xunit.v3" Version="1.*" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.*" />
+    <PackageReference Include="NSubstitute" Version="5.*" />
+    <PackageReference Include="FluentAssertions" Version="7.*" />
+    <PackageReference Include="SQLite-net-pcl" Version="1.*" />
+  </ItemGroup>
+
+  <!-- Link to shared source files from the main project.
+       BindableObject stub in Stubs/ allows MAUI model files to compile. -->
+  <ItemGroup>
+    <Compile Include="..\Services\ITrueDeskApiService.cs" Link="Services\ITrueDeskApiService.cs" />
+    <Compile Include="..\Services\IDatabaseService.cs" Link="Services\IDatabaseService.cs" />
+    <Compile Include="..\Services\ISyncService.cs" Link="Services\ISyncService.cs" />
+    <Compile Include="..\Services\TrudeskTranslationHelper.cs" Link="Services\TrudeskTranslationHelper.cs" />
+    <Compile Include="..\Services\AppSettings.cs" Link="Services\AppSettings.cs" />
+    <Compile Include="..\Helpers\Translator.cs" Link="Helpers\Translator.cs" />
+    <Compile Include="..\Utils\ErrorHelper.cs" Link="Utils\ErrorHelper.cs" />
+    <Compile Include="..\models\Assignee.cs" Link="Models\Assignee.cs" />
+    <Compile Include="..\models\Attachment.cs" Link="Models\Attachment.cs" />
+    <Compile Include="..\models\Comment.cs" Link="Models\Comment.cs" />
+    <Compile Include="..\models\Group.cs" Link="Models\Group.cs" />
+    <Compile Include="..\models\HistoryItem.cs" Link="Models\HistoryItem.cs" />
+    <Compile Include="..\models\Note.cs" Link="Models\Note.cs" />
+    <Compile Include="..\models\Owner.cs" Link="Models\Owner.cs" />
+    <Compile Include="..\models\Priority.cs" Link="Models\Priority.cs" />
+    <Compile Include="..\models\Role.cs" Link="Models\Role.cs" />
+    <Compile Include="..\models\Status.cs" Link="Models\Status.cs" />
+    <Compile Include="..\models\Tag.cs" Link="Models\Tag.cs" />
+    <Compile Include="..\models\Ticket.cs" Link="Models\Ticket.cs" />
+    <Compile Include="..\models\TicketType.cs" Link="Models\TicketType.cs" />
+    <Compile Include="..\models\User.cs" Link="Models\User.cs" />
+    <Compile Include="..\models\Responses\*.cs" Link="Models\Responses\%(Filename)%(Extension)" />
+    <Compile Include="..\Data\*.cs" Link="Data\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

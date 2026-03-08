@@ -48,9 +48,9 @@ public static class MauiProgram
         builder.Services.AddSingleton(LocalizationService.Instance);
 
         // Services
-        builder.Services.AddSingleton<TrueDeskApiService>();
-        builder.Services.AddSingleton<DatabaseService>();
-        builder.Services.AddSingleton<SyncService>();
+        builder.Services.AddSingleton<ITrueDeskApiService, TrueDeskApiService>();
+        builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
+        builder.Services.AddSingleton<ISyncService, SyncService>();
         builder.Services.AddSingleton<RealtimeService>();
         builder.Services.AddSingleton<NotificationService>();
 

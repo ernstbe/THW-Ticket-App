@@ -5,8 +5,8 @@ namespace THWTicketApp.Services;
 public class NotificationService
 {
     private readonly RealtimeService _realtimeService;
-    private readonly TrueDeskApiService _apiService;
-    private readonly DatabaseService _databaseService;
+    private readonly ITrueDeskApiService _apiService;
+    private readonly IDatabaseService _databaseService;
     private int _notificationId;
 
     public event Action? NotificationReceived;
@@ -47,7 +47,7 @@ public class NotificationService
         set => Preferences.Set("NotifyOnStatusChanges", value);
     }
 
-    public NotificationService(RealtimeService realtimeService, TrueDeskApiService apiService, DatabaseService databaseService)
+    public NotificationService(RealtimeService realtimeService, ITrueDeskApiService apiService, IDatabaseService databaseService)
     {
         _realtimeService = realtimeService;
         _apiService = apiService;

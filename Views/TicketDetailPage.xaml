@@ -428,6 +428,10 @@
                     <Button Text="Datei hochladen"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding UploadAttachmentCommand}"/>
+                            <Button Text="Foto aufnehmen"
+                                    Command="{Binding TakePhotoAndAttachCommand}"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Margin="0,5,0,0"/>
                 </VerticalStackLayout>
             </Frame>
 

@@ -6,7 +6,7 @@ namespace THWTicketApp.Services;
 public class RealtimeService : IDisposable
 {
     private readonly AppSettings _appSettings;
-    private readonly TrueDeskApiService _apiService;
+    private readonly ITrueDeskApiService _apiService;
     private SocketIOClient.SocketIO? _socket;
     private bool _disposed;
 
@@ -16,7 +16,7 @@ public class RealtimeService : IDisposable
 
     public bool IsConnected => _socket?.Connected == true;
 
-    public RealtimeService(AppSettings appSettings, TrueDeskApiService apiService)
+    public RealtimeService(AppSettings appSettings, ITrueDeskApiService apiService)
     {
         _appSettings = appSettings;
         _apiService = apiService;

@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:THWTicketApp.Models"
              xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             xmlns:controls="clr-namespace:THWTicketApp.Controls"
              x:Class="THWTicketApp.Views.KanbanBoardPage"
              x:DataType="viewmodels:KanbanBoardViewModel"
              Title="Kanban Board">
@@ -22,17 +23,18 @@
         </Grid>
 
         <!-- Loading -->
-        <ActivityIndicator Grid.Row="1"
-                           IsRunning="{Binding IsLoading}"
-                           IsVisible="{Binding IsLoading}"
-                           Color="{StaticResource THWBlue}"
-                           VerticalOptions="Center"/>
+        <controls:SkeletonView Grid.Row="1"
+                                IsVisible="{Binding IsLoading}"
+                                SkeletonType="kanban"/>
 
         <!-- Kanban Columns (horizontal scroll) -->
-        <ScrollView Grid.Row="1"
-                    Orientation="Horizontal"
-                    HorizontalScrollBarVisibility="Always"
-                    IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+        <RefreshView Grid.Row="1"
+                     IsRefreshing="{Binding IsRefreshing}"
+                     Command="{Binding RefreshBoardCommand}"
+                     RefreshColor="{StaticResource THWBlue}"
+                     IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+        <ScrollView Orientation="Horizontal"
+                    HorizontalScrollBarVisibility="Always">
             <HorizontalStackLayout Spacing="10" Padding="10">
                 <BindableLayout.ItemsSource>
                     <Binding Path="Columns"/>
@@ -122,5 +124,6 @@
                 </BindableLayout.ItemTemplate>
             </HorizontalStackLayout>
         </ScrollView>
+        </RefreshView>
     </Grid>
 </ContentPage>

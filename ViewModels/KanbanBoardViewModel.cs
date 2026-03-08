@@ -24,7 +24,7 @@ public partial class KanbanColumn : ObservableObject
 
 public partial class KanbanBoardViewModel : ObservableObject
 {
-    private readonly TrueDeskApiService _apiService;
+    private readonly ITrueDeskApiService _apiService;
 
     private bool _isLoading;
     public bool IsLoading
@@ -33,9 +33,16 @@ public partial class KanbanBoardViewModel : ObservableObject
         set => SetProperty(ref _isLoading, value);
     }
 
+    private bool _isRefreshing;
+    public bool IsRefreshing
+    {
+        get => _isRefreshing;
+        set => SetProperty(ref _isRefreshing, value);
+    }
+
     public ObservableCollection<KanbanColumn> Columns { get; } = new();
 
-    public KanbanBoardViewModel(TrueDeskApiService apiService)
+    public KanbanBoardViewModel(ITrueDeskApiService apiService)
     {
         _apiService = apiService;
     }
@@ -87,6 +94,14 @@ public partial class KanbanBoardViewModel : ObservableObject
         {
             IsLoading = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task RefreshBoardAsync()
+    {
+        IsRefreshing = true;
+        await LoadBoardAsync();
+        IsRefreshing = false;
     }
 
     [RelayCommand]
