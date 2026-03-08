@@ -179,7 +179,7 @@ namespace THWTicketApp.Services
                 return false;
             }
 
-            var payload = new { ticketId = id, owner = ownerId, comment = newComment };
+            var payload = new { _id = id, ownerId, comment = newComment };
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/addcomment", content);
             return response.IsSuccessStatusCode;
@@ -198,13 +198,15 @@ namespace THWTicketApp.Services
                 return false;
             }
 
-            var payload = new
-            {
-                subject = ticket.Subject,
-                issue = ticket.Issue,
-                priority = ticket.Priority?.Id,
-                status = ticket.Status?.Id
-            };
+            var payload = new Dictionary<string, object?>();
+            if (ticket.Subject != null)
+                payload["subject"] = ticket.Subject;
+            if (ticket.Issue != null)
+                payload["issue"] = ticket.Issue;
+            if (ticket.Priority?.Id != null)
+                payload["priority"] = ticket.Priority.Id;
+            if (ticket.Status?.Id != null)
+                payload["status"] = ticket.Status.Id;
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             var response = await _httpClient.PutAsync($"{_settings.ApiBaseUrl}/tickets/{ticket.Id}", content);
             return response.IsSuccessStatusCode;

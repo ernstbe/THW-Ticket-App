@@ -744,8 +744,8 @@ public class TrueDeskApiServiceTests : IDisposable
         req.Method.Should().Be(HttpMethod.Post);
         req.RequestUri!.ToString().Should().Be("http://localhost:8118/api/v1/tickets/addcomment");
         var body = await req.Content!.ReadAsStringAsync();
-        body.Should().Contain("\"ticketId\":\"t1\"");
-        body.Should().Contain("\"owner\":\"o1\"");
+        body.Should().Contain("\"_id\":\"t1\"");
+        body.Should().Contain("\"ownerId\":\"o1\"");
         body.Should().Contain("\"comment\":\"My comment\"");
     }
 
