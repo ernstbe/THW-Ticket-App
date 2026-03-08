@@ -268,7 +268,7 @@ public partial class SettingsViewModel : ObservableObject
 
         if (confirm)
         {
-            _apiService.Logout();
+            await _apiService.LogoutAsync();
 
             var window = Application.Current?.Windows.FirstOrDefault();
             if (window?.Page is NavigationPage nav)

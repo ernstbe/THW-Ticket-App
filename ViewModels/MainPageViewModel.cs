@@ -414,7 +414,7 @@ namespace THWTicketApp.ViewModels
         [RelayCommand]
         private async Task LogoutAsync()
         {
-            _apiService.Logout();
+            await _apiService.LogoutAsync();
             IsAuthenticated = false;
 
             var window = Application.Current?.Windows.FirstOrDefault();

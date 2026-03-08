@@ -105,8 +105,21 @@ namespace THWTicketApp.Services
             return false;
         }
 
-        public void Logout()
+        public async Task LogoutAsync()
         {
+            // Invalidate token on the server
+            try
+            {
+                if (IsAuthenticated)
+                {
+                    await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/logout");
+                }
+            }
+            catch
+            {
+                // Best-effort: clear local state even if server call fails
+            }
+
             _authToken = null;
             CurrentUsername = null;
             CurrentUserId = null;
@@ -166,7 +179,7 @@ namespace THWTicketApp.Services
             return await response.Content.ReadAsStringAsync();
         }
 
-        public async Task<string> AddTicketAsync(string title, string description, int assignedUserId)
+        public async Task<string> AddTicketAsync(string title, string description, string? assigneeId)
         {
             if (string.IsNullOrWhiteSpace(title))
             {
@@ -179,8 +192,8 @@ namespace THWTicketApp.Services
                 ["issue"] = description,
                 ["owner"] = CurrentUserId
             };
-            if (assignedUserId > 0)
-                payload["assignee"] = assignedUserId.ToString();
+            if (!string.IsNullOrEmpty(assigneeId))
+                payload["assignee"] = assigneeId;
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/create", content);
             response.EnsureSuccessStatusCode();

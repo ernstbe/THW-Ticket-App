@@ -127,12 +127,12 @@ public class TrueDeskApiIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Logout_ClearsAuthentication()
+    public async Task Logout_ClearsAuthentication()
     {
         var tempApi = CreateFreshApi();
-        tempApi.TryRestoreSessionAsync().Wait();
+        await tempApi.TryRestoreSessionAsync();
 
-        tempApi.Logout();
+        await tempApi.LogoutAsync();
 
         tempApi.IsAuthenticated.Should().BeFalse();
         tempApi.CurrentUsername.Should().BeNull();
