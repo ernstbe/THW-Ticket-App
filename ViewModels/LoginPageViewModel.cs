@@ -63,7 +63,16 @@ namespace THWTicketApp.ViewModels
 
             try
             {
-                var success = await _apiService.AuthenticateAsync(Username, Password);
+                bool success;
+                try
+                {
+                    success = await _apiService.AuthenticateAsync(Username, Password);
+                }
+                catch (Exception ex)
+                {
+                    LoginStatus = $"Verbindungsfehler: {ex.Message}";
+                    return;
+                }
 
                 if (success)
                 {
@@ -79,22 +88,17 @@ namespace THWTicketApp.ViewModels
                     catch { }
 
                     Password = string.Empty; // Clear password from memory
-
-                    var window = Application.Current?.Windows.FirstOrDefault();
-                    if (window?.Page is NavigationPage nav)
-                    {
-                        var mainPage = _serviceProvider.GetRequiredService<MainPage>();
-                        await nav.PushAsync(mainPage);
-                    }
+                    await NavigateToMainPageAsync();
                 }
                 else
                 {
                     LoginStatus = "Anmeldung fehlgeschlagen. Ungültige Anmeldedaten.";
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                LoginStatus = "Netzwerkfehler. Bitte Verbindung prüfen.";
+                WriteCrashLog($"LoginAsync: {ex}");
+                LoginStatus = $"Fehler: {ex.GetType().Name}: {ex.Message}";
             }
             finally
             {
@@ -129,12 +133,7 @@ namespace THWTicketApp.ViewModels
                         if (success)
                         {
                             LoginStatus = "Anmeldung erfolgreich!";
-                            var window = Application.Current?.Windows.FirstOrDefault();
-                            if (window?.Page is NavigationPage nav)
-                            {
-                                var mainPage = _serviceProvider.GetRequiredService<MainPage>();
-                                await nav.PushAsync(mainPage);
-                            }
+                            await NavigateToMainPageAsync();
                         }
                         else
                         {
@@ -159,17 +158,45 @@ namespace THWTicketApp.ViewModels
             }
         }
 
+        private async Task NavigateToMainPageAsync()
+        {
+            try
+            {
+                LoginStatus = "Lade Dashboard...";
+                var mainPage = _serviceProvider.GetRequiredService<MainPage>();
+                LoginStatus = "Navigiere...";
+                if (Application.Current?.Windows.FirstOrDefault()?.Page is NavigationPage nav)
+                {
+                    await nav.PushAsync(mainPage);
+                }
+                else
+                {
+                    Application.Current!.Windows.First().Page = new NavigationPage(mainPage);
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteCrashLog($"NavigateToMainPage: {ex}");
+                LoginStatus = $"Navigation: {ex.GetType().Name}: {ex.Message}";
+            }
+        }
+
+        private static void WriteCrashLog(string message)
+        {
+            try
+            {
+                var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "THWTicketApp_crash.log");
+                File.AppendAllText(logPath, $"[{DateTime.Now:HH:mm:ss}] {message}\n");
+            }
+            catch { }
+        }
+
         [RelayCommand]
         private async Task TryAutoLoginAsync()
         {
             if (await _apiService.TryRestoreSessionAsync())
             {
-                var window = Application.Current?.Windows.FirstOrDefault();
-                if (window?.Page is NavigationPage nav)
-                {
-                    var mainPage = _serviceProvider.GetRequiredService<MainPage>();
-                    await nav.PushAsync(mainPage);
-                }
+                await NavigateToMainPageAsync();
             }
         }
     }

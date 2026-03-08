@@ -169,14 +169,10 @@ public class SkeletonView : ContentView
 
     private void StartAnimation()
     {
-        // Pulse animation on all skeleton elements
-        this.Dispatcher?.Dispatch(async () =>
-        {
-            while (IsVisible && Content != null)
-            {
-                await this.FadeToAsync(0.4, 800, Easing.SinInOut);
-                await this.FadeToAsync(1.0, 800, Easing.SinInOut);
-            }
-        });
+        // Pulse animation using safe Animation API
+        var animation = new Animation(v => Opacity = v, 1.0, 0.4);
+        var animationBack = new Animation(v => Opacity = v, 0.4, 1.0);
+        animation.Add(0.5, 1.0, animationBack);
+        animation.Commit(this, "SkeletonPulse", length: 1600, repeat: () => IsVisible && Content != null);
     }
 }

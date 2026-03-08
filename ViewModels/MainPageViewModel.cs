@@ -129,14 +129,24 @@ namespace THWTicketApp.ViewModels
             HasError = false;
             ErrorMessage = string.Empty;
 
-            // Sync any queued offline actions
-            await _syncService.SyncPendingActionsAsync();
-            PendingActionsCount = await _syncService.GetPendingCountAsync();
-            UnreadNotificationCount = await _databaseService.GetUnreadNotificationCountAsync();
-            var conflicts = await _syncService.GetConflictedActionsAsync();
-            ConflictCount = conflicts.Count;
-
-            // Connect to real-time updates
+            // Background tasks: sync, notifications, realtime - don't block dashboard
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _syncService.SyncPendingActionsAsync();
+                    var count = await _syncService.GetPendingCountAsync();
+                    var unread = await _databaseService.GetUnreadNotificationCountAsync();
+                    var conf = await _syncService.GetConflictedActionsAsync();
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        PendingActionsCount = count;
+                        UnreadNotificationCount = unread;
+                        ConflictCount = conf.Count;
+                    });
+                }
+                catch { }
+            });
             _ = _realtimeService.ConnectAsync();
 
             try

@@ -14,10 +14,10 @@ public partial class MainPage : ContentPage
         BindingContext = _viewModel;
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.LoadDashboardCommand.ExecuteAsync(null);
+        _ = _viewModel.LoadDashboardCommand.ExecuteAsync(null);
     }
 
     private async void OnRecentTicketSelected(object? sender, SelectionChangedEventArgs e)

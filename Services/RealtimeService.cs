@@ -40,7 +40,8 @@ public class RealtimeService : IDisposable
             _socket = new SocketIOClient.SocketIO(new Uri(baseUrl), new SocketIOOptions
             {
                 Reconnection = true,
-                ReconnectionAttempts = 10,
+                ReconnectionAttempts = 3,
+                ConnectionTimeout = TimeSpan.FromSeconds(5),
                 Query = query
             });
 
@@ -82,7 +83,8 @@ public class RealtimeService : IDisposable
                 return Task.CompletedTask;
             });
 
-            await _socket.ConnectAsync();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await _socket.ConnectAsync(cts.Token);
         }
         catch
         {
