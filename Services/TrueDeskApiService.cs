@@ -128,6 +128,21 @@ namespace THWTicketApp.Services
             return await response.Content.ReadAsStringAsync();
         }
 
+        public async Task<string> GetTicketsPagedAsync(int page = 0, int limit = 50)
+        {
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets?page={page}&limit={limit}");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<string> SearchTicketsAsync(string query)
+        {
+            var encoded = Uri.EscapeDataString(query);
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets/search?search={encoded}");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
         public async Task<string> AddTicketAsync(string title, string description, int assignedUserId)
         {
             if (string.IsNullOrWhiteSpace(title))

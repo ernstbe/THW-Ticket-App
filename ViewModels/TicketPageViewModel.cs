@@ -16,6 +16,8 @@ public partial class TicketPageViewModel : ObservableObject
     private readonly RealtimeService _realtimeService;
     private List<Ticket> _allTickets = [];
     private bool _isOfflineCacheEnabled;
+    private CancellationTokenSource? _searchCts;
+    private bool _isServerSearchActive;
 
     private string _statusMessage = string.Empty;
     public string StatusMessage
@@ -60,7 +62,7 @@ public partial class TicketPageViewModel : ObservableObject
         {
             if (SetProperty(ref _searchText, value))
             {
-                ApplyFilters();
+                _ = DebouncedSearchAsync(value);
             }
         }
     }
@@ -263,7 +265,79 @@ public partial class TicketPageViewModel : ObservableObject
     [RelayCommand]
     private void Search()
     {
-        ApplyFilters();
+        _ = DebouncedSearchAsync(SearchText, immediate: true);
+    }
+
+    private async Task DebouncedSearchAsync(string query, bool immediate = false)
+    {
+        _searchCts?.Cancel();
+        _searchCts = new CancellationTokenSource();
+        var token = _searchCts.Token;
+
+        if (!immediate)
+        {
+            try { await Task.Delay(400, token); }
+            catch (TaskCanceledException) { return; }
+        }
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            // Search cleared — revert to full local list
+            if (_isServerSearchActive)
+            {
+                _isServerSearchActive = false;
+                await LoadTicketsAsync();
+            }
+            else
+            {
+                ApplyFilters();
+            }
+            return;
+        }
+
+        // Only use server search for queries with 2+ characters
+        if (query.Length < 2)
+        {
+            ApplyFilters();
+            return;
+        }
+
+        try
+        {
+            var json = await _apiService.SearchTicketsAsync(query);
+            if (token.IsCancellationRequested) return;
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var response = JsonSerializer.Deserialize<Models.Responses.GetTicketsResponse>(json, options);
+            var tickets = response?.Tickets;
+
+            if (tickets == null || tickets.Count == 0)
+            {
+                // Server search returned nothing — fall back to client-side filter
+                _isServerSearchActive = false;
+                ApplyFilters();
+                return;
+            }
+
+            _isServerSearchActive = true;
+            foreach (var ticket in tickets)
+                TrudeskTranslationHelper.TranslateTicket(ticket);
+
+            // Replace filtered view with server results, still apply local filters on top
+            FilteredTickets.Clear();
+            var filtered = ApplyLocalFilters(tickets);
+            foreach (var ticket in ApplySorting(filtered))
+                FilteredTickets.Add(ticket);
+
+            UpdateActiveFilterCount();
+            OnPropertyChanged(nameof(HasStatusMessage));
+        }
+        catch
+        {
+            // Server search failed — fall back to client-side filter
+            _isServerSearchActive = false;
+            ApplyFilters();
+        }
     }
 
     [RelayCommand]
@@ -389,23 +463,9 @@ public partial class TicketPageViewModel : ObservableObject
         ActiveFilterCount = count;
     }
 
-    private void ApplyFilters()
+    private IEnumerable<Ticket> ApplyLocalFilters(IEnumerable<Ticket> source)
     {
-        var filtered = _allTickets.AsEnumerable();
-
-        // Apply search filter
-        if (!string.IsNullOrWhiteSpace(SearchText))
-        {
-            var search = SearchText.ToLowerInvariant();
-            filtered = filtered.Where(t =>
-                (t.Subject?.ToLowerInvariant().Contains(search) ?? false) ||
-                (t.Issue?.ToLowerInvariant().Contains(search) ?? false) ||
-                (t.Owner?.Fullname?.ToLowerInvariant().Contains(search) ?? false) ||
-                (t.Assignee?.Fullname?.ToLowerInvariant().Contains(search) ?? false) ||
-                (t.Uid.ToString().Contains(search)) ||
-                (t.Tags?.Any(tag => tag.Name?.ToLowerInvariant().Contains(search) ?? false) ?? false)
-            );
-        }
+        var filtered = source;
 
         // Apply status filter (check both German translated and English original names)
         filtered = ActiveFilter switch
@@ -442,17 +502,43 @@ public partial class TicketPageViewModel : ObservableObject
         if (DateTo.HasValue)
             filtered = filtered.Where(t => t.Date <= DateTo.Value.AddDays(1));
 
-        // Apply sorting
-        var sorted = ActiveSort switch
+        return filtered;
+    }
+
+    private IOrderedEnumerable<Ticket> ApplySorting(IEnumerable<Ticket> source)
+    {
+        return ActiveSort switch
         {
-            "date_asc" => filtered.OrderBy(t => t.Date),
-            "date_desc" => filtered.OrderByDescending(t => t.Date),
-            "updated" => filtered.OrderByDescending(t => t.Updated),
-            "priority" => filtered.OrderByDescending(t => t.Priority?.OverdueIn ?? 0),
-            "subject" => filtered.OrderBy(t => t.Subject, StringComparer.OrdinalIgnoreCase),
-            "duedate" => filtered.OrderBy(t => t.DueDate == DateTime.MinValue ? DateTime.MaxValue : t.DueDate),
-            _ => filtered.OrderByDescending(t => t.Date)
+            "date_asc" => source.OrderBy(t => t.Date),
+            "date_desc" => source.OrderByDescending(t => t.Date),
+            "updated" => source.OrderByDescending(t => t.Updated),
+            "priority" => source.OrderByDescending(t => t.Priority?.OverdueIn ?? 0),
+            "subject" => source.OrderBy(t => t.Subject, StringComparer.OrdinalIgnoreCase),
+            "duedate" => source.OrderBy(t => t.DueDate == DateTime.MinValue ? DateTime.MaxValue : t.DueDate),
+            _ => source.OrderByDescending(t => t.Date)
         };
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = _allTickets.AsEnumerable();
+
+        // Apply client-side search filter (only when not using server search)
+        if (!_isServerSearchActive && !string.IsNullOrWhiteSpace(SearchText))
+        {
+            var search = SearchText.ToLowerInvariant();
+            filtered = filtered.Where(t =>
+                (t.Subject?.ToLowerInvariant().Contains(search) ?? false) ||
+                (t.Issue?.ToLowerInvariant().Contains(search) ?? false) ||
+                (t.Owner?.Fullname?.ToLowerInvariant().Contains(search) ?? false) ||
+                (t.Assignee?.Fullname?.ToLowerInvariant().Contains(search) ?? false) ||
+                (t.Uid.ToString().Contains(search)) ||
+                (t.Tags?.Any(tag => tag.Name?.ToLowerInvariant().Contains(search) ?? false) ?? false)
+            );
+        }
+
+        filtered = ApplyLocalFilters(filtered);
+        var sorted = ApplySorting(filtered);
 
         FilteredTickets.Clear();
         foreach (var ticket in sorted)
