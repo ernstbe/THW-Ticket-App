@@ -6,6 +6,7 @@ public interface ITrueDeskApiService
 {
     string? CurrentUsername { get; }
     string? CurrentUserId { get; }
+    string? LastError { get; }
     bool IsAuthenticated { get; }
 
     Task<bool> AuthenticateAsync(string username, string password);

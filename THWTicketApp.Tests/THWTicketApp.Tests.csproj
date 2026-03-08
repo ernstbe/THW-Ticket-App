@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="Microsoft.Maui.Networking" />
+    <Using Include="Microsoft.Maui.ApplicationModel" />
+    <Using Include="Microsoft.Maui.Storage" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
     <PackageReference Include="xunit.v3" Version="1.*" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.*" />
@@ -22,6 +28,8 @@
     <Compile Include="..\Services\ITrueDeskApiService.cs" Link="Services\ITrueDeskApiService.cs" />
     <Compile Include="..\Services\IDatabaseService.cs" Link="Services\IDatabaseService.cs" />
     <Compile Include="..\Services\ISyncService.cs" Link="Services\ISyncService.cs" />
+    <Compile Include="..\Services\SyncService.cs" Link="Services\SyncService.cs" />
+    <Compile Include="..\Services\TrueDeskApiService.cs" Link="Services\TrueDeskApiService.cs" />
     <Compile Include="..\Services\TrudeskTranslationHelper.cs" Link="Services\TrudeskTranslationHelper.cs" />
     <Compile Include="..\Services\AppSettings.cs" Link="Services\AppSettings.cs" />
     <Compile Include="..\Helpers\Translator.cs" Link="Helpers\Translator.cs" />
