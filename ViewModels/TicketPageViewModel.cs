@@ -1070,7 +1070,7 @@ public partial class TicketPageViewModel : ObservableObject
         await LoadTicketsAsync();
     }
 
-    public async Task AddTicketAsync(string title, string description, int assignedUserId)
+    public async Task AddTicketAsync(string title, string description, string? assigneeId)
     {
         if (string.IsNullOrWhiteSpace(title))
         {
@@ -1082,7 +1082,7 @@ public partial class TicketPageViewModel : ObservableObject
         IsLoading = true;
         try
         {
-            await _apiService.AddTicketAsync(title, description, assignedUserId);
+            await _apiService.AddTicketAsync(title, description, assigneeId);
             StatusMessage = "Ticket erstellt.";
             await LoadTicketsAsync();
         }
