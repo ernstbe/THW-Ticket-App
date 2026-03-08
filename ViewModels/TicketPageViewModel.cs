@@ -206,7 +206,34 @@ public partial class TicketPageViewModel : ObservableObject
         set { if (SetProperty(ref _showOnlyFavorites, value)) ApplyFilters(); }
     }
 
+    private bool _showOnlyOverdue;
+    public bool ShowOnlyOverdue
+    {
+        get => _showOnlyOverdue;
+        set { if (SetProperty(ref _showOnlyOverdue, value)) ApplyFilters(); }
+    }
+
     private HashSet<string> _favoriteIds = new();
+
+    // Bulk selection
+    private bool _isBulkSelectMode;
+    public bool IsBulkSelectMode
+    {
+        get => _isBulkSelectMode;
+        set
+        {
+            if (SetProperty(ref _isBulkSelectMode, value))
+            {
+                if (!value) SelectedTicketIds.Clear();
+                OnPropertyChanged(nameof(SelectedCount));
+                OnPropertyChanged(nameof(HasSelectedTickets));
+            }
+        }
+    }
+
+    public ObservableCollection<string> SelectedTicketIds { get; } = new();
+    public int SelectedCount => SelectedTicketIds.Count;
+    public bool HasSelectedTickets => SelectedTicketIds.Count > 0;
 
     public TicketPageViewModel(TrueDeskApiService apiService, IServiceProvider serviceProvider, DatabaseService databaseService, SyncService syncService, RealtimeService realtimeService)
     {
@@ -260,6 +287,12 @@ public partial class TicketPageViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void ToggleOverdueFilter()
+    {
+        ShowOnlyOverdue = !ShowOnlyOverdue;
+    }
+
+    [RelayCommand]
     private async Task ToggleFavoriteAsync(Ticket ticket)
     {
         if (ticket == null) return;
@@ -293,6 +326,8 @@ public partial class TicketPageViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowOnlyMyTickets));
         _showOnlyFavorites = false;
         OnPropertyChanged(nameof(ShowOnlyFavorites));
+        _showOnlyOverdue = false;
+        OnPropertyChanged(nameof(ShowOnlyOverdue));
         _dateFrom = null;
         OnPropertyChanged(nameof(DateFrom));
         _dateTo = null;
@@ -347,6 +382,7 @@ public partial class TicketPageViewModel : ObservableObject
         if (SelectedGroupFilter != null) count++;
         if (ShowOnlyMyTickets) count++;
         if (ShowOnlyFavorites) count++;
+        if (ShowOnlyOverdue) count++;
         if (DateFrom.HasValue) count++;
         if (DateTo.HasValue) count++;
         if (ActiveFilter != "all") count++;
@@ -396,6 +432,9 @@ public partial class TicketPageViewModel : ObservableObject
 
         if (ShowOnlyFavorites)
             filtered = filtered.Where(t => _favoriteIds.Contains(t.Id));
+
+        if (ShowOnlyOverdue)
+            filtered = filtered.Where(t => t.DueDate != DateTime.MinValue && t.DueDate < DateTime.Now && t.Status?.IsResolved != true);
 
         if (DateFrom.HasValue)
             filtered = filtered.Where(t => t.Date >= DateFrom.Value);
@@ -682,6 +721,119 @@ public partial class TicketPageViewModel : ObservableObject
         {
             IsRealtimeConnected = false;
         }
+    }
+
+    [RelayCommand]
+    private void ToggleBulkSelectMode()
+    {
+        IsBulkSelectMode = !IsBulkSelectMode;
+    }
+
+    [RelayCommand]
+    private void ToggleTicketSelection(Ticket ticket)
+    {
+        if (ticket == null) return;
+
+        if (SelectedTicketIds.Contains(ticket.Id))
+            SelectedTicketIds.Remove(ticket.Id);
+        else
+            SelectedTicketIds.Add(ticket.Id);
+
+        OnPropertyChanged(nameof(SelectedCount));
+        OnPropertyChanged(nameof(HasSelectedTickets));
+    }
+
+    [RelayCommand]
+    private void SelectAllTickets()
+    {
+        SelectedTicketIds.Clear();
+        foreach (var ticket in FilteredTickets)
+            SelectedTicketIds.Add(ticket.Id);
+        OnPropertyChanged(nameof(SelectedCount));
+        OnPropertyChanged(nameof(HasSelectedTickets));
+    }
+
+    public bool IsTicketSelected(string ticketId) => SelectedTicketIds.Contains(ticketId);
+
+    [RelayCommand]
+    private async Task BulkAssignToMeAsync()
+    {
+        if (SelectedTicketIds.Count == 0) return;
+        var userId = _apiService.CurrentUserId;
+        if (string.IsNullOrEmpty(userId))
+        {
+            StatusMessage = "Benutzer-ID nicht verfügbar.";
+            OnPropertyChanged(nameof(HasStatusMessage));
+            return;
+        }
+
+        IsLoading = true;
+        var successCount = 0;
+        foreach (var ticketId in SelectedTicketIds.ToList())
+        {
+            try
+            {
+                if (await _apiService.AssignTicketAsync(ticketId, userId))
+                    successCount++;
+            }
+            catch
+            {
+                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                    await _syncService.EnqueueAssignAsync(ticketId, userId);
+            }
+        }
+
+        StatusMessage = $"{successCount} Ticket(s) zugewiesen.";
+        IsBulkSelectMode = false;
+        IsLoading = false;
+        OnPropertyChanged(nameof(HasStatusMessage));
+        await LoadTicketsAsync();
+    }
+
+    [RelayCommand]
+    private async Task BulkCloseAsync()
+    {
+        if (SelectedTicketIds.Count == 0) return;
+
+        IsLoading = true;
+        Status? closedStatus = null;
+        try
+        {
+            var statusJson = await _apiService.GetStatusesAsync();
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var statuses = JsonSerializer.Deserialize<Status[]>(statusJson, options);
+            closedStatus = statuses?.FirstOrDefault(s => s.IsResolved);
+        }
+        catch { }
+
+        var successCount = 0;
+        foreach (var ticketId in SelectedTicketIds.ToList())
+        {
+            try
+            {
+                var ticket = _allTickets.FirstOrDefault(t => t.Id == ticketId);
+                if (ticket == null) continue;
+
+                var editTicket = new Ticket
+                {
+                    Id = ticketId,
+                    Subject = ticket.Subject,
+                    Issue = ticket.Issue,
+                    Priority = ticket.Priority,
+                    Status = closedStatus ?? new Status { Id = ticket.Status?.Id, Name = "Closed", IsResolved = true }
+                };
+
+                if (await _apiService.EditTicketAsync(editTicket))
+                    successCount++;
+            }
+            catch { }
+        }
+
+        StatusMessage = $"{successCount} Ticket(s) geschlossen.";
+        IsBulkSelectMode = false;
+        IsLoading = false;
+        OnPropertyChanged(nameof(HasStatusMessage));
+        await LoadTicketsAsync();
     }
 
     public async Task AddTicketAsync(string title, string description, int assignedUserId)

@@ -20,6 +20,7 @@
             <converters:BoolToTimerColorConverter x:Key="BoolToTimerColorConverter"/>
             <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter"/>
             <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
+            <converters:BoolToOverdueColorConverter x:Key="BoolToOverdueColorConverter"/>
 
             <!-- Filter Chip Style -->
             <Style x:Key="FilterChipStyle" TargetType="Button">

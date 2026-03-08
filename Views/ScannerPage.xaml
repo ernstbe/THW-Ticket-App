@@ -13,31 +13,83 @@
                                         BarcodesDetected="OnBarcodesDetected"
                                         IsDetecting="True"/>
 
+        <!-- Scan overlay crosshair -->
+        <Border Grid.Row="0"
+                StrokeShape="RoundRectangle 12"
+                Stroke="{StaticResource THWBlue}"
+                StrokeThickness="2"
+                BackgroundColor="Transparent"
+                WidthRequest="250"
+                HeightRequest="250"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Opacity="0.6"/>
+
         <VerticalStackLayout Grid.Row="1" Padding="15" Spacing="10">
             <Label Text="Richten Sie die Kamera auf einen Barcode oder QR-Code"
                    HorizontalTextAlignment="Center"
                    FontSize="14"
                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
 
-            <Label x:Name="ScanResultLabel"
-                   Text=""
-                   HorizontalTextAlignment="Center"
-                   FontSize="14"
-                   FontAttributes="Bold"
-                   TextColor="{AppThemeBinding Light={StaticResource THWBlueDark}, Dark={StaticResource THWBlueLight}}"/>
+            <!-- Scan Result Display -->
+            <Frame x:Name="ResultFrame"
+                   IsVisible="False"
+                   Style="{StaticResource CardStyle}"
+                   BorderColor="{StaticResource THWBlue}"
+                   Padding="12">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Scan-Ergebnis:"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Label x:Name="ScanResultLabel"
+                           Text=""
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource THWBlueDark}, Dark={StaticResource THWBlueLight}}"
+                           LineBreakMode="WordWrap"/>
+                    <Label x:Name="ScanTypeLabel"
+                           Text=""
+                           FontSize="11"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
+                </VerticalStackLayout>
+            </Frame>
 
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+            <!-- Scan History -->
+            <Label x:Name="ScanHistoryLabel"
+                   Text=""
+                   FontSize="11"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                   HorizontalTextAlignment="Center"
+                   IsVisible="False"/>
+
+            <!-- Action Buttons -->
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8" x:Name="ActionButtons" IsVisible="False">
                 <Button Grid.Column="0"
-                        Text="Abbrechen"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        Clicked="OnCancelClicked"/>
-                <Button Grid.Column="1"
-                        x:Name="UseResultButton"
-                        Text="Als Ticket-Betreff"
+                        Text="Neues Ticket"
                         Style="{StaticResource PrimaryButtonStyle}"
-                        IsEnabled="False"
-                        Clicked="OnUseResultClicked"/>
+                        FontSize="12"
+                        Padding="8,10"
+                        Clicked="OnCreateTicketClicked"/>
+                <Button Grid.Column="1"
+                        Text="Ticket suchen"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        FontSize="12"
+                        Padding="8,10"
+                        Clicked="OnSearchTicketClicked"/>
+                <Button Grid.Column="2"
+                        Text="Erneut scannen"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        FontSize="12"
+                        Padding="8,10"
+                        Clicked="OnRescanClicked"/>
             </Grid>
+
+            <!-- Cancel button -->
+            <Button Text="Abbrechen"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Clicked="OnCancelClicked"
+                    Margin="0,0,0,5"/>
         </VerticalStackLayout>
     </Grid>
 </ContentPage>

@@ -20,6 +20,21 @@ public partial class SettingsViewModel : ObservableObject
     private bool _isNotificationsEnabled;
 
     [ObservableProperty]
+    private bool _notifyOnlyMyTickets;
+
+    [ObservableProperty]
+    private bool _notifyOnlyHighPriority;
+
+    [ObservableProperty]
+    private bool _notifyOnNewTickets;
+
+    [ObservableProperty]
+    private bool _notifyOnComments;
+
+    [ObservableProperty]
+    private bool _notifyOnStatusChanges;
+
+    [ObservableProperty]
     private string _apiBaseUrl = string.Empty;
 
     [ObservableProperty]
@@ -65,6 +80,11 @@ public partial class SettingsViewModel : ObservableObject
         // Load from preferences
         IsDarkMode = Preferences.Get("DarkMode", false);
         IsNotificationsEnabled = _notificationService.IsEnabled;
+        NotifyOnlyMyTickets = _notificationService.NotifyOnlyMyTickets;
+        NotifyOnlyHighPriority = _notificationService.NotifyOnlyHighPriority;
+        NotifyOnNewTickets = _notificationService.NotifyOnNewTickets;
+        NotifyOnComments = _notificationService.NotifyOnComments;
+        NotifyOnStatusChanges = _notificationService.NotifyOnStatusChanges;
         ApiBaseUrl = Preferences.Get("ApiBaseUrl", _appSettings.ApiBaseUrl);
         ConnectionTimeout = Preferences.Get("ConnectionTimeout", _appSettings.ConnectionTimeoutSeconds).ToString();
         IsOfflineCacheEnabled = Preferences.Get("OfflineCache", false);
@@ -172,17 +192,21 @@ public partial class SettingsViewModel : ObservableObject
             await _databaseService.ClearCacheAsync();
             await LoadCacheInfoAsync();
 
-            await Application.Current!.MainPage!.DisplayAlert(
-                "Cache geleert",
-                "Der Cache wurde erfolgreich geleert.",
-                "OK");
+            var page = Application.Current?.Windows.FirstOrDefault()?.Page;
+            if (page != null)
+                await page.DisplayAlertAsync(
+                    "Cache geleert",
+                    "Der Cache wurde erfolgreich geleert.",
+                    "OK");
         }
         catch (Exception ex)
         {
-            await Application.Current!.MainPage!.DisplayAlert(
-                "Fehler",
-                $"Cache konnte nicht geleert werden: {ex.Message}",
-                "OK");
+            var page = Application.Current?.Windows.FirstOrDefault()?.Page;
+            if (page != null)
+                await page.DisplayAlertAsync(
+                    "Fehler",
+                    $"Cache konnte nicht geleert werden: {ex.Message}",
+                    "OK");
         }
     }
 
@@ -192,10 +216,12 @@ public partial class SettingsViewModel : ObservableObject
         // Validate timeout
         if (!int.TryParse(ConnectionTimeout, out var timeout) || timeout < 5 || timeout > 300)
         {
-            await Application.Current!.MainPage!.DisplayAlert(
-                "Ungültige Eingabe",
-                "Timeout muss zwischen 5 und 300 Sekunden liegen.",
-                "OK");
+            var page = Application.Current?.Windows.FirstOrDefault()?.Page;
+            if (page != null)
+                await page.DisplayAlertAsync(
+                    "Ungültige Eingabe",
+                    "Timeout muss zwischen 5 und 300 Sekunden liegen.",
+                    "OK");
             return;
         }
 
@@ -210,21 +236,31 @@ public partial class SettingsViewModel : ObservableObject
             LocalizationService.Instance.SetLanguage(LocalizationService.SupportedLanguages[SelectedLanguageIndex]);
         }
         _notificationService.IsEnabled = IsNotificationsEnabled;
+        _notificationService.NotifyOnlyMyTickets = NotifyOnlyMyTickets;
+        _notificationService.NotifyOnlyHighPriority = NotifyOnlyHighPriority;
+        _notificationService.NotifyOnNewTickets = NotifyOnNewTickets;
+        _notificationService.NotifyOnComments = NotifyOnComments;
+        _notificationService.NotifyOnStatusChanges = NotifyOnStatusChanges;
 
         // Update app settings
         _appSettings.ApiBaseUrl = ApiBaseUrl;
         _appSettings.ConnectionTimeoutSeconds = timeout;
 
-        await Application.Current!.MainPage!.DisplayAlert(
-            "Gespeichert",
-            "Die Einstellungen wurden gespeichert. Einige Änderungen werden erst nach einem Neustart wirksam.",
-            "OK");
+        var savePage = Application.Current?.Windows.FirstOrDefault()?.Page;
+        if (savePage != null)
+            await savePage.DisplayAlertAsync(
+                "Gespeichert",
+                "Die Einstellungen wurden gespeichert. Einige Änderungen werden erst nach einem Neustart wirksam.",
+                "OK");
     }
 
     [RelayCommand]
     private async Task LogoutAsync()
     {
-        var confirm = await Application.Current!.MainPage!.DisplayAlert(
+        var page = Application.Current?.Windows.FirstOrDefault()?.Page;
+        if (page == null) return;
+
+        var confirm = await page.DisplayAlertAsync(
             "Abmelden",
             "Möchten Sie sich wirklich abmelden?",
             "Ja",
