@@ -95,6 +95,29 @@ namespace THWTicketApp.Services
                         _httpClient.DefaultRequestHeaders.Remove("accesstoken");
                     }
                     _httpClient.DefaultRequestHeaders.Add("accesstoken", _authToken);
+
+                    // Verify the token is still valid on the server
+                    try
+                    {
+                        var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/login");
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            // Token expired or revoked - clear local state
+                            _authToken = null;
+                            CurrentUsername = null;
+                            CurrentUserId = null;
+                            _httpClient.DefaultRequestHeaders.Remove("accesstoken");
+                            SecureStorage.Remove("auth_token");
+                            SecureStorage.Remove("auth_username");
+                            SecureStorage.Remove("auth_userid");
+                            return false;
+                        }
+                    }
+                    catch
+                    {
+                        // Network error - assume token is valid, let it fail on next call
+                    }
+
                     return true;
                 }
             }

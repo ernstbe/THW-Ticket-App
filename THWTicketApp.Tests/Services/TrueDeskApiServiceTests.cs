@@ -330,11 +330,14 @@ public class TrueDeskApiServiceTests : IDisposable
     // ===============================================================
 
     [Fact]
-    public async Task TryRestoreSessionAsync_WithStoredToken_ReturnsTrue()
+    public async Task TryRestoreSessionAsync_WithStoredToken_ValidatesOnServer()
     {
         await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_token", "stored-token");
         await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_username", "storeduser");
         await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_userid", "storedid");
+
+        // Server confirms token is valid
+        _handler.EnqueueResponse(HttpStatusCode.OK, "{\"success\":true,\"user\":{}}");
 
         var result = await _sut.TryRestoreSessionAsync();
 
@@ -342,6 +345,25 @@ public class TrueDeskApiServiceTests : IDisposable
         _sut.IsAuthenticated.Should().BeTrue();
         _sut.CurrentUsername.Should().Be("storeduser");
         _sut.CurrentUserId.Should().Be("storedid");
+    }
+
+    [Fact]
+    public async Task TryRestoreSessionAsync_ExpiredToken_ReturnsFalseAndClearsState()
+    {
+        await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_token", "expired-token");
+        await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_username", "user");
+        await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_userid", "id");
+
+        // Server rejects expired token
+        _handler.EnqueueResponse(HttpStatusCode.Unauthorized, "{\"success\":false}");
+
+        var result = await _sut.TryRestoreSessionAsync();
+
+        result.Should().BeFalse();
+        _sut.IsAuthenticated.Should().BeFalse();
+        _sut.CurrentUsername.Should().BeNull();
+        var token = await Microsoft.Maui.Storage.SecureStorage.GetAsync("auth_token");
+        token.Should().BeNull();
     }
 
     [Fact]
@@ -368,6 +390,8 @@ public class TrueDeskApiServiceTests : IDisposable
     {
         await Microsoft.Maui.Storage.SecureStorage.SetAsync("auth_token", "restored-token");
 
+        // Server validates token
+        _handler.EnqueueResponse(HttpStatusCode.OK, "{\"success\":true,\"user\":{}}");
         await _sut.TryRestoreSessionAsync();
 
         // Verify header is set on subsequent request
