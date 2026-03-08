@@ -6,7 +6,10 @@ public class NotificationService
 {
     private readonly RealtimeService _realtimeService;
     private readonly TrueDeskApiService _apiService;
+    private readonly DatabaseService _databaseService;
     private int _notificationId;
+
+    public event Action? NotificationReceived;
 
     public bool IsEnabled
     {
@@ -44,10 +47,11 @@ public class NotificationService
         set => Preferences.Set("NotifyOnStatusChanges", value);
     }
 
-    public NotificationService(RealtimeService realtimeService, TrueDeskApiService apiService)
+    public NotificationService(RealtimeService realtimeService, TrueDeskApiService apiService, DatabaseService databaseService)
     {
         _realtimeService = realtimeService;
         _apiService = apiService;
+        _databaseService = databaseService;
 
         _realtimeService.TicketCreated += OnTicketCreated;
         _realtimeService.TicketUpdated += OnTicketUpdated;
@@ -56,20 +60,33 @@ public class NotificationService
 
     private void OnTicketCreated(string ticketId)
     {
+        PersistNotification("Neues Ticket", "Ein neues Ticket wurde erstellt.", "new_ticket", ticketId);
         if (!NotifyOnNewTickets) return;
         ShowNotification("Neues Ticket", "Ein neues Ticket wurde erstellt.", ticketId);
     }
 
     private void OnTicketUpdated(string ticketId)
     {
+        PersistNotification("Ticket aktualisiert", "Ein Ticket wurde geändert.", "status_changed", ticketId);
         if (!NotifyOnStatusChanges) return;
         ShowNotification("Ticket aktualisiert", "Ein Ticket wurde geändert.", ticketId);
     }
 
     private void OnCommentAdded(string ticketId)
     {
+        PersistNotification("Neuer Kommentar", "Ein Kommentar wurde hinzugefügt.", "comment_added", ticketId);
         if (!NotifyOnComments) return;
         ShowNotification("Neuer Kommentar", "Ein Kommentar wurde hinzugefügt.", ticketId);
+    }
+
+    private async void PersistNotification(string title, string description, string eventType, string ticketId)
+    {
+        try
+        {
+            await _databaseService.AddNotificationAsync(title, description, eventType, ticketId);
+            NotificationReceived?.Invoke();
+        }
+        catch { }
     }
 
     private void ShowNotification(string title, string description, string ticketId)

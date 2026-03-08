@@ -44,6 +44,11 @@
                                CornerRadius="10"
                                BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}"
                                BorderColor="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}">
+                            <Frame.GestureRecognizers>
+                                <DropGestureRecognizer AllowDrop="True"
+                                                       DragOver="OnDragOver"
+                                                       Drop="OnDrop"/>
+                            </Frame.GestureRecognizers>
                             <VerticalStackLayout Spacing="8">
                                 <!-- Column Header -->
                                 <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
@@ -84,6 +89,10 @@
                                                     StrokeThickness="1"
                                                     Padding="10"
                                                     BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
+                                                <Border.GestureRecognizers>
+                                                    <DragGestureRecognizer CanDrag="True"
+                                                                           DragStarting="OnDragStarting"/>
+                                                </Border.GestureRecognizers>
                                                 <VerticalStackLayout Spacing="4">
                                                     <Label Text="{Binding Subject}"
                                                            FontSize="13"

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:data="clr-namespace:THWTicketApp.Data"
+             xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             x:Class="THWTicketApp.Views.SyncConflictPage"
+             x:DataType="viewmodels:SyncConflictViewModel"
+             Title="Sync-Konflikte">
+
+    <Grid RowDefinitions="Auto,*"
+          BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
+
+        <!-- Header -->
+        <Grid Grid.Row="0"
+              BackgroundColor="{AppThemeBinding Light={StaticResource HeaderBackground}, Dark={StaticResource HeaderBackgroundDark}}"
+              Padding="15,10">
+            <VerticalStackLayout>
+                <Label Text="Sync-Konflikte"
+                       TextColor="White"
+                       FontSize="20"
+                       FontAttributes="Bold"/>
+                <Label Text="Diese Aktionen konnten nicht automatisch synchronisiert werden."
+                       TextColor="#B3CCFF"
+                       FontSize="12"/>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Loading -->
+        <ActivityIndicator Grid.Row="1"
+                           IsRunning="{Binding IsLoading}"
+                           IsVisible="{Binding IsLoading}"
+                           Color="{StaticResource THWBlue}"
+                           VerticalOptions="Center"/>
+
+        <!-- Conflict List -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Conflicts}"
+                        IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10" Padding="20">
+                    <Label Text="Keine Konflikte"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                           HorizontalTextAlignment="Center"/>
+                    <Label Text="Alle Offline-Aktionen wurden erfolgreich synchronisiert."
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                           HorizontalTextAlignment="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="data:PendingAction">
+                    <Border Margin="10,5"
+                            StrokeShape="RoundRectangle 10"
+                            Stroke="{StaticResource Warning}"
+                            StrokeThickness="1.5"
+                            Padding="14"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
+                        <VerticalStackLayout Spacing="8">
+                            <!-- Action type + timestamp -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Text="{Binding ActionType}"
+                                       FontAttributes="Bold"
+                                       FontSize="15"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                                <Label Grid.Column="1"
+                                       Text="{Binding CreatedAt, StringFormat='{0:dd.MM.yy HH:mm}'}"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
+                            </Grid>
+
+                            <!-- Conflict reason -->
+                            <Frame BackgroundColor="#FFF3E0"
+                                   Padding="10,8"
+                                   CornerRadius="6"
+                                   HasShadow="False"
+                                   BorderColor="Transparent">
+                                <Label Text="{Binding ConflictReason}"
+                                       FontSize="13"
+                                       TextColor="#E65100"
+                                       LineBreakMode="WordWrap"/>
+                            </Frame>
+
+                            <!-- Action buttons -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <Button Grid.Column="0"
+                                        Text="Trotzdem anwenden"
+                                        BackgroundColor="{StaticResource THWBlue}"
+                                        TextColor="White"
+                                        FontSize="13"
+                                        CornerRadius="8"
+                                        Padding="8,6"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:SyncConflictViewModel}}, Path=ForceApplyCommand}"
+                                        CommandParameter="{Binding}"/>
+                                <Button Grid.Column="1"
+                                        Text="Verwerfen"
+                                        BackgroundColor="{StaticResource Danger}"
+                                        TextColor="White"
+                                        FontSize="13"
+                                        CornerRadius="8"
+                                        Padding="8,6"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:SyncConflictViewModel}}, Path=DiscardCommand}"
+                                        CommandParameter="{Binding}"/>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

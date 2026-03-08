@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:data="clr-namespace:THWTicketApp.Data"
+             xmlns:viewmodels="clr-namespace:THWTicketApp.ViewModels"
+             x:Class="THWTicketApp.Views.NotificationHistoryPage"
+             x:DataType="viewmodels:NotificationHistoryViewModel"
+             Title="Benachrichtigungen">
+
+    <Grid RowDefinitions="Auto,*,Auto"
+          BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
+
+        <!-- Header -->
+        <Grid Grid.Row="0"
+              BackgroundColor="{AppThemeBinding Light={StaticResource HeaderBackground}, Dark={StaticResource HeaderBackgroundDark}}"
+              Padding="15,10"
+              ColumnDefinitions="*,Auto">
+            <Label Grid.Column="0"
+                   Text="Benachrichtigungen"
+                   TextColor="White"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   VerticalOptions="Center"/>
+            <Border Grid.Column="1"
+                    StrokeShape="RoundRectangle 8"
+                    Stroke="Transparent"
+                    BackgroundColor="Transparent"
+                    Padding="8,4">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding ClearHistoryCommand}"/>
+                </Border.GestureRecognizers>
+                <Label Text="Löschen"
+                       TextColor="#FF6B6B"
+                       FontSize="13"
+                       VerticalTextAlignment="Center"/>
+            </Border>
+        </Grid>
+
+        <!-- Loading -->
+        <ActivityIndicator Grid.Row="1"
+                           IsRunning="{Binding IsLoading}"
+                           IsVisible="{Binding IsLoading}"
+                           Color="{StaticResource THWBlue}"
+                           VerticalOptions="Center"/>
+
+        <!-- Notification List -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Notifications}"
+                        IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10" Padding="20">
+                    <Label Text="Keine Benachrichtigungen"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                           HorizontalTextAlignment="Center"/>
+                    <Label Text="Neue Benachrichtigungen erscheinen hier automatisch."
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                           HorizontalTextAlignment="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="data:NotificationEntry">
+                    <Border Margin="10,5"
+                            StrokeShape="RoundRectangle 10"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
+                            StrokeThickness="1"
+                            Padding="12"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource CardBackground}, Dark={StaticResource CardBackgroundDark}}">
+                        <Grid ColumnDefinitions="6,*" ColumnSpacing="12">
+                            <!-- Event type color bar -->
+                            <BoxView Grid.Column="0"
+                                     WidthRequest="6"
+                                     CornerRadius="3"
+                                     BackgroundColor="{StaticResource THWBlue}"/>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0"
+                                           Text="{Binding Title}"
+                                           FontAttributes="Bold"
+                                           FontSize="14"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                                    <Label Grid.Column="1"
+                                           Text="{Binding CreatedAt, StringFormat='{0:dd.MM.yy HH:mm}'}"
+                                           FontSize="11"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
+                                </Grid>
+                                <Label Text="{Binding Description}"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
+                                       LineBreakMode="WordWrap"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:NotificationHistoryViewModel}}, Path=OpenTicketCommand}"
+                                                  CommandParameter="{Binding}"/>
+                        </Border.GestureRecognizers>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

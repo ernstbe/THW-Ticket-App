@@ -14,7 +14,7 @@
         <Grid Grid.Row="0"
               BackgroundColor="{AppThemeBinding Light={StaticResource HeaderBackground}, Dark={StaticResource HeaderBackgroundDark}}"
               Padding="15,10"
-              ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+              ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto">
             <!-- Search bar on white background -->
             <Border Grid.Column="0"
                     StrokeShape="RoundRectangle 8"
@@ -59,8 +59,25 @@
                          Command="{Binding ShowScannerCommand}"
                          BackgroundColor="Transparent"
                          Margin="4,0,0,0"/>
-            <!-- Live indicator -->
+            <!-- Export button -->
             <Border Grid.Column="3"
+                    StrokeShape="RoundRectangle 8"
+                    Stroke="Transparent"
+                    BackgroundColor="Transparent"
+                    Padding="4"
+                    Margin="4,0,0,0">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding ExportTicketsCommand}"/>
+                </Border.GestureRecognizers>
+                <Label Text="CSV"
+                       TextColor="White"
+                       FontSize="11"
+                       FontAttributes="Bold"
+                       VerticalTextAlignment="Center"
+                       HorizontalTextAlignment="Center"/>
+            </Border>
+            <!-- Live indicator -->
+            <Border Grid.Column="4"
                     IsVisible="{Binding IsRealtimeConnected}"
                     StrokeShape="RoundRectangle 4"
                     Stroke="Transparent"
@@ -69,7 +86,7 @@
                     HeightRequest="8"
                     VerticalOptions="Center"
                     Margin="8,0,0,0"/>
-            <ImageButton Grid.Column="4"
+            <ImageButton Grid.Column="5"
                          Source="settings.png"
                          WidthRequest="40"
                          HeightRequest="40"

@@ -128,6 +128,21 @@ namespace THWTicketApp.Services
             return await response.Content.ReadAsStringAsync();
         }
 
+        public async Task<string> GetTicketsPagedAsync(int page = 0, int limit = 50)
+        {
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets?page={page}&limit={limit}");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async Task<string> SearchTicketsAsync(string query)
+        {
+            var encoded = Uri.EscapeDataString(query);
+            var response = await _httpClient.GetAsync($"{_settings.ApiBaseUrl}/tickets/search?search={encoded}");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
         public async Task<string> AddTicketAsync(string title, string description, int assignedUserId)
         {
             if (string.IsNullOrWhiteSpace(title))
@@ -261,6 +276,19 @@ namespace THWTicketApp.Services
             if (response.IsSuccessStatusCode)
                 return await response.Content.ReadAsStreamAsync();
             return null;
+        }
+
+        public string GetAttachmentUrl(string attachmentPath)
+        {
+            var baseUrl = _settings.ApiBaseUrl.Replace("/api/v1", "");
+            return $"{baseUrl}{attachmentPath}";
+        }
+
+        public async Task<bool> DeleteAttachmentAsync(string ticketId, string attachmentId)
+        {
+            var response = await _httpClient.DeleteAsync(
+                $"{_settings.ApiBaseUrl}/tickets/{ticketId}/attachments/{attachmentId}");
+            return response.IsSuccessStatusCode;
         }
 
         private static string GetMimeType(string fileName)

@@ -7,8 +7,15 @@ using THWTicketApp.Services;
 
 namespace THWTicketApp.ViewModels;
 
+public class TicketMoveInfo
+{
+    public Ticket? Ticket { get; set; }
+    public string? TargetStatusId { get; set; }
+}
+
 public partial class KanbanColumn : ObservableObject
 {
+    public string StatusId { get; set; } = string.Empty;
     public string StatusName { get; set; } = string.Empty;
     public string StatusColor { get; set; } = "#9E9E9E";
     public ObservableCollection<Ticket> Tickets { get; set; } = new();
@@ -61,6 +68,7 @@ public partial class KanbanBoardViewModel : ObservableObject
             {
                 var column = new KanbanColumn
                 {
+                    StatusId = status.Id ?? string.Empty,
                     StatusName = TrudeskTranslationHelper.TranslateStatus(status.Name) ?? status.Name ?? "Unknown",
                     StatusColor = status.HtmlColor ?? "#9E9E9E"
                 };
@@ -79,5 +87,24 @@ public partial class KanbanBoardViewModel : ObservableObject
         {
             IsLoading = false;
         }
+    }
+
+    [RelayCommand]
+    private async Task MoveTicketAsync(TicketMoveInfo moveInfo)
+    {
+        if (moveInfo.Ticket == null || string.IsNullOrEmpty(moveInfo.TargetStatusId)) return;
+
+        // Don't move if same column
+        if (moveInfo.Ticket.Status?.Id == moveInfo.TargetStatusId) return;
+
+        try
+        {
+            var success = await _apiService.UpdateTicketStatusAsync(moveInfo.Ticket.Id!, moveInfo.TargetStatusId);
+            if (success)
+            {
+                await LoadBoardAsync();
+            }
+        }
+        catch { }
     }
 }

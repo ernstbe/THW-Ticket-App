@@ -1,4 +1,5 @@
 using System.Text.Json;
+using THWTicketApp.Models;
 
 namespace THWTicketApp.Services;
 
@@ -9,6 +10,7 @@ public class SyncService
     private bool _isSyncing;
 
     public event Action<int>? PendingCountChanged;
+    public event Action<Data.PendingAction>? ConflictDetected;
 
     public SyncService(DatabaseService databaseService, TrueDeskApiService apiService)
     {
@@ -31,17 +33,17 @@ public class SyncService
         return await _databaseService.GetPendingActionCountAsync();
     }
 
-    public async Task EnqueueCommentAsync(string ticketId, string ownerId, string comment)
+    public async Task EnqueueCommentAsync(string ticketId, string ownerId, string comment, DateTime? ticketUpdatedAt = null)
     {
         var payload = JsonSerializer.Serialize(new { ticketId, ownerId, comment });
-        await _databaseService.EnqueueActionAsync("AddComment", payload);
+        await _databaseService.EnqueueActionAsync("AddComment", payload, ticketUpdatedAt);
         await NotifyCountChanged();
     }
 
-    public async Task EnqueueNoteAsync(string ticketId, string ownerId, string note)
+    public async Task EnqueueNoteAsync(string ticketId, string ownerId, string note, DateTime? ticketUpdatedAt = null)
     {
         var payload = JsonSerializer.Serialize(new { ticketId, ownerId, note });
-        await _databaseService.EnqueueActionAsync("AddNote", payload);
+        await _databaseService.EnqueueActionAsync("AddNote", payload, ticketUpdatedAt);
         await NotifyCountChanged();
     }
 
@@ -52,10 +54,10 @@ public class SyncService
         await NotifyCountChanged();
     }
 
-    public async Task EnqueueAssignAsync(string ticketId, string userId)
+    public async Task EnqueueAssignAsync(string ticketId, string userId, DateTime? ticketUpdatedAt = null)
     {
         var payload = JsonSerializer.Serialize(new { ticketId, userId });
-        await _databaseService.EnqueueActionAsync("AssignTicket", payload);
+        await _databaseService.EnqueueActionAsync("AssignTicket", payload, ticketUpdatedAt);
         await NotifyCountChanged();
     }
 
@@ -72,6 +74,24 @@ public class SyncService
             var actions = await _databaseService.GetPendingActionsAsync();
             foreach (var action in actions)
             {
+                // Skip already-conflicted actions (user must resolve manually)
+                if (action.IsConflicted) { allSucceeded = false; continue; }
+
+                // Check for conflicts on ticket-related actions
+                if (action.TicketUpdatedAt.HasValue && action.ActionType != "CreateTicket")
+                {
+                    var conflict = await CheckConflictAsync(action);
+                    if (conflict != null)
+                    {
+                        await _databaseService.MarkActionConflictedAsync(action.Id, conflict);
+                        action.IsConflicted = true;
+                        action.ConflictReason = conflict;
+                        MainThread.BeginInvokeOnMainThread(() => ConflictDetected?.Invoke(action));
+                        allSucceeded = false;
+                        continue;
+                    }
+                }
+
                 var success = await ProcessActionAsync(action);
                 if (success)
                 {
@@ -82,7 +102,6 @@ public class SyncService
                     await _databaseService.IncrementRetryCountAsync(action.Id);
                     if (action.RetryCount >= 5)
                     {
-                        // Give up after 5 retries
                         await _databaseService.RemoveActionAsync(action.Id);
                     }
                     allSucceeded = false;
@@ -97,6 +116,75 @@ public class SyncService
         }
 
         return allSucceeded;
+    }
+
+    /// <summary>Fetches ticket from server and checks if it was modified since the action was queued.</summary>
+    private async Task<string?> CheckConflictAsync(Data.PendingAction action)
+    {
+        try
+        {
+            var doc = JsonDocument.Parse(action.PayloadJson);
+            if (!doc.RootElement.TryGetProperty("ticketId", out var ticketIdEl))
+                return null;
+
+            var ticketId = ticketIdEl.GetString();
+            if (string.IsNullOrEmpty(ticketId)) return null;
+
+            var json = await _apiService.GetTicketAsync(ticketId);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var ticket = JsonSerializer.Deserialize<Ticket>(json, options);
+
+            if (ticket == null) return "Ticket nicht mehr vorhanden.";
+
+            if (ticket.Updated > action.TicketUpdatedAt.Value.AddSeconds(1))
+            {
+                var diff = ticket.Updated - action.TicketUpdatedAt.Value;
+                var who = ticket.Assignee?.Fullname ?? ticket.Owner?.Fullname ?? "jemand";
+                return $"Ticket wurde vor {FormatTimeSpan(diff)} von {who} geändert.";
+            }
+
+            return null;
+        }
+        catch
+        {
+            return null; // Can't check — proceed without conflict
+        }
+    }
+
+    /// <summary>Force-applies a conflicted action, ignoring the conflict.</summary>
+    public async Task<bool> ForceApplyAsync(int actionId)
+    {
+        var actions = await _databaseService.GetPendingActionsAsync();
+        var action = actions.FirstOrDefault(a => a.Id == actionId);
+        if (action == null) return false;
+
+        var success = await ProcessActionAsync(action);
+        if (success)
+        {
+            await _databaseService.RemoveActionAsync(actionId);
+            await NotifyCountChanged();
+        }
+        return success;
+    }
+
+    /// <summary>Discards a conflicted action.</summary>
+    public async Task DiscardActionAsync(int actionId)
+    {
+        await _databaseService.RemoveActionAsync(actionId);
+        await NotifyCountChanged();
+    }
+
+    public async Task<List<Data.PendingAction>> GetConflictedActionsAsync()
+    {
+        var all = await _databaseService.GetPendingActionsAsync();
+        return all.Where(a => a.IsConflicted).ToList();
+    }
+
+    private static string FormatTimeSpan(TimeSpan ts)
+    {
+        if (ts.TotalDays >= 1) return $"{(int)ts.TotalDays} Tag(en)";
+        if (ts.TotalHours >= 1) return $"{(int)ts.TotalHours} Stunde(n)";
+        return $"{(int)ts.TotalMinutes} Minute(n)";
     }
 
     private async Task<bool> ProcessActionAsync(Data.PendingAction action)

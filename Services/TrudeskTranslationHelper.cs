@@ -26,6 +26,31 @@ public static class TrudeskTranslationHelper
         ["Resolved"] = "Gelöst"
     };
 
+    private static readonly Dictionary<string, string> HistoryActionTranslations = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["ticket:created"] = "Ticket erstellt",
+        ["ticket:updated"] = "Ticket aktualisiert",
+        ["ticket:deleted"] = "Ticket gelöscht",
+        ["ticket:status:updated"] = "Status geändert",
+        ["ticket:priority:updated"] = "Priorität geändert",
+        ["ticket:group:updated"] = "Gruppe geändert",
+        ["ticket:type:updated"] = "Typ geändert",
+        ["ticket:assignee:set"] = "Zugewiesen",
+        ["ticket:assignee:cleared"] = "Zuweisung entfernt",
+        ["ticket:comment:added"] = "Kommentar hinzugefügt",
+        ["ticket:note:added"] = "Notiz hinzugefügt",
+        ["ticket:attachment:added"] = "Anhang hinzugefügt",
+        ["ticket:attachment:removed"] = "Anhang entfernt",
+        ["ticket:subscriber:added"] = "Abonnent hinzugefügt",
+        ["ticket:subscriber:removed"] = "Abonnent entfernt",
+    };
+
+    public static string TranslateHistoryAction(string? action)
+    {
+        if (string.IsNullOrEmpty(action)) return action ?? string.Empty;
+        return HistoryActionTranslations.TryGetValue(action, out var translated) ? translated : action;
+    }
+
     public static string TranslatePriority(string? name)
     {
         if (string.IsNullOrEmpty(name)) return name ?? string.Empty;

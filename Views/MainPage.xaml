@@ -12,8 +12,9 @@
         <!-- Header -->
         <Grid Grid.Row="0"
               BackgroundColor="{AppThemeBinding Light={StaticResource HeaderBackground}, Dark={StaticResource HeaderBackgroundDark}}"
-              Padding="20,15">
-            <VerticalStackLayout>
+              Padding="20,15"
+              ColumnDefinitions="*,Auto">
+            <VerticalStackLayout Grid.Column="0">
                 <Label Text="THW Ticket System"
                        FontSize="12"
                        TextColor="#B3CCFF"/>
@@ -22,6 +23,40 @@
                        FontAttributes="Bold"
                        TextColor="{StaticResource HeaderText}"/>
             </VerticalStackLayout>
+
+            <!-- Notification Bell -->
+            <Grid Grid.Column="1" VerticalOptions="Center">
+                <Border StrokeShape="RoundRectangle 20"
+                        Stroke="Transparent"
+                        BackgroundColor="Transparent"
+                        Padding="8"
+                        WidthRequest="44"
+                        HeightRequest="44">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding NavigateToNotificationsCommand}"/>
+                    </Border.GestureRecognizers>
+                    <Label Text="&#x1F514;"
+                           FontSize="22"
+                           HorizontalTextAlignment="Center"
+                           VerticalTextAlignment="Center"/>
+                </Border>
+                <!-- Unread badge -->
+                <Frame IsVisible="{Binding HasUnreadNotifications}"
+                       BackgroundColor="{StaticResource Danger}"
+                       CornerRadius="9"
+                       Padding="5,1"
+                       HasShadow="False"
+                       BorderColor="Transparent"
+                       HorizontalOptions="End"
+                       VerticalOptions="Start"
+                       Margin="0,-2,-2,0">
+                    <Label Text="{Binding UnreadNotificationCount}"
+                           TextColor="White"
+                           FontSize="10"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"/>
+                </Frame>
+            </Grid>
         </Grid>
 
         <ScrollView Grid.Row="1">
@@ -238,15 +273,19 @@
                 </Grid>
 
                 <!-- Quick Actions Row 2 -->
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
                     <Button Grid.Column="0"
-                            Text="Kanban Board"
+                            Text="Kanban"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding NavigateToKanbanCommand}"/>
                     <Button Grid.Column="1"
-                            Text="Team-Dashboard"
+                            Text="Team"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding NavigateToTeamDashboardCommand}"/>
+                    <Button Grid.Column="2"
+                            Text="Berichte"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding NavigateToReportingCommand}"/>
                 </Grid>
 
                 <!-- Recent Tickets -->
@@ -334,6 +373,32 @@
                                 <FormattedString>
                                     <Span Text="{Binding PendingActionsCount}"/>
                                     <Span Text=" ausstehende Aktion(en) warten auf Synchronisation"/>
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </HorizontalStackLayout>
+                </Frame>
+
+                <!-- Sync Conflicts Banner -->
+                <Frame Padding="10"
+                       IsVisible="{Binding HasConflicts}"
+                       BackgroundColor="#FFEBEE"
+                       CornerRadius="8"
+                       BorderColor="{StaticResource Danger}"
+                       HasShadow="False">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding NavigateToConflictsCommand}"/>
+                    </Frame.GestureRecognizers>
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="8">
+                        <Label Text="&#x26A0;" FontSize="16" VerticalOptions="Center"/>
+                        <Label TextColor="#C62828"
+                               FontAttributes="Bold"
+                               FontSize="13"
+                               VerticalOptions="Center">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding ConflictCount}"/>
+                                    <Span Text=" Sync-Konflikt(e) — Tippen zum Lösen"/>
                                 </FormattedString>
                             </Label.FormattedText>
                         </Label>
