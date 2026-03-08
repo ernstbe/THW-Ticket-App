@@ -298,6 +298,17 @@ namespace THWTicketApp.ViewModels
         }
 
         [RelayCommand]
+        private async Task NavigateToReportingAsync()
+        {
+            var window = Application.Current?.Windows.FirstOrDefault();
+            if (window?.Page is NavigationPage nav)
+            {
+                var page = _serviceProvider.GetRequiredService<Views.ReportingPage>();
+                await nav.PushAsync(page);
+            }
+        }
+
+        [RelayCommand]
         private async Task NavigateToConflictsAsync()
         {
             var window = Application.Current?.Windows.FirstOrDefault();

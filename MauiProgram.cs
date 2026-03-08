@@ -65,6 +65,7 @@ public static class MauiProgram
         builder.Services.AddTransient<TeamDashboardViewModel>();
         builder.Services.AddTransient<NotificationHistoryViewModel>();
         builder.Services.AddTransient<SyncConflictViewModel>();
+        builder.Services.AddTransient<ReportingViewModel>();
 
         // Views
         builder.Services.AddSingleton<LoginPage>();
@@ -78,6 +79,7 @@ public static class MauiProgram
         builder.Services.AddTransient<Views.TeamDashboardPage>();
         builder.Services.AddTransient<Views.NotificationHistoryPage>();
         builder.Services.AddTransient<Views.SyncConflictPage>();
+        builder.Services.AddTransient<Views.ReportingPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

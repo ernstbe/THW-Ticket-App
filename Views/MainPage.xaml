@@ -273,15 +273,19 @@
                 </Grid>
 
                 <!-- Quick Actions Row 2 -->
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
                     <Button Grid.Column="0"
-                            Text="Kanban Board"
+                            Text="Kanban"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding NavigateToKanbanCommand}"/>
                     <Button Grid.Column="1"
-                            Text="Team-Dashboard"
+                            Text="Team"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding NavigateToTeamDashboardCommand}"/>
+                    <Button Grid.Column="2"
+                            Text="Berichte"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding NavigateToReportingCommand}"/>
                 </Grid>
 
                 <!-- Recent Tickets -->
