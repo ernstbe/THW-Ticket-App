@@ -224,7 +224,7 @@ public partial class AddTicketViewModel : ObservableObject
             }
             else
             {
-                StatusMessage = "Fehler beim Erstellen des Tickets.";
+                StatusMessage = $"Fehler: {_apiService.LastError ?? "Server hat das Ticket abgelehnt."}";
                 StatusColor = Colors.Red;
                 OnPropertyChanged(nameof(HasStatusMessage));
             }

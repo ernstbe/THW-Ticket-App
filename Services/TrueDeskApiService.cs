@@ -15,6 +15,7 @@ namespace THWTicketApp.Services
 
         public string? CurrentUsername { get; private set; }
         public string? CurrentUserId { get; private set; }
+        public string? LastError { get; private set; }
 
         public TrueDeskApiService(AppSettings settings)
         {
@@ -338,6 +339,7 @@ namespace THWTicketApp.Services
             {
                 ["subject"] = subject,
                 ["issue"] = issue ?? string.Empty,
+                ["owner"] = CurrentUserId,
             };
 
             if (!string.IsNullOrEmpty(typeId))
@@ -349,8 +351,16 @@ namespace THWTicketApp.Services
             if (!string.IsNullOrEmpty(assigneeId))
                 payload["assignee"] = assigneeId;
 
-            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var json = JsonSerializer.Serialize(payload);
+            System.Diagnostics.Debug.WriteLine($"CreateTicket payload: {json}");
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync($"{_settings.ApiBaseUrl}/tickets/create", content);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine($"CreateTicket failed ({response.StatusCode}): {body}");
+                LastError = $"{(int)response.StatusCode}: {body}";
+            }
             return response.IsSuccessStatusCode;
         }
     }
