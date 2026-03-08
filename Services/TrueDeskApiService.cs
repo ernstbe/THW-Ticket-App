@@ -475,7 +475,12 @@ namespace THWTicketApp.Services
                 var json = await response.Content.ReadAsStringAsync();
                 var doc = JsonDocument.Parse(json);
                 if (doc.RootElement.TryGetProperty("count", out var countEl))
+                {
+                    // Trudesk returns count as string, e.g. "70"
+                    if (countEl.ValueKind == JsonValueKind.String)
+                        return int.TryParse(countEl.GetString(), out var c) ? c : 0;
                     return countEl.GetInt32();
+                }
                 return 0;
             }
             catch

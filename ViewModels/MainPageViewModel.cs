@@ -398,8 +398,8 @@ namespace THWTicketApp.ViewModels
                 // Get closed status
                 var statusJson = await _apiService.GetStatusesAsync();
                 var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var statuses = System.Text.Json.JsonSerializer.Deserialize<Status[]>(statusJson, options);
-                var closedStatus = statuses?.FirstOrDefault(s => s.IsResolved);
+                var statuses = Utils.JsonHelper.DeserializeWrappedArray<Status>(statusJson, "status", options);
+                var closedStatus = statuses.FirstOrDefault(s => s.IsResolved);
 
                 if (closedStatus != null)
                 {

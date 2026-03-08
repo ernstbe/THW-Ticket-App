@@ -62,7 +62,7 @@ public partial class KanbanBoardViewModel : ObservableObject
             var ticketTask = _apiService.GetTicketsAsync();
             await Task.WhenAll(statusTask, ticketTask);
 
-            var statuses = JsonSerializer.Deserialize<Status[]>(statusTask.Result, options) ?? [];
+            var statuses = Utils.JsonHelper.DeserializeWrappedArray<Status>(statusTask.Result, "status", options);
             var tickets = JsonSerializer.Deserialize<Ticket[]>(ticketTask.Result, options) ?? [];
 
             // Translate

@@ -446,10 +446,10 @@ namespace THWTicketApp.ViewModels
                 {
                     PropertyNameCaseInsensitive = true
                 };
-                var statusList = System.Text.Json.JsonSerializer.Deserialize<Status[]>(json, options);
+                var statusList = Utils.JsonHelper.DeserializeWrappedArray<Status>(json, "status", options);
 
                 Statuses.Clear();
-                if (statusList != null)
+                if (statusList.Length > 0)
                 {
                     foreach (var status in statusList)
                     {

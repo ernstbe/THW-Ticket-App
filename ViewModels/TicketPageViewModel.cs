@@ -574,12 +574,20 @@ public partial class TicketPageViewModel : ObservableObject
                         AvailablePriorities.Add(p);
             }
 
-            // Groups
-            var groups = JsonSerializer.Deserialize<Group[]>(groupsTask.Result, options);
+            // Groups (wrapped: {"success":true,"groups":[...]})
             AvailableGroups.Clear();
-            if (groups != null)
-                foreach (var g in groups)
-                    AvailableGroups.Add(g);
+            using (var groupDoc = JsonDocument.Parse(groupsTask.Result))
+            {
+                Group[]? groups = null;
+                if (groupDoc.RootElement.TryGetProperty("groups", out var groupsEl))
+                    groups = JsonSerializer.Deserialize<Group[]>(groupsEl.GetRawText(), options);
+                else
+                    groups = JsonSerializer.Deserialize<Group[]>(groupsTask.Result, options);
+
+                if (groups != null)
+                    foreach (var g in groups)
+                        AvailableGroups.Add(g);
+            }
         }
         catch { /* Filter options are best-effort */ }
     }
@@ -905,8 +913,8 @@ public partial class TicketPageViewModel : ObservableObject
             {
                 var statusJson = await _apiService.GetStatusesAsync();
                 var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var statuses = System.Text.Json.JsonSerializer.Deserialize<Status[]>(statusJson, options);
-                var closedStatus = statuses?.FirstOrDefault(s => s.IsResolved);
+                var statuses = Utils.JsonHelper.DeserializeWrappedArray<Status>(statusJson, "status", options);
+                var closedStatus = statuses.FirstOrDefault(s => s.IsResolved);
                 if (closedStatus != null)
                 {
                     editTicket.Status = closedStatus;
@@ -1027,8 +1035,8 @@ public partial class TicketPageViewModel : ObservableObject
         {
             var statusJson = await _apiService.GetStatusesAsync();
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var statuses = JsonSerializer.Deserialize<Status[]>(statusJson, options);
-            closedStatus = statuses?.FirstOrDefault(s => s.IsResolved);
+            var statuses = Utils.JsonHelper.DeserializeWrappedArray<Status>(statusJson, "status", options);
+            closedStatus = statuses.FirstOrDefault(s => s.IsResolved);
         }
         catch { }
 

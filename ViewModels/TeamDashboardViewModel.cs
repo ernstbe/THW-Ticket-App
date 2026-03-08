@@ -171,15 +171,28 @@ public partial class TeamDashboardViewModel : ObservableObject
         try
         {
             var json = await _apiService.GetTicketStatsAsync(30);
-            var stats = JsonSerializer.Deserialize<TicketStats>(json, options);
-            if (stats != null)
+            // Stats endpoint returns cached data — fields may be null/missing when cache isn't populated
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            if (root.TryGetProperty("ticketCount", out var tc) && tc.ValueKind == JsonValueKind.Number)
+                TotalTickets = tc.GetInt32();
+            if (root.TryGetProperty("closedCount", out var cc) && cc.ValueKind == JsonValueKind.Number)
+                ClosedTickets = cc.GetInt32();
+            if (root.TryGetProperty("ticketAvg", out var ta) && ta.ValueKind == JsonValueKind.Number)
             {
-                TotalTickets = stats.TicketCount;
-                ClosedTickets = stats.ClosedCount;
-                AvgResponseTime = stats.TicketAvg;
-                AvgResponseDisplay = stats.TicketAvg > 0 ? $"{stats.TicketAvg:F1}h" : "-";
-                TopRequester = stats.MostRequester?.Fullname ?? stats.MostRequester?.Name;
-                TopAssignee = stats.MostAssignee?.Fullname ?? stats.MostAssignee?.Name;
+                AvgResponseTime = ta.GetDouble();
+                AvgResponseDisplay = AvgResponseTime > 0 ? $"{AvgResponseTime:F1}h" : "-";
+            }
+            if (root.TryGetProperty("mostRequester", out var mr) && mr.ValueKind == JsonValueKind.Object)
+            {
+                var item = JsonSerializer.Deserialize<TicketStatItem>(mr.GetRawText(), options);
+                TopRequester = item?.Fullname ?? item?.Name;
+            }
+            if (root.TryGetProperty("mostAssignee", out var ma) && ma.ValueKind == JsonValueKind.Object)
+            {
+                var item = JsonSerializer.Deserialize<TicketStatItem>(ma.GetRawText(), options);
+                TopAssignee = item?.Fullname ?? item?.Name;
             }
         }
         catch { }
