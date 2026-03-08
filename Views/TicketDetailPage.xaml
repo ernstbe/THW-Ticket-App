@@ -350,39 +350,77 @@
                         </CollectionView.EmptyView>
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:Attachment">
-                                <Grid Padding="5,6" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-                                    <Label Grid.Column="0"
-                                           Text="&#x1F4CE;"
-                                           FontSize="18"
-                                           VerticalOptions="Center"/>
-                                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
-                                        <Label Text="{Binding Name}"
-                                               FontAttributes="Bold"
-                                               FontSize="13"
-                                               LineBreakMode="TailTruncation"/>
-                                        <Label FontSize="11"
-                                               TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="{Binding Size, StringFormat='{0:N0} Bytes'}"/>
-                                                    <Span Text=" - "/>
-                                                    <Span Text="{Binding UploadDate, StringFormat='{0:dd.MM.yyyy}'}"/>
-                                                </FormattedString>
-                                            </Label.FormattedText>
+                                <Border Margin="0,3"
+                                        StrokeShape="RoundRectangle 8"
+                                        Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource CardBorderDark}}"
+                                        StrokeThickness="1"
+                                        Padding="10"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource PageBackground}, Dark={StaticResource PageBackgroundDark}}">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10" RowDefinitions="Auto">
+                                        <!-- Icon: image or file -->
+                                        <Label Grid.Column="0"
+                                               FontSize="20"
+                                               VerticalOptions="Center">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding IsImage}"
+                                                             Value="True">
+                                                    <Setter Property="Text" Value="&#x1F5BC;"/>
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding IsImage}"
+                                                             Value="False">
+                                                    <Setter Property="Text" Value="&#x1F4CE;"/>
+                                                </DataTrigger>
+                                            </Label.Triggers>
                                         </Label>
-                                    </VerticalStackLayout>
-                                    <Button Grid.Column="2"
-                                            Text="&#x2B07;"
-                                            FontSize="14"
-                                            Padding="8,4"
-                                            CornerRadius="6"
-                                            BackgroundColor="{StaticResource THWBlue}"
-                                            TextColor="White"
-                                            HeightRequest="32"
-                                            MinimumHeightRequest="32"
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TicketDetailViewModel}}, Path=DownloadAttachmentCommand}"
-                                            CommandParameter="{Binding .}"/>
-                                </Grid>
+
+                                        <!-- File info -->
+                                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                            <Label Text="{Binding Name}"
+                                                   FontAttributes="Bold"
+                                                   FontSize="13"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                                                   LineBreakMode="TailTruncation"/>
+                                            <Label FontSize="11"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="{Binding SizeFormatted}"/>
+                                                        <Span Text=" - "/>
+                                                        <Span Text="{Binding UploadDate, StringFormat='{0:dd.MM.yyyy}'}"/>
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                        </VerticalStackLayout>
+
+                                        <!-- Preview/Download button -->
+                                        <Button Grid.Column="2"
+                                                Text="&#x1F441;"
+                                                FontSize="14"
+                                                Padding="8,4"
+                                                CornerRadius="6"
+                                                BackgroundColor="{StaticResource THWBlue}"
+                                                TextColor="White"
+                                                HeightRequest="32"
+                                                MinimumHeightRequest="32"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TicketDetailViewModel}}, Path=PreviewAttachmentCommand}"
+                                                CommandParameter="{Binding .}"/>
+
+                                        <!-- Delete button -->
+                                        <Button Grid.Column="3"
+                                                Text="&#x1F5D1;"
+                                                FontSize="14"
+                                                Padding="8,4"
+                                                CornerRadius="6"
+                                                BackgroundColor="{StaticResource Danger}"
+                                                TextColor="White"
+                                                HeightRequest="32"
+                                                MinimumHeightRequest="32"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:TicketDetailViewModel}}, Path=DeleteAttachmentCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                    </Grid>
+                                </Border>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
@@ -390,6 +428,33 @@
                     <Button Text="Datei hochladen"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding UploadAttachmentCommand}"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Image Preview Overlay -->
+            <Frame IsVisible="{Binding IsPreviewVisible}"
+                   BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#1E1E1E}"
+                   Padding="10"
+                   CornerRadius="12"
+                   BorderColor="Transparent">
+                <VerticalStackLayout Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="Vorschau"
+                               Style="{StaticResource SectionHeaderStyle}" Margin="0"/>
+                        <Button Grid.Column="1"
+                                Text="&#x2716;"
+                                FontSize="16"
+                                Padding="8,4"
+                                CornerRadius="6"
+                                BackgroundColor="{StaticResource Danger}"
+                                TextColor="White"
+                                HeightRequest="32"
+                                MinimumHeightRequest="32"
+                                Command="{Binding ClosePreviewCommand}"/>
+                    </Grid>
+                    <Image Source="{Binding PreviewImageSource}"
+                           MaximumHeightRequest="400"
+                           Aspect="AspectFit"/>
                 </VerticalStackLayout>
             </Frame>
 

@@ -880,6 +880,92 @@ namespace THWTicketApp.ViewModels
             }
         }
 
+        [RelayCommand]
+        private async Task DeleteAttachmentAsync(Models.Attachment attachment)
+        {
+            if (Ticket == null || string.IsNullOrEmpty(attachment?.Id)) return;
+
+            IsLoading = true;
+            StatusMessage = "Anhang wird gelöscht...";
+
+            try
+            {
+                var success = await _apiService.DeleteAttachmentAsync(Ticket.Id, attachment.Id!);
+                if (success)
+                {
+                    StatusMessage = "Anhang gelöscht.";
+                    await ReloadTicketAsync();
+                }
+                else
+                {
+                    StatusMessage = "Löschen fehlgeschlagen.";
+                }
+            }
+            catch (Exception ex)
+            {
+                var (message, _) = Utils.ErrorHelper.Categorize(ex);
+                StatusMessage = $"Löschen: {message}";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task PreviewAttachmentAsync(Models.Attachment attachment)
+        {
+            if (attachment?.Path == null) return;
+
+            if (attachment.IsImage)
+            {
+                // Download image to cache and show inline preview
+                try
+                {
+                    var fileName = attachment.Name ?? "preview";
+                    var targetPath = System.IO.Path.Combine(FileSystem.CacheDirectory, fileName);
+
+                    if (!File.Exists(targetPath))
+                    {
+                        using var stream = await _apiService.DownloadAttachmentAsync(attachment.Path);
+                        if (stream == null) return;
+                        using var fileStream = File.Create(targetPath);
+                        await stream.CopyToAsync(fileStream);
+                    }
+
+                    PreviewImageSource = ImageSource.FromFile(targetPath);
+                    IsPreviewVisible = true;
+                }
+                catch { }
+            }
+            else
+            {
+                // Non-image: download and open with native viewer
+                await DownloadAttachmentAsync(attachment);
+            }
+        }
+
+        private ImageSource? _previewImageSource;
+        public ImageSource? PreviewImageSource
+        {
+            get => _previewImageSource;
+            set => SetProperty(ref _previewImageSource, value);
+        }
+
+        private bool _isPreviewVisible;
+        public bool IsPreviewVisible
+        {
+            get => _isPreviewVisible;
+            set => SetProperty(ref _isPreviewVisible, value);
+        }
+
+        [RelayCommand]
+        private void ClosePreview()
+        {
+            IsPreviewVisible = false;
+            PreviewImageSource = null;
+        }
+
         private async Task ReloadTicketAsync()
         {
             if (Ticket == null) return;

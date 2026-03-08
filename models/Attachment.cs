@@ -21,4 +21,18 @@ public class Attachment
 
     [JsonPropertyName("uploadDate")]
     public DateTime? UploadDate { get; set; }
+
+    [JsonIgnore]
+    public bool IsImage => MimeType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true;
+
+    [JsonIgnore]
+    public string SizeFormatted
+    {
+        get
+        {
+            if (Size < 1024) return $"{Size} B";
+            if (Size < 1024 * 1024) return $"{Size / 1024.0:F1} KB";
+            return $"{Size / (1024.0 * 1024.0):F1} MB";
+        }
+    }
 }

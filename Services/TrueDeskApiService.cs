@@ -278,6 +278,19 @@ namespace THWTicketApp.Services
             return null;
         }
 
+        public string GetAttachmentUrl(string attachmentPath)
+        {
+            var baseUrl = _settings.ApiBaseUrl.Replace("/api/v1", "");
+            return $"{baseUrl}{attachmentPath}";
+        }
+
+        public async Task<bool> DeleteAttachmentAsync(string ticketId, string attachmentId)
+        {
+            var response = await _httpClient.DeleteAsync(
+                $"{_settings.ApiBaseUrl}/tickets/{ticketId}/attachments/{attachmentId}");
+            return response.IsSuccessStatusCode;
+        }
+
         private static string GetMimeType(string fileName)
         {
             var ext = System.IO.Path.GetExtension(fileName)?.ToLowerInvariant();
