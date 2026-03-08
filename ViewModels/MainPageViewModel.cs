@@ -67,6 +67,12 @@ namespace THWTicketApp.ViewModels
 
         public bool HasPendingActions => PendingActionsCount > 0;
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasConflicts))]
+        private int _conflictCount;
+
+        public bool HasConflicts => ConflictCount > 0;
+
         public MainPageViewModel(TrueDeskApiService apiService, DatabaseService databaseService, IServiceProvider serviceProvider, SyncService syncService, RealtimeService realtimeService, NotificationService notificationService)
         {
             _apiService = apiService;
@@ -86,6 +92,13 @@ namespace THWTicketApp.ViewModels
             notificationService.NotificationReceived += () =>
                 MainThread.BeginInvokeOnMainThread(async () =>
                     UnreadNotificationCount = await _databaseService.GetUnreadNotificationCountAsync());
+
+            _syncService.ConflictDetected += _ =>
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    var conflicts = await _syncService.GetConflictedActionsAsync();
+                    ConflictCount = conflicts.Count;
+                });
         }
 
         private async void OnRealtimeUpdate()
@@ -117,6 +130,8 @@ namespace THWTicketApp.ViewModels
             await _syncService.SyncPendingActionsAsync();
             PendingActionsCount = await _syncService.GetPendingCountAsync();
             UnreadNotificationCount = await _databaseService.GetUnreadNotificationCountAsync();
+            var conflicts = await _syncService.GetConflictedActionsAsync();
+            ConflictCount = conflicts.Count;
 
             // Connect to real-time updates
             _ = _realtimeService.ConnectAsync();
@@ -279,6 +294,17 @@ namespace THWTicketApp.ViewModels
             {
                 var kanbanPage = _serviceProvider.GetRequiredService<Views.KanbanBoardPage>();
                 await nav.PushAsync(kanbanPage);
+            }
+        }
+
+        [RelayCommand]
+        private async Task NavigateToConflictsAsync()
+        {
+            var window = Application.Current?.Windows.FirstOrDefault();
+            if (window?.Page is NavigationPage nav)
+            {
+                var page = _serviceProvider.GetRequiredService<Views.SyncConflictPage>();
+                await nav.PushAsync(page);
             }
         }
 

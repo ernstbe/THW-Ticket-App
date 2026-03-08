@@ -170,7 +170,7 @@ public class DatabaseService
 
     // --- Pending Actions Queue ---
 
-    public async Task EnqueueActionAsync(string actionType, string payloadJson)
+    public async Task EnqueueActionAsync(string actionType, string payloadJson, DateTime? ticketUpdatedAt = null)
     {
         await InitAsync();
         var action = new PendingAction
@@ -178,9 +178,22 @@ public class DatabaseService
             ActionType = actionType,
             PayloadJson = payloadJson,
             CreatedAt = DateTime.UtcNow,
-            RetryCount = 0
+            RetryCount = 0,
+            TicketUpdatedAt = ticketUpdatedAt
         };
         await _database!.InsertAsync(action);
+    }
+
+    public async Task MarkActionConflictedAsync(int id, string reason)
+    {
+        await InitAsync();
+        var action = await _database!.FindAsync<PendingAction>(id);
+        if (action != null)
+        {
+            action.IsConflicted = true;
+            action.ConflictReason = reason;
+            await _database.UpdateAsync(action);
+        }
     }
 
     public async Task<List<PendingAction>> GetPendingActionsAsync()

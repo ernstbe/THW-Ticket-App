@@ -671,7 +671,7 @@ namespace THWTicketApp.ViewModels
                 if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
                 {
                     var ownerId = Ticket.Owner?.Id ?? string.Empty;
-                    await _syncService.EnqueueCommentAsync(Ticket.Id, ownerId, NewComment);
+                    await _syncService.EnqueueCommentAsync(Ticket.Id, ownerId, NewComment, Ticket.Updated);
                     StatusMessage = "Offline: Kommentar wird bei Verbindung gesendet.";
                     NewComment = string.Empty;
                 }
@@ -772,7 +772,7 @@ namespace THWTicketApp.ViewModels
                 if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
                 {
                     var ownerId = Ticket.Owner?.Id ?? string.Empty;
-                    await _syncService.EnqueueNoteAsync(Ticket.Id, ownerId, NewNote);
+                    await _syncService.EnqueueNoteAsync(Ticket.Id, ownerId, NewNote, Ticket.Updated);
                     StatusMessage = "Offline: Notiz wird bei Verbindung gesendet.";
                     NewNote = string.Empty;
                 }

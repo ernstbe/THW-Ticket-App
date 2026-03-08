@@ -375,6 +375,32 @@
                     </HorizontalStackLayout>
                 </Frame>
 
+                <!-- Sync Conflicts Banner -->
+                <Frame Padding="10"
+                       IsVisible="{Binding HasConflicts}"
+                       BackgroundColor="#FFEBEE"
+                       CornerRadius="8"
+                       BorderColor="{StaticResource Danger}"
+                       HasShadow="False">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding NavigateToConflictsCommand}"/>
+                    </Frame.GestureRecognizers>
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="8">
+                        <Label Text="&#x26A0;" FontSize="16" VerticalOptions="Center"/>
+                        <Label TextColor="#C62828"
+                               FontAttributes="Bold"
+                               FontSize="13"
+                               VerticalOptions="Center">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding ConflictCount}"/>
+                                    <Span Text=" Sync-Konflikt(e) — Tippen zum Lösen"/>
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </HorizontalStackLayout>
+                </Frame>
+
                 <!-- Logout -->
                 <Button Text="Abmelden"
                         Command="{Binding LogoutCommand}"

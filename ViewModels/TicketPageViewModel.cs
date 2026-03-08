@@ -733,7 +733,7 @@ public partial class TicketPageViewModel : ObservableObject
         {
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
             {
-                await _syncService.EnqueueAssignAsync(ticket.Id, userId);
+                await _syncService.EnqueueAssignAsync(ticket.Id, userId, ticket.Updated);
                 StatusMessage = "Offline: Zuweisung wird bei Verbindung gesendet.";
             }
             else
@@ -865,7 +865,10 @@ public partial class TicketPageViewModel : ObservableObject
             catch
             {
                 if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
-                    await _syncService.EnqueueAssignAsync(ticketId, userId);
+                {
+                    var t = _allTickets.FirstOrDefault(x => x.Id == ticketId);
+                    await _syncService.EnqueueAssignAsync(ticketId, userId, t?.Updated);
+                }
             }
         }
 
