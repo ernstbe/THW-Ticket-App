@@ -19,6 +19,9 @@ public partial class TicketPageViewModel : ObservableObject
     private bool _isOfflineCacheEnabled;
     private CancellationTokenSource? _searchCts;
     private bool _isServerSearchActive;
+    private int _currentPage;
+    private bool _hasMorePages = true;
+    private const int PageSize = 50;
 
     private string _statusMessage = string.Empty;
     public string StatusMessage
@@ -110,6 +113,15 @@ public partial class TicketPageViewModel : ObservableObject
     }
 
     public bool HasPendingActions => PendingActionsCount > 0;
+
+    private bool _isLoadingMore;
+    public bool IsLoadingMore
+    {
+        get => _isLoadingMore;
+        set => SetProperty(ref _isLoadingMore, value);
+    }
+
+    public bool HasMorePages => _hasMorePages;
 
     private bool _isRealtimeConnected;
     public bool IsRealtimeConnected
@@ -717,19 +729,23 @@ public partial class TicketPageViewModel : ObservableObject
 
         try
         {
-            var json = await _apiService.GetTicketsAsync();
-
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             };
-            var tickets = JsonSerializer.Deserialize<Ticket[]>(json, options);
 
             _allTickets.Clear();
             Tickets.Clear();
+            _currentPage = 0;
+            _hasMorePages = true;
+
+            // Load first page
+            var json = await _apiService.GetTicketsPagedAsync(0, PageSize);
+            var tickets = Utils.JsonHelper.DeserializeWrappedArray<Ticket>(json, "tickets", options);
 
             if (tickets == null || tickets.Length == 0)
             {
+                _hasMorePages = false;
                 StatusMessage = "Keine Tickets gefunden.";
             }
             else
@@ -740,7 +756,16 @@ public partial class TicketPageViewModel : ObservableObject
                     _allTickets.Add(ticket);
                     Tickets.Add(ticket);
                 }
+
+                _hasMorePages = tickets.Length >= PageSize;
+                _currentPage = 1;
                 StatusMessage = string.Empty;
+
+                // Load remaining pages in background
+                if (_hasMorePages)
+                {
+                    _ = LoadRemainingPagesAsync(options);
+                }
 
                 // Save to cache if enabled
                 if (_isOfflineCacheEnabled)
@@ -749,6 +774,7 @@ public partial class TicketPageViewModel : ObservableObject
                 }
             }
 
+            OnPropertyChanged(nameof(HasMorePages));
             ApplyFilters();
         }
         catch (Exception ex)
@@ -805,6 +831,49 @@ public partial class TicketPageViewModel : ObservableObject
         {
             StatusMessage = "Fehler beim Laden des Cache.";
         }
+    }
+
+    private async Task LoadRemainingPagesAsync(JsonSerializerOptions options)
+    {
+        while (_hasMorePages)
+        {
+            try
+            {
+                var json = await _apiService.GetTicketsPagedAsync(_currentPage, PageSize);
+                var tickets = Utils.JsonHelper.DeserializeWrappedArray<Ticket>(json, "tickets", options);
+
+                if (tickets == null || tickets.Length == 0)
+                {
+                    _hasMorePages = false;
+                    break;
+                }
+
+                foreach (var ticket in tickets)
+                {
+                    TrudeskTranslationHelper.TranslateTicket(ticket);
+                    _allTickets.Add(ticket);
+                    Tickets.Add(ticket);
+                }
+
+                _hasMorePages = tickets.Length >= PageSize;
+                _currentPage++;
+
+                // Update cache incrementally
+                if (_isOfflineCacheEnabled)
+                {
+                    await _databaseService.SaveTicketsAsync(tickets);
+                }
+
+                // Re-apply filters to include new tickets
+                MainThread.BeginInvokeOnMainThread(() => ApplyFilters());
+            }
+            catch
+            {
+                break;
+            }
+        }
+
+        OnPropertyChanged(nameof(HasMorePages));
     }
 
     [RelayCommand]
@@ -895,19 +964,18 @@ public partial class TicketPageViewModel : ObservableObject
     {
         if (ticket == null) return;
 
+        // Declare outside try so it's accessible in catch for offline queuing
+        var editTicket = new Ticket
+        {
+            Id = ticket.Id,
+            Subject = ticket.Subject,
+            Issue = ticket.Issue,
+            Priority = ticket.Priority,
+            Status = new Status { Id = ticket.Status?.Id, Name = "Closed", IsResolved = true }
+        };
+
         try
         {
-            // Find the "closed/resolved" status - try to use the ticket's existing statuses
-            // Set status to resolved by updating the ticket
-            var editTicket = new Ticket
-            {
-                Id = ticket.Id,
-                Subject = ticket.Subject,
-                Issue = ticket.Issue,
-                Priority = ticket.Priority,
-                Status = new Status { Id = ticket.Status?.Id, Name = "Closed", IsResolved = true }
-            };
-
             // First try to get proper closed status from API
             try
             {
@@ -935,8 +1003,16 @@ public partial class TicketPageViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            var (message, _) = Utils.ErrorHelper.Categorize(ex);
-            StatusMessage = $"Schließen: {message}";
+            if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet && editTicket.Status?.Id != null)
+            {
+                await _syncService.EnqueueUpdateStatusAsync(ticket.Id, ticket.Uid, editTicket.Status.Id, ticket.Updated);
+                StatusMessage = "Offline: Schließen wird bei Verbindung gesendet.";
+            }
+            else
+            {
+                var (message, _) = Utils.ErrorHelper.Categorize(ex);
+                StatusMessage = $"Schließen: {message}";
+            }
         }
         OnPropertyChanged(nameof(HasStatusMessage));
     }

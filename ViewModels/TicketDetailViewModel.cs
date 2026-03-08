@@ -568,8 +568,16 @@ namespace THWTicketApp.ViewModels
             }
             catch (Exception ex)
             {
-                var (message, _) = Utils.ErrorHelper.Categorize(ex);
-                StatusMessage = $"Status: {message}";
+                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                {
+                    await _syncService.EnqueueUpdateStatusAsync(Ticket.Id, Ticket.Uid, SelectedStatus.Id, Ticket.Updated);
+                    StatusMessage = "Offline: Status-Änderung wird bei Verbindung gesendet.";
+                }
+                else
+                {
+                    var (message, _) = Utils.ErrorHelper.Categorize(ex);
+                    StatusMessage = $"Status: {message}";
+                }
             }
             finally
             {
@@ -632,8 +640,16 @@ namespace THWTicketApp.ViewModels
             }
             catch (Exception ex)
             {
-                var (message, _) = Utils.ErrorHelper.Categorize(ex);
-                StatusMessage = $"Zuweisung entfernen: {message}";
+                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                {
+                    await _syncService.EnqueueClearAssigneeAsync(Ticket.Id, Ticket.Uid, Ticket.Updated);
+                    StatusMessage = "Offline: Zuweisung wird bei Verbindung entfernt.";
+                }
+                else
+                {
+                    var (message, _) = Utils.ErrorHelper.Categorize(ex);
+                    StatusMessage = $"Zuweisung entfernen: {message}";
+                }
             }
             finally
             {
@@ -733,8 +749,18 @@ namespace THWTicketApp.ViewModels
             }
             catch (Exception ex)
             {
-                var (message, _) = Utils.ErrorHelper.Categorize(ex);
-                StatusMessage = $"Bearbeitung: {message}";
+                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                {
+                    await _syncService.EnqueueEditTicketAsync(
+                        Ticket.Id, Ticket.Uid, EditSubject, EditIssue,
+                        SelectedPriority?.Id, SelectedStatus?.Id, Ticket.Updated);
+                    StatusMessage = "Offline: Änderung wird bei Verbindung gesendet.";
+                }
+                else
+                {
+                    var (message, _) = Utils.ErrorHelper.Categorize(ex);
+                    StatusMessage = $"Bearbeitung: {message}";
+                }
             }
             finally
             {
