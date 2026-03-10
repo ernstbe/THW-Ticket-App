@@ -61,6 +61,27 @@ public class SyncService : ISyncService
         await NotifyCountChanged();
     }
 
+    public async Task EnqueueUpdateStatusAsync(string ticketId, int ticketUid, string statusId, DateTime? ticketUpdatedAt = null)
+    {
+        var payload = JsonSerializer.Serialize(new { ticketId, ticketUid, statusId });
+        await _databaseService.EnqueueActionAsync("UpdateStatus", payload, ticketUpdatedAt);
+        await NotifyCountChanged();
+    }
+
+    public async Task EnqueueEditTicketAsync(string ticketId, int ticketUid, string? subject, string? issue, string? priorityId, string? statusId, DateTime? ticketUpdatedAt = null)
+    {
+        var payload = JsonSerializer.Serialize(new { ticketId, ticketUid, subject, issue, priorityId, statusId });
+        await _databaseService.EnqueueActionAsync("EditTicket", payload, ticketUpdatedAt);
+        await NotifyCountChanged();
+    }
+
+    public async Task EnqueueClearAssigneeAsync(string ticketId, int ticketUid, DateTime? ticketUpdatedAt = null)
+    {
+        var payload = JsonSerializer.Serialize(new { ticketId, ticketUid });
+        await _databaseService.EnqueueActionAsync("ClearAssignee", payload, ticketUpdatedAt);
+        await NotifyCountChanged();
+    }
+
     public async Task<bool> SyncPendingActionsAsync()
     {
         if (_isSyncing || !_apiService.IsAuthenticated) return false;
@@ -225,6 +246,15 @@ public class SyncService : ISyncService
                     root.GetProperty("ticketId").GetString()!,
                     root.GetProperty("userId").GetString()!),
 
+                "UpdateStatus" => await _apiService.UpdateTicketStatusAsync(
+                    root.GetProperty("ticketId").GetString()!,
+                    root.GetProperty("statusId").GetString()!),
+
+                "EditTicket" => await ProcessEditTicketAsync(root),
+
+                "ClearAssignee" => await _apiService.ClearTicketAssigneeAsync(
+                    root.GetProperty("ticketId").GetString()!),
+
                 _ => false
             };
         }
@@ -232,6 +262,20 @@ public class SyncService : ISyncService
         {
             return false;
         }
+    }
+
+    private async Task<bool> ProcessEditTicketAsync(JsonElement root)
+    {
+        var ticket = new Ticket { Id = root.GetProperty("ticketId").GetString()! };
+        if (root.TryGetProperty("subject", out var subEl) && subEl.ValueKind == JsonValueKind.String)
+            ticket.Subject = subEl.GetString();
+        if (root.TryGetProperty("issue", out var issEl) && issEl.ValueKind == JsonValueKind.String)
+            ticket.Issue = issEl.GetString();
+        if (root.TryGetProperty("priorityId", out var priEl) && priEl.ValueKind == JsonValueKind.String)
+            ticket.Priority = new Priority { Id = priEl.GetString() };
+        if (root.TryGetProperty("statusId", out var statEl) && statEl.ValueKind == JsonValueKind.String)
+            ticket.Status = new Status { Id = statEl.GetString() };
+        return await _apiService.EditTicketAsync(ticket);
     }
 
     private async Task NotifyCountChanged()

@@ -9,10 +9,14 @@ public class RealtimeService : IDisposable
     private readonly ITrueDeskApiService _apiService;
     private SocketIOClient.SocketIO? _socket;
     private bool _disposed;
+    private CancellationTokenSource? _reconnectCts;
+    private int _reconnectAttempt;
+    private const int MaxReconnectDelaySeconds = 120;
 
     public event Action<string>? TicketUpdated;
     public event Action<string>? TicketCreated;
     public event Action<string>? CommentAdded;
+    public event Action<bool>? ConnectionStateChanged;
 
     public bool IsConnected => _socket?.Connected == true;
 
@@ -83,17 +87,65 @@ public class RealtimeService : IDisposable
                 return Task.CompletedTask;
             });
 
+            _socket.OnDisconnected += async (sender, args) =>
+            {
+                MainThread.BeginInvokeOnMainThread(() => ConnectionStateChanged?.Invoke(false));
+                if (!_disposed)
+                    await ReconnectWithBackoffAsync();
+            };
+
+            _socket.OnConnected += (sender, args) =>
+            {
+                _reconnectAttempt = 0;
+                MainThread.BeginInvokeOnMainThread(() => ConnectionStateChanged?.Invoke(true));
+            };
+
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await _socket.ConnectAsync(cts.Token);
         }
         catch
         {
             // Socket connection is best-effort - app works fine without it
+            _ = ReconnectWithBackoffAsync();
+        }
+    }
+
+    private async Task ReconnectWithBackoffAsync()
+    {
+        if (_disposed || !_apiService.IsAuthenticated) return;
+
+        _reconnectCts?.Cancel();
+        _reconnectCts = new CancellationTokenSource();
+        var token = _reconnectCts.Token;
+
+        while (!token.IsCancellationRequested && !_disposed && _apiService.IsAuthenticated)
+        {
+            _reconnectAttempt++;
+            var delaySeconds = Math.Min((int)Math.Pow(2, _reconnectAttempt), MaxReconnectDelaySeconds);
+
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(delaySeconds), token);
+                if (token.IsCancellationRequested || _disposed) return;
+
+                if (_socket?.Connected == true) return;
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                await _socket!.ConnectAsync(cts.Token);
+                return; // Connected successfully
+            }
+            catch (TaskCanceledException) { return; }
+            catch
+            {
+                // Retry on next iteration
+            }
         }
     }
 
     public async Task DisconnectAsync()
     {
+        _reconnectCts?.Cancel();
+        _reconnectAttempt = 0;
         if (_socket?.Connected == true)
         {
             await _socket.DisconnectAsync();
@@ -148,6 +200,8 @@ public class RealtimeService : IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        _reconnectCts?.Cancel();
+        _reconnectCts?.Dispose();
         _socket?.Dispose();
     }
 }

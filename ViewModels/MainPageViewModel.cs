@@ -408,7 +408,23 @@ namespace THWTicketApp.ViewModels
                         await LoadDashboardAsync();
                 }
             }
-            catch { }
+            catch
+            {
+                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                {
+                    // Try to get cached closed status ID
+                    try
+                    {
+                        var statusJson = await _apiService.GetStatusesAsync();
+                        var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                        var statuses = Utils.JsonHelper.DeserializeWrappedArray<Status>(statusJson, "status", options);
+                        var closedStatus = statuses.FirstOrDefault(s => s.IsResolved);
+                        if (closedStatus?.Id != null)
+                            await _syncService.EnqueueUpdateStatusAsync(ticket.Id, ticket.Uid, closedStatus.Id, ticket.Updated);
+                    }
+                    catch { }
+                }
+            }
         }
 
         [RelayCommand]

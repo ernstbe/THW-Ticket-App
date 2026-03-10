@@ -25,6 +25,7 @@ public partial class KanbanColumn : ObservableObject
 public partial class KanbanBoardViewModel : ObservableObject
 {
     private readonly ITrueDeskApiService _apiService;
+    private readonly ISyncService _syncService;
 
     private bool _isLoading;
     public bool IsLoading
@@ -42,9 +43,10 @@ public partial class KanbanBoardViewModel : ObservableObject
 
     public ObservableCollection<KanbanColumn> Columns { get; } = new();
 
-    public KanbanBoardViewModel(ITrueDeskApiService apiService)
+    public KanbanBoardViewModel(ITrueDeskApiService apiService, ISyncService syncService)
     {
         _apiService = apiService;
+        _syncService = syncService;
     }
 
     [RelayCommand]
@@ -63,7 +65,7 @@ public partial class KanbanBoardViewModel : ObservableObject
             await Task.WhenAll(statusTask, ticketTask);
 
             var statuses = Utils.JsonHelper.DeserializeWrappedArray<Status>(statusTask.Result, "status", options);
-            var tickets = JsonSerializer.Deserialize<Ticket[]>(ticketTask.Result, options) ?? [];
+            var tickets = Utils.JsonHelper.DeserializeWrappedArray<Ticket>(ticketTask.Result, "tickets", options);
 
             // Translate
             foreach (var t in tickets)
@@ -120,6 +122,13 @@ public partial class KanbanBoardViewModel : ObservableObject
                 await LoadBoardAsync();
             }
         }
-        catch { }
+        catch
+        {
+            if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+            {
+                await _syncService.EnqueueUpdateStatusAsync(
+                    moveInfo.Ticket.Id!, moveInfo.Ticket.Uid, moveInfo.TargetStatusId, moveInfo.Ticket.Updated);
+            }
+        }
     }
 }
